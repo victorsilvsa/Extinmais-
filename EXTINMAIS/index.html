@@ -190,17 +190,28 @@
         <i class="fas fa-search"></i>
         <input type="text" id="orderSearch" placeholder="Buscar OS...">
       </div>
+      
     </div>
 
     <!-- Filtros -->
-    <div class="filter-buttons">
-      <button class="filter-btn active" data-filter="all">Todas</button>
-      <button class="filter-btn" data-filter="completed">Concluídas</button>
-      <button class="filter-btn" data-filter="pending">Pendentes</button>
-        <div class="view-toggle"><button class="view-btn active" data-view="card" onclick="toggleView('card')"> <i class="fas fa-th-large"></i> <span>Cards</span> </button> <button class="view-btn" data-view="list" onclick="toggleView('list')"> <i class="fas fa-list"></i> <span>Lista</span> </button>
-  </div>
+<div class="filter-buttons">
 
-    </div>
+  <button class="filter-btn active" data-filter="all">Todas</button>
+  <button class="filter-btn" data-filter="completed">Concluídas</button>
+  <button class="filter-btn" data-filter="pending">Pendentes</button>
+
+  <button class="view-btn active" data-view="card" onclick="toggleView('card')">
+    <i class="fas fa-th-large"></i>
+    <span>Cards</span>
+  </button>
+
+  <button class="view-btn" data-view="list" onclick="toggleView('list')">
+    <i class="fas fa-list"></i>
+    <span>Lista</span>
+  </button>
+
+</div>
+
 
     <!-- Lista de Ordens -->
     <div id="ordersList"></div>
