@@ -2004,7 +2004,7 @@
     width: 100%;
   }
 }
-.filter-buttons{
+.filter-buttons.unified {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 8px;
@@ -2014,8 +2014,8 @@
   border: 1px solid #333;
 }
 
-/* Estilo geral dos botões */
-.filter-buttons button {
+/* Botões padrão */
+.filter-buttons.unified button {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -2031,31 +2031,31 @@
   white-space: nowrap;
 }
 
-/* Hover */
-.filter-buttons button:hover {
+.filter-buttons.unified button:hover {
   background: #222;
   color: #fff;
 }
 
-/* Ativo */
-.filter-buttons button.active {
+.filter-buttons.unified button.active {
   background: linear-gradient(135deg, #D4C29A, #bfa97a);
   color: #000;
   border-color: #D4C29A;
   font-weight: 700;
 }
 
-/* 🔽 Botões de visualização (Cards / Lista) */
-.filter-buttons .view-btn {
-  grid-column: span 3;              /* ocupa a linha toda */
-  max-width: 140px;
-  justify-self: center;             /* centraliza */
-}
-
-/* Espaço entre as linhas */
-.filter-buttons .view-btn:first-of-type {
+/* 🔽 Linha de baixo (Cards / Lista) */
+.filter-buttons.unified .view-toggle {
+  grid-column: span 3;          /* ocupa a largura toda */
+  display: flex;
+  justify-content: center;      /* centraliza */
+  gap: 8px;
   margin-top: 6px;
 }
+
+.filter-buttons.unified .view-btn {
+  min-width: 120px;
+}
+
 @media (max-width: 768px) {
   .filter-buttons.unified {
     justify-content: center;
