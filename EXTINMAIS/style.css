@@ -2004,3 +2004,28 @@
     width: 100%;
   }
 }
+.filter-buttons {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  background: #0d0d0d;
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px solid #333;
+}
+
+.filter-buttons button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 14px;
+  font-size: 13px;
+  border-radius: 8px;
+  border: 1px solid #333;
+  background: #1a1a1a;
+  color: #ccc;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  white-space: nowrap;
+}
