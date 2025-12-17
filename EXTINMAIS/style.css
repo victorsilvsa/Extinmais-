@@ -1742,3 +1742,265 @@
     }
 
 
+.view-toggle {
+  display: flex;
+  background: #1a1a1a;
+  border: 2px solid #333;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.view-btn {
+  padding: 12px 20px;
+  background: transparent;
+  border: none;
+  color: #888;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.view-btn:hover {
+  background: #0d0d0d;
+  color: #D4C29A;
+}
+
+.view-btn.active {
+  background: #D4C29A;
+  color: #000;
+  font-weight: 700;
+}
+
+.view-btn i {
+  font-size: 18px;
+}
+
+/* MODO LISTA (Compacto) */
+#ordersList.list-view .list-item {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  padding: 16px;
+  gap: 16px;
+}
+
+#ordersList.list-view .list-item-header {
+  padding: 0 !important;
+  background: transparent !important;
+  border: none !important;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+#ordersList.list-view .list-item-title {
+  font-size: 16px !important;
+  margin-bottom: 0 !important;
+}
+
+#ordersList.list-view .list-item-subtitle {
+  display: none !important;
+}
+
+#ordersList.list-view .list-item-info {
+  display: none !important;
+}
+
+#ordersList.list-view .list-item > div:last-child {
+  display: flex !important;
+  flex-direction: row;
+  gap: 8px;
+  padding: 0 !important;
+  background: transparent !important;
+  border: none !important;
+}
+
+#ordersList.list-view .btn-small {
+  padding: 8px 12px !important;
+  font-size: 12px !important;
+  flex: 0 0 auto !important;
+  min-width: auto !important;
+}
+
+#ordersList.list-view .btn-small span {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .view-btn span {
+    display: none;
+  }
+
+  #ordersList.list-view .list-item {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  #ordersList.list-view .list-item > div:last-child {
+    flex-wrap: wrap;
+  }
+}
+
+/* Modal Compacto */
+.modal-compact {
+  max-width: 600px;
+  width: 95%;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.modal-compact .modal-header {
+  padding: 16px 20px;
+  background: linear-gradient(135deg, #1a1a1a 0%, #0d0d0d 100%);
+  border-bottom: 2px solid #D4C29A;
+}
+
+.modal-compact .modal-header h2 {
+  font-size: 18px;
+  margin: 0;
+  color: #D4C29A;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.modal-compact .modal-body {
+  padding: 20px;
+  background: #0d0d0d;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.form-group {
+  margin-bottom: 12px;
+}
+
+.form-group label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+  font-weight: 600;
+}
+
+.form-group label i {
+  color: #D4C29A;
+  font-size: 11px;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 10px 12px;
+  background: #1a1a1a;
+  border: 2px solid #333;
+  border-radius: 8px;
+  color: #fff;
+  font-size: 14px;
+  transition: all 0.3s;
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: #D4C29A;
+  background: #000;
+}
+
+.modal-compact .modal-footer {
+  padding: 16px 20px;
+  background: #000;
+  border-top: 2px solid #D4C29A;
+  display: flex;
+  gap: 10px;
+}
+
+.modal-compact .modal-footer .btn {
+  flex: 1;
+  padding: 12px 16px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.modal-compact .modal-footer .btn-primary {
+  background: #D4C29A;
+  color: #000;
+}
+
+.modal-compact .modal-footer .btn-primary:hover {
+  background: #b8a376;
+  transform: translateY(-2px);
+}
+
+.modal-compact .modal-footer .btn-secondary {
+  background: #1a1a1a;
+  color: #888;
+  border: 2px solid #333;
+}
+
+.modal-compact .modal-footer .btn-secondary:hover {
+  background: #0d0d0d;
+  border-color: #D4C29A;
+  color: #D4C29A;
+}
+
+.modal-close {
+  background: transparent;
+  border: none;
+  color: #888;
+  font-size: 20px;
+  cursor: pointer;
+  transition: all 0.3s;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-close:hover {
+  color: #D4C29A;
+  transform: rotate(90deg);
+}
+
+/* Responsivo Mobile */
+@media (max-width: 768px) {
+  .form-row {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .modal-compact {
+    width: 100%;
+    max-height: 100vh;
+    border-radius: 0;
+  }
+
+  .modal-compact .modal-footer {
+    flex-direction: column;
+  }
+
+  .modal-compact .modal-footer .btn {
+    width: 100%;
+  }
+}
