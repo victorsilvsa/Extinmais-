@@ -2004,7 +2004,7 @@
     width: 100%;
   }
 }
-.filter-buttons.unified {
+.filter-buttons {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 8px;
@@ -2015,7 +2015,7 @@
 }
 
 /* Botões padrão */
-.filter-buttons.unified button {
+.filter-buttons button {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -2031,12 +2031,12 @@
   white-space: nowrap;
 }
 
-.filter-buttons.unified button:hover {
+.filter-buttons button:hover {
   background: #222;
   color: #fff;
 }
 
-.filter-buttons.unified button.active {
+.filter-buttons button.active {
   background: linear-gradient(135deg, #D4C29A, #bfa97a);
   color: #000;
   border-color: #D4C29A;
@@ -2044,7 +2044,7 @@
 }
 
 /* 🔽 Linha de baixo (Cards / Lista) */
-.filter-buttons.unified .view-toggle {
+.filter-buttons.view-toggle {
   grid-column: span 3;          /* ocupa a largura toda */
   display: flex;
   justify-content: center;      /* centraliza */
@@ -2052,16 +2052,16 @@
   margin-top: 6px;
 }
 
-.filter-buttons.unified .view-btn {
+.filter-buttons .view-btn {
   min-width: 120px;
 }
 
 @media (max-width: 768px) {
-  .filter-buttons.unified {
+  .filter-buttons {
     justify-content: center;
   }
 
-  .filter-buttons.unified button {
+  .filter-buttons button {
     flex: 1 1 calc(50% - 6px);
   }
 }
