@@ -405,6 +405,7 @@ document.getElementById('hasSinalizacao').addEventListener('change', (e) => {
   document.getElementById('sinalizacaoSection').classList.toggle('visible', e.target.checked);
 });
 
+
 // PDF GENERATORS - Um para cada tipo de inspeção
 
 // 1. PDF COMPLETO
@@ -481,18 +482,17 @@ function generateCompletePDF(data) {
 
 
     // -------------------------------------
-    // Página 6 - Sinalização PARTE 1
+    // Página 6 e 7 - Sinalização (somente se existir)
     // -------------------------------------
     if (data.has_sinalizacao) {
+      // Parte 1
       html += `<div class="pdf-page">`;
       html += generatePDFHeader('RELATÓRIO COMPLETO DE INSPEÇÃO');
       html += generateSinalizacaoSection_Parte1(data);
       html += generatePDFFooter();
       html += `</div>`;
 
-      // -------------------------------------
-      // Página 7 - Sinalização PARTE 2
-      // -------------------------------------
+      // Parte 2
       html += `<div class="pdf-page">`;
       html += generatePDFHeader('RELATÓRIO COMPLETO DE INSPEÇÃO');
       html += generateSinalizacaoSection_Parte2(data);
@@ -502,7 +502,7 @@ function generateCompletePDF(data) {
 
 
     // -------------------------------------
-    // Página 8 - Conformidade + Assinatura
+    // Página Final - Conformidade + Assinatura
     // -------------------------------------
     html += `<div class="pdf-page">`;
     html += generatePDFHeader('RELATÓRIO COMPLETO DE INSPEÇÃO');
@@ -532,7 +532,7 @@ function generateCompletePDF(data) {
 
 
     // -------------------------------------
-    // Página 2 - Bombas e Hidrantes
+    // Página 2 - Bombas e Hidrantes (somente se existir)
     // -------------------------------------
     if (data.has_bombas || data.has_hidrantes) {
       html += `<div class="pdf-page">`;
@@ -552,7 +552,7 @@ function generateCompletePDF(data) {
 
 
     // -------------------------------------
-    // Página 3 - Alarme e Extintores
+    // Página 3 - Alarme e Extintores (somente se existir)
     // -------------------------------------
     if (data.has_alarme || data.has_extintores) {
       html += `<div class="pdf-page">`;
@@ -572,34 +572,32 @@ function generateCompletePDF(data) {
 
 
     // -------------------------------------
-    // Página 4 - Sinalização
+    // Página 4 - Sinalização (somente se existir)
     // -------------------------------------
-    html += `<div class="pdf-page">`;
-    html += generatePDFHeader('RELATÓRIO COMPLETO DE INSPEÇÃO');
-
     if (data.has_sinalizacao) {
+      html += `<div class="pdf-page">`;
+      html += generatePDFHeader('RELATÓRIO COMPLETO DE INSPEÇÃO');
       html += generateSinalizacaoSection(data);
+      html += generatePDFFooter();
+      html += `</div>`;
     }
 
-    html += generatePDFFooter();
-    html += `</div>`;
-
 
     // -------------------------------------
-    // Página 5 - Conformidade + Assinatura
+    // Página Final - Conformidade + Assinatura
     // -------------------------------------
     html += `<div class="pdf-page">`;
     html += generatePDFHeader('RELATÓRIO COMPLETO DE INSPEÇÃO');
-
     html += generateConformidadeSection(data);
     html += generateSignaturesSection(data);
-
     html += generatePDFFooter();
     html += `</div>`;
   }
 
   return html;
 }
+
+
 
 // PARTE 1 - Rota de Fuga
 function generateSinalizacaoSection_Parte1(data) {
@@ -1363,6 +1361,7 @@ function generatePDFFooter() {
       `;
 }
 
+
 // Generate Report Button - Show Selection Modal
 document.getElementById('generateReportBtn').addEventListener('click', () => {
   const form = document.getElementById('inspectionForm');
@@ -2104,7 +2103,64 @@ async function loadOrders() {
   }
 }
 
-// Renderiza ordens aplicando busca e filtro
+
+// ============================= 
+// LISTENER FIREBASE - ESCUTA ORDERS
+// ============================= 
+firebase.database().ref('orders').on('value', (snapshot) => {
+  allOrders = [];
+  const data = snapshot.val();
+  
+  if (data) {
+    Object.keys(data).forEach(key => {
+      allOrders.push({
+        id: key,
+        ...data[key]
+      });
+    });
+  }
+  
+  // Ordena por data mais recente
+  allOrders.sort((a, b) => {
+    const dateA = new Date(a.data || 0).getTime();
+    const dateB = new Date(b.data || 0).getTime();
+    return dateB - dateA;
+  });
+  
+  renderFilteredOrders();
+  
+  // Atualiza dashboard se a função existir
+  if (typeof updateDashboard === 'function') {
+    updateDashboard();
+  }
+});
+
+// ============================= 
+// FUNÇÃO PARA AGRUPAR PRODUTOS DUPLICADOS
+// ============================= 
+function agruparProdutos(produtos) {
+  const agrupados = {};
+  
+  produtos.forEach(p => {
+    const key = p.id || p.name;
+    if (agrupados[key]) {
+      agrupados[key].qty += Number(p.qty) || 0;
+    } else {
+      agrupados[key] = {
+        id: p.id,
+        name: p.name,
+        price: Number(p.price) || 0,
+        qty: Number(p.qty) || 0
+      };
+    }
+  });
+  
+  return Object.values(agrupados);
+}
+
+// ============================= 
+// RENDERIZAR ORDENS FILTRADAS
+// ============================= 
 function renderFilteredOrders() {
   const list = document.getElementById('ordersList');
   if (!list) return;
@@ -2112,7 +2168,6 @@ function renderFilteredOrders() {
   list.innerHTML = '';
 
   const search = (document.getElementById('orderSearch')?.value || '').toLowerCase();
-
   const activeFilterBtn = document.querySelector('#ordersSection .filter-btn.active');
   const activeFilter = activeFilterBtn?.dataset?.filter || 'all';
 
@@ -2152,9 +2207,6 @@ function renderFilteredOrders() {
   }
 
   filtered.forEach(os => {
-    /* ============================= */
-    /* STATUS */
-    /* ============================= */
     const statusText = (os.status || os.estado || (os.completed ? 'Concluída' : 'Pendente')).toString();
     const isFinalizada = /conclu|finaliz/i.test(statusText);
 
@@ -2163,135 +2215,1151 @@ function renderFilteredOrders() {
       : '<span class="badge badge-pending">Pendente</span>';
 
     const finalizarBtn = !isFinalizada
-      ? `<button class="btn-small btn-success" onclick="finalizarOS('${os.id}')">
+      ? `<button class="btn-small btn-success" onclick="finalizarOS('${os.id}')" style="flex: 1 1 calc(50% - 4px); border-radius: 8px; font-weight: 600;">
           <i class="fas fa-check-circle"></i> Finalizar
         </button>`
       : '';
 
-    /* ============================= */
-    /* DATA */
-    /* ============================= */
-    const dataStr = os.data
-      ? new Date(os.data).toLocaleDateString('pt-BR')
-      : '-';
+    const dataStr = os.data ? new Date(os.data).toLocaleDateString('pt-BR') : '-';
+    
+    // Agrupa produtos duplicados
+    const produtosOriginais = Array.isArray(os.products) ? os.products : [];
+    const produtos = agruparProdutos(produtosOriginais);
+    const qtdProdutos = produtos.reduce((acc, p) => acc + p.qty, 0);
 
-    /* ============================= */
-    /* PRODUTOS + TOTAL */
-    /* ============================= */
-    const produtos = Array.isArray(os.products) ? os.products : [];
-
-    const qtdProdutos = produtos.reduce((acc, p) => {
-      return acc + (Number(p.qty) || 0);
-    }, 0);
-
-    let totalFinal = Number(os.total);
-
-    // fallback para OS antigas
-    if (!totalFinal || isNaN(totalFinal)) {
-      totalFinal = Number(os.preco) || 0;
-    }
-
+    let totalFinal = Number(os.total) || Number(os.preco) || 0;
     const precoFmt = totalFinal.toLocaleString('pt-BR', {
       style: 'currency',
       currency: 'BRL'
     });
 
-    /* ============================= */
-    /* RENDER */
-    /* ============================= */
+    const formaPagamento = os.payment_method || os.formaPagamento || 'Não informado';
+
+    let produtosListaHTML = '';
+    if (produtos.length > 0) {
+      produtosListaHTML = produtos.map(p => `
+        <div style="
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 12px 14px;
+          background: #1a1a1a;
+          border: 1px solid #333;
+          margin-bottom: 8px;
+          border-radius: 8px;
+          transition: all 0.3s;
+        ">
+          <span style="
+            color: #fff;
+            flex: 1;
+            margin-right: 12px;
+            font-size: 14px;
+            font-weight: 500;
+          ">
+            <i class="fas fa-box" style="margin-right: 10px; color: #D4C29A; font-size: 12px;"></i>
+            ${escapeHtml(p.name || 'Produto')}
+          </span>
+          <span style="
+            color: #D4C29A;
+            font-weight: 700;
+            background: #0d0d0d;
+            padding: 6px 14px;
+            border-radius: 6px;
+            white-space: nowrap;
+            font-size: 14px;
+            border: 1px solid #D4C29A;
+          ">
+            ${p.qty}x
+          </span>
+        </div>
+      `).join('');
+    }
+
     const div = document.createElement('div');
     div.className = 'list-item';
 
     div.innerHTML = `
-  <div class="list-item-header">
-    <div>
-      <div class="list-item-title">
+  <div class="list-item-header" style="
+    padding: 18px 20px;
+    background: linear-gradient(135deg, #1a1a1a 0%, #0d0d0d 100%);
+    border-bottom: 2px solid #D4C29A;
+  ">
+    <div style="flex: 1;">
+      <div class="list-item-title" style="
+        font-size: 18px;
+        margin-bottom: 8px;
+        color: #D4C29A;
+        font-weight: 700;
+        letter-spacing: 0.3px;
+      ">
         ${escapeHtml(os.cliente || 'Cliente não informado')}
       </div>
-      <div class="list-item-subtitle">${dataStr}</div>
+      <div class="list-item-subtitle" style="
+        font-size: 13px;
+        color: #999;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      ">
+        <i class="fas fa-calendar-alt" style="font-size: 11px;"></i>
+        ${dataStr}
+      </div>
     </div>
     ${statusBadge}
   </div>
 
-  <div class="list-item-info">
+  <div class="list-item-info" style="
+    padding: 20px;
+    gap: 16px;
+    background: #0d0d0d;
+  ">
 
-    <div class="list-item-info-row">
-      <span class="list-item-info-label">Serviço:</span>
-      <span class="list-item-info-value">
-        ${escapeHtml(os.servico || '-')}
-      </span>
+    <div style="
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 18px;
+    ">
+      <div style="
+        background: #1a1a1a;
+        border: 1px solid #333;
+        border-radius: 8px;
+        padding: 14px;
+        transition: all 0.3s;
+      ">
+        <div style="
+          font-size: 11px;
+          color: #888;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+          margin-bottom: 8px;
+          display: flex;
+          align-items: center;
+          gap: 6px;
+        ">
+          <i class="fas fa-tools" style="color: #D4C29A;"></i>
+          Serviço
+        </div>
+        <div style="
+          font-size: 14px;
+          color: #fff;
+          font-weight: 600;
+        ">
+          ${escapeHtml(os.servico || '-')}
+        </div>
+      </div>
+
+      <div style="
+        background: #1a1a1a;
+        border: 1px solid #333;
+        border-radius: 8px;
+        padding: 14px;
+        transition: all 0.3s;
+      ">
+        <div style="
+          font-size: 11px;
+          color: #888;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+          margin-bottom: 8px;
+          display: flex;
+          align-items: center;
+          gap: 6px;
+        ">
+          <i class="fas fa-user-hard-hat" style="color: #D4C29A;"></i>
+          Técnico
+        </div>
+        <div style="
+          font-size: 14px;
+          color: #fff;
+          font-weight: 600;
+        ">
+          ${escapeHtml(os.tecnico || '-')}
+        </div>
+      </div>
     </div>
 
-    <div class="list-item-info-row">
-      <span class="list-item-info-label">Técnico:</span>
-      <span class="list-item-info-value">
-        ${escapeHtml(os.tecnico || '-')}
-      </span>
+    <div style="
+      background: #1a1a1a;
+      border: 1px solid #333;
+      border-radius: 8px;
+      padding: 14px;
+      margin-bottom: 16px;
+    ">
+      <div style="
+        font-size: 11px;
+        color: #888;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 8px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      ">
+        <i class="fas fa-map-marker-alt" style="color: #D4C29A;"></i>
+        Endereço
+      </div>
+      <div style="
+        font-size: 14px;
+        color: #fff;
+        font-weight: 500;
+      ">
+        ${escapeHtml(os.endereco || '-')}
+      </div>
     </div>
 
-    <!-- PREÇO TOTAL -->
-    <div class="list-item-info-row">
-      <span class="list-item-info-label">Total:</span>
-      <span
-        class="list-item-info-value"
-        style="font-weight:700;color:#4ade80;"
-      >
+    <div style="
+      background: #1a1a1a;
+      border: 1px solid #333;
+      border-radius: 8px;
+      padding: 14px;
+      margin-bottom: 16px;
+    ">
+      <div style="
+        font-size: 11px;
+        color: #888;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 8px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      ">
+        <i class="fas fa-credit-card" style="color: #D4C29A;"></i>
+        Forma de Pagamento
+      </div>
+      <div style="
+        font-size: 14px;
+        color: #fff;
+        font-weight: 600;
+      ">
+        ${escapeHtml(formaPagamento)}
+      </div>
+    </div>
+
+    <div style="
+      background: linear-gradient(135deg, #1a1a1a 0%, #0d0d0d 100%);
+      border: 2px solid #D4C29A;
+      border-radius: 10px;
+      padding: 18px 20px;
+      margin: 18px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 4px 12px rgba(212, 194, 154, 0.15);
+    ">
+      <span style="
+        color: #D4C29A;
+        font-size: 13px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      ">
+        <i class="fas fa-dollar-sign" style="margin-right: 8px;"></i>
+        Valor Total
+      </span>
+      <span style="
+        color: #D4C29A;
+        font-size: 24px;
+        font-weight: 800;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+      ">
         ${precoFmt}
       </span>
     </div>
 
-    <!-- PRODUTOS + LUCRO -->
-    <div class="list-item-info-row" style="gap:12px; flex-wrap:wrap;">
-      <span
-        style="
-          background:#1f2937;
-          border:1px solid #374151;
-          border-radius:6px;
-          padding:4px 8px;
-          font-size:12px;
-          color:#e5e7eb;
-        "
-      >
-        <i class="fas fa-box" style="margin-right:4px;"></i>
-        ${qtdProdutos} produto(s)
-      </span>
+    ${produtosListaHTML ? `
+      <div style="margin-top: 16px; margin-bottom: 16px;">
+        <div style="
+          color: #D4C29A;
+          font-size: 12px;
+          font-weight: 700;
+          margin-bottom: 12px;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+          padding-bottom: 8px;
+          border-bottom: 2px solid #D4C29A;
+        ">
+          <i class="fas fa-boxes" style="margin-right: 8px; font-size: 11px;"></i>
+          Produtos Utilizados (${qtdProdutos} un.)
+        </div>
+        <div style="max-height: 240px; overflow-y: auto;">
+          ${produtosListaHTML}
+        </div>
+      </div>
+    ` : `
+      <div style="
+        margin: 16px 0;
+        padding: 16px;
+        background: #1a1a1a;
+        border: 2px dashed #333;
+        border-radius: 8px;
+        color: #888;
+        font-size: 13px;
+        text-align: center;
+      ">
+        <i class="fas fa-inbox" style="margin-right: 8px; font-size: 16px; color: #D4C29A;"></i>
+        Nenhum produto cadastrado
+      </div>
+    `}
 
-      <span
-        style="
-          background:#052e16;
-          border:1px solid #14532d;
-          border-radius:6px;
-          padding:4px 8px;
-          font-size:12px;
-          color:#4ade80;
-        "
-      >
-        <i class="fas fa-percent" style="margin-right:4px;"></i>
+    <div style="margin-top: 12px;">
+      <span style="
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: linear-gradient(135deg, #1a1a1a 0%, #0d0d0d 100%);
+        border: 1px solid #16a34a;
+        border-radius: 8px;
+        padding: 10px 16px;
+        font-size: 13px;
+        color: #16a34a;
+        font-weight: 700;
+      ">
+        <i class="fas fa-chart-line"></i>
         ${Number(os.profitPercent || 0)}% lucro
       </span>
     </div>
 
-    <div class="list-item-info-row">
-      <span class="list-item-info-label">Endereço:</span>
-      <span class="list-item-info-value">
-        ${escapeHtml(os.endereco || '-')}
-      </span>
-    </div>
-
   </div>
 
-  <div class="list-item-actions">
-    <button class="btn-small btn-info" onclick="viewOrder('${os.id}')">
-      <i class="fas fa-eye"></i> Ver
-    </button>
-    ${finalizarBtn}
-  </div>
+ <div style="
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 16px;
+  background: #000;
+  border-top: 2px solid #D4C29A;
+">
+  <!-- Ver - Azul -->
+  <button class="btn-small" onclick="viewOrder('${os.id}')" style="
+    flex: 1 1 calc(50% - 4px); 
+    font-size: 13px; 
+    padding: 12px 14px;
+    border-radius: 8px;
+    font-weight: 600;
+    background: #1a1a1a;
+    color: #3b82f6;
+    border: 2px solid #3b82f6;
+    cursor: pointer;
+    transition: all 0.3s;
+  ">
+    <i class="fas fa-eye"></i> <span>Ver</span>
+  </button>
+  
+  <!-- Pagamento - Verde -->
+  <button class="btn-small" onclick="abrirModalPagamento('${os.id}')" style="
+    flex: 1 1 calc(50% - 4px); 
+    font-size: 13px; 
+    padding: 12px 14px;
+    border-radius: 8px;
+    font-weight: 600;
+    background: #1a1a1a;
+    color: #10b981;
+    border: 2px solid #10b981;
+    cursor: pointer;
+    transition: all 0.3s;
+  ">
+    <i class="fas fa-credit-card"></i> <span>Pagamento</span>
+  </button>
+  
+  <!-- PDF - Rosa/Vermelho -->
+  <button class="btn-small" onclick="gerarPDFOrdem('${os.id}')" style="
+    flex: 1 1 calc(50% - 4px); 
+    font-size: 13px; 
+    padding: 12px 14px;
+    border-radius: 8px;
+    font-weight: 600;
+    background: #1a1a1a;
+    color: #f43f5e;
+    border: 2px solid #f43f5e;
+    cursor: pointer;
+    transition: all 0.3s;
+  ">
+    <i class="fas fa-file-pdf"></i> <span>PDF</span>
+  </button>
+  
+  <!-- Editar - Dourado -->
+  <button class="btn-small" onclick="editarOS('${os.id}')" style="
+    flex: 1 1 calc(50% - 4px); 
+    font-size: 13px; 
+    padding: 12px 14px;
+    border-radius: 8px;
+    font-weight: 600;
+    background: #1a1a1a;
+    color: #D4C29A;
+    border: 2px solid #D4C29A;
+    cursor: pointer;
+    transition: all 0.3s;
+  ">
+    <i class="fas fa-edit"></i> <span>Editar</span>
+  </button>
+  
+  ${finalizarBtn}
+  
+  <!-- Excluir - Vermelho -->
+  <button class="btn-small" onclick="excluirOS('${os.id}')" style="
+    flex: 1 1 calc(50% - 4px); 
+    font-size: 13px; 
+    padding: 12px 14px;
+    border-radius: 8px;
+    font-weight: 600;
+    background: #1a1a1a;
+    color: #dc2626;
+    border: 2px solid #dc2626;
+    cursor: pointer;
+    transition: all 0.3s;
+  ">
+    <i class="fas fa-trash"></i> <span>Excluir</span>
+  </button>
+</div>
+
+
 `;
-
 
     list.appendChild(div);
   });
 }
+
+// ============================= 
+// MODAL DE PAGAMENTO
+// ============================= 
+function abrirModalPagamento(orderId) {
+  const ordem = allOrders.find(o => o.id === orderId);
+  if (!ordem) {
+    showToast('Ordem não encontrada', 'error');
+    return;
+  }
+
+  const formaPagamento = ordem.payment_method || ordem.formaPagamento || 'Não informado';
+  const totalFinal = Number(ordem.total) || Number(ordem.preco) || 0;
+  const precoFmt = totalFinal.toLocaleString('pt-BR', {
+    style: 'currency',
+    currency: 'BRL'
+  });
+
+  const overlay = document.createElement('div');
+  overlay.id = 'modalPagamentoOverlay';
+  overlay.style.cssText = `
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.85);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    padding: 20px;
+    animation: fadeIn 0.2s ease;
+  `;
+
+  const modal = document.createElement('div');
+  modal.style.cssText = `
+    background: #1a1a1a;
+    border: 2px solid #D4C29A;
+    border-radius: 12px;
+    padding: 0;
+    max-width: 500px;
+    width: 100%;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.9);
+    animation: slideUp 0.3s ease;
+    max-height: 90vh;
+    overflow-y: auto;
+  `;
+
+  modal.innerHTML = `
+    <div style="
+      padding: 20px 24px;
+      border-bottom: 2px solid #D4C29A;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    ">
+      <h3 style="
+        color: #D4C29A;
+        margin: 0;
+        font-size: 18px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      ">
+        <i class="fas fa-credit-card"></i>
+        Informações de Pagamento
+      </h3>
+      <button onclick="fecharModalPagamento()" style="
+        background: none;
+        border: none;
+        color: #999;
+        font-size: 20px;
+        cursor: pointer;
+        padding: 0;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 6px;
+        transition: all 0.2s;
+      "
+      onmouseover="this.style.background='#2a2a2a'; this.style.color='#D4C29A'"
+      onmouseout="this.style.background='none'; this.style.color='#999'"
+      >
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+
+    <div style="padding: 24px;">
+      
+      <div style="margin-bottom: 20px;">
+        <div style="color: #999; font-size: 12px; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;">
+          Cliente
+        </div>
+        <div style="color: #D4C29A; font-size: 16px; font-weight: 600;">
+          ${escapeHtml(ordem.cliente || 'Não informado')}
+        </div>
+      </div>
+
+      <div style="
+        background: #2a2a2a;
+        border: 1px solid #D4C29A;
+        border-radius: 8px;
+        padding: 16px;
+        margin-bottom: 20px;
+      ">
+        <div style="color: #999; font-size: 13px; margin-bottom: 8px;">
+          Valor Total da Ordem
+        </div>
+        <div style="color: #D4C29A; font-size: 28px; font-weight: 700;">
+          ${precoFmt}
+        </div>
+      </div>
+
+      <div style="margin-bottom: 24px;">
+        <div style="color: #999; font-size: 12px; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">
+          Forma de Pagamento Atual
+        </div>
+        <div style="
+          background: #2a2a2a;
+          border: 1px solid #D4C29A;
+          border-radius: 6px;
+          padding: 12px 16px;
+          color: #fff;
+          font-size: 15px;
+          font-weight: 600;
+          display: flex;
+          align-items: center;
+          gap: 10px;
+        ">
+          <i class="fas fa-check-circle" style="color: #D4C29A;"></i>
+          ${escapeHtml(formaPagamento)}
+        </div>
+      </div>
+
+      <div style="margin-bottom: 24px;">
+        <div style="color: #999; font-size: 12px; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">
+          Alterar Forma de Pagamento
+        </div>
+        <select id="novaFormaPagamento" style="
+          width: 100%;
+          padding: 12px 16px;
+          background: #2a2a2a;
+          border: 1px solid #D4C29A;
+          border-radius: 6px;
+          color: #fff;
+          font-size: 14px;
+          cursor: pointer;
+          transition: all 0.2s;
+        ">
+          <option value="">Selecione uma opção</option>
+          <option value="Dinheiro">Dinheiro</option>
+          <option value="Pix">Pix</option>
+          <option value="Cartão de Crédito">Cartão de Crédito</option>
+          <option value="Cartão de Débito">Cartão de Débito</option>
+          <option value="Boleto">Boleto</option>
+          <option value="Transferência">Transferência</option>
+          <option value="A Prazo">A Prazo</option>
+          <option value="Outro">Outro</option>
+        </select>
+      </div>
+
+      <div style="display: flex; gap: 10px; margin-top: 24px;">
+        <button onclick="fecharModalPagamento()" class="btn-secondary" style="
+          flex: 1;
+          padding: 12px 20px;
+          border-radius: 8px;
+          font-size: 14px;
+          font-weight: 600;
+        ">
+          <i class="fas fa-times" style="margin-right: 6px;"></i>
+          Cancelar
+        </button>
+        <button onclick="salvarFormaPagamento('${ordem.id}')" class="btn-primary" style="
+          flex: 1;
+          padding: 12px 20px;
+          border-radius: 8px;
+          font-size: 14px;
+          font-weight: 600;
+        ">
+          <i class="fas fa-save" style="margin-right: 6px;"></i>
+          Salvar
+        </button>
+      </div>
+
+    </div>
+  `;
+
+  overlay.appendChild(modal);
+  document.body.appendChild(overlay);
+
+  overlay.onclick = (e) => {
+    if (e.target === overlay) {
+      fecharModalPagamento();
+    }
+  };
+}
+
+function fecharModalPagamento() {
+  const overlay = document.getElementById('modalPagamentoOverlay');
+  if (overlay) {
+    overlay.style.animation = 'fadeOut 0.2s ease';
+    setTimeout(() => {
+      if (overlay.parentNode) {
+        document.body.removeChild(overlay);
+      }
+    }, 200);
+  }
+}
+
+async function salvarFormaPagamento(orderId) {
+  const selectElement = document.getElementById('novaFormaPagamento');
+  const novaForma = selectElement?.value;
+
+  if (!novaForma) {
+    showToast('Selecione uma forma de pagamento', 'error');
+    return;
+  }
+
+  try {
+    showToast('Salvando forma de pagamento...', 'info');
+
+    const ordemRef = firebase.database().ref('orders/' + orderId);
+    await ordemRef.update({
+      payment_method: novaForma,
+      formaPagamento: novaForma
+    });
+
+    showToast('Forma de pagamento atualizada!', 'success');
+    fecharModalPagamento();
+  } catch (error) {
+    console.error('Erro ao salvar forma de pagamento:', error);
+    showToast('Erro ao salvar: ' + error.message, 'error');
+  }
+}
+
+// ============================= 
+// FUNÇÃO GERAR PDF COM JSPDF
+// ============================= 
+async function gerarPDFOrdem(orderId) {
+  
+  const ordem = allOrders.find(o => o.id === orderId);
+  if (!ordem) {
+    showToast('Ordem não encontrada', 'error');
+    return;
+  }
+
+  try {
+    showToast('Gerando PDF...', 'info');
+
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({
+      orientation: 'portrait',
+      unit: 'mm',
+      format: 'a4'
+    });
+
+    // =============================
+    // DADOS BASE
+    // =============================
+    const produtosOriginais = Array.isArray(ordem.products) ? ordem.products : [];
+    const produtos = agruparProdutos(produtosOriginais);
+
+    const dataStr = ordem.data
+      ? new Date(ordem.data).toLocaleDateString('pt-BR')
+      : '-';
+
+    const formaPagamento =
+      ordem.payment_method ||
+      ordem.formaPagamento ||
+      'Não informado';
+
+    const totalFinal =
+      Number(ordem.total) ||
+      Number(ordem.preco) ||
+      0;
+
+    const statusText = (
+      ordem.status ||
+      ordem.estado ||
+      (ordem.completed ? 'Concluída' : 'Pendente')
+    ).toString();
+
+    // =============================
+    // HEADER (PADRÃO IGUAL OUTROS PDFs)
+    // =============================
+    doc.setFillColor(248, 249, 250);
+    doc.rect(0, 0, 210, 28, 'F');
+
+    // Barra lateral
+    doc.setFillColor(179, 33, 23);
+    doc.rect(0, 0, 5, 28, 'F');
+
+    // Logo
+    if (window.currentLogoUrl) {
+      try {
+        doc.addImage(
+          window.currentLogoUrl,
+          'PNG',
+          10,
+          6,
+          30,
+          15,
+          undefined,
+          'FAST'
+        );
+      } catch (e) {
+        console.warn('Erro ao inserir logo', e);
+      }
+    } else {
+      doc.setTextColor(179, 33, 23);
+      doc.setFontSize(14);
+      doc.setFont('helvetica', 'bold');
+      doc.text('EXTINMAIS', 12, 16);
+    }
+
+    // Título
+    doc.setTextColor(179, 33, 23);
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    doc.text('ORDEM DE SERVIÇO', 200, 13, { align: 'right' });
+
+    // Subtítulo
+    doc.setTextColor(90, 90, 90);
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
+    doc.text(
+      `Status: ${statusText}`,
+      200,
+      20,
+      { align: 'right' }
+    );
+
+    // =============================
+    // DADOS DO CLIENTE
+    // =============================
+    let yPos = 40;
+
+    doc.setFillColor(248, 249, 250);
+    doc.rect(15, yPos, 180, 30, 'F');
+
+    doc.setDrawColor(179, 33, 23);
+    doc.setLineWidth(1);
+    doc.line(15, yPos, 15, yPos + 30);
+
+    doc.setTextColor(179, 33, 23);
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'bold');
+    doc.text('DADOS DO CLIENTE', 20, yPos + 6);
+
+    doc.setTextColor(0, 0, 0);
+    doc.setFontSize(9);
+
+    doc.setFont('helvetica', 'bold');
+    doc.text('Cliente:', 20, yPos + 13);
+    doc.setFont('helvetica', 'normal');
+    doc.text(ordem.cliente || '-', 38, yPos + 13);
+
+    doc.setFont('helvetica', 'bold');
+    doc.text('Data:', 120, yPos + 13);
+    doc.setFont('helvetica', 'normal');
+    doc.text(dataStr, 133, yPos + 13);
+
+    if (ordem.cnpj) {
+      doc.setFont('helvetica', 'bold');
+      doc.text('CNPJ:', 20, yPos + 19);
+      doc.setFont('helvetica', 'normal');
+      doc.text(ordem.cnpj, 35, yPos + 19);
+    }
+
+    doc.setFont('helvetica', 'bold');
+    doc.text('Endereço:', 20, yPos + 25);
+    doc.setFont('helvetica', 'normal');
+    doc.text(
+      doc.splitTextToSize(ordem.endereco || '-', 150),
+      42,
+      yPos + 25
+    );
+
+    // =============================
+    // DETALHES DO SERVIÇO
+    // =============================
+    yPos += 40;
+
+    doc.setFillColor(248, 249, 250);
+    doc.rect(15, yPos, 180, 24, 'F');
+
+    doc.setDrawColor(179, 33, 23);
+    doc.line(15, yPos, 15, yPos + 24);
+
+    doc.setTextColor(179, 33, 23);
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'bold');
+    doc.text('DETALHES DO SERVIÇO', 20, yPos + 6);
+
+    doc.setTextColor(0, 0, 0);
+    doc.setFontSize(9);
+
+    doc.setFont('helvetica', 'bold');
+    doc.text('Serviço:', 20, yPos + 13);
+    doc.setFont('helvetica', 'normal');
+    doc.text(ordem.servico || '-', 38, yPos + 13);
+
+    doc.setFont('helvetica', 'bold');
+    doc.text('Técnico:', 120, yPos + 13);
+    doc.setFont('helvetica', 'normal');
+    doc.text(ordem.tecnico || '-', 138, yPos + 13);
+
+    doc.setFont('helvetica', 'bold');
+    doc.text('Pagamento:', 20, yPos + 19);
+    doc.setFont('helvetica', 'normal');
+    doc.text(formaPagamento, 48, yPos + 19);
+
+    // =============================
+    // PRODUTOS
+    // =============================
+    if (produtos.length) {
+      yPos += 34;
+
+      doc.setTextColor(179, 33, 23);
+      doc.setFontSize(11);
+      doc.setFont('helvetica', 'bold');
+      doc.text('PRODUTOS UTILIZADOS', 15, yPos);
+
+      doc.line(15, yPos + 2, 195, yPos + 2);
+      yPos += 8;
+
+      produtos.forEach(p => {
+        if (yPos > 250) {
+          doc.addPage();
+          yPos = 30;
+        }
+
+        const subtotal = (Number(p.price) || 0) * p.qty;
+
+        doc.setDrawColor(233, 236, 239);
+        doc.rect(15, yPos, 180, 8);
+
+        doc.setTextColor(0, 0, 0);
+        doc.setFontSize(9);
+        doc.text(p.name || '-', 18, yPos + 5);
+        doc.text(String(p.qty), 125, yPos + 5);
+        doc.text(`R$ ${Number(p.price).toFixed(2)}`, 145, yPos + 5);
+
+        doc.setFont('helvetica', 'bold');
+        doc.text(`R$ ${subtotal.toFixed(2)}`, 175, yPos + 5);
+        doc.setFont('helvetica', 'normal');
+
+        yPos += 8;
+      });
+    }
+
+    // =============================
+    // TOTAL
+    // =============================
+    yPos += 10;
+
+    doc.setFillColor(248, 249, 250);
+    doc.setDrawColor(179, 33, 23);
+    doc.rect(15, yPos, 180, 22, 'FD');
+
+    doc.setTextColor(102, 102, 102);
+    doc.setFontSize(10);
+    doc.text('Valor Total', 20, yPos + 8);
+
+    doc.setTextColor(179, 33, 23);
+    doc.setFontSize(18);
+    doc.setFont('helvetica', 'bold');
+    doc.text(
+      totalFinal.toLocaleString('pt-BR', {
+        style: 'currency',
+        currency: 'BRL'
+      }),
+      20,
+      yPos + 17
+    );
+
+    // =============================
+    // RODAPÉ
+    // =============================
+    const pages = doc.internal.getNumberOfPages();
+    for (let i = 1; i <= pages; i++) {
+      doc.setPage(i);
+      doc.setDrawColor(212, 194, 154);
+      doc.line(15, 280, 195, 280);
+
+      doc.setTextColor(179, 33, 23);
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'bold');
+      doc.text('EXTINMAIS', 105, 285, { align: 'center' });
+
+      doc.setTextColor(102, 102, 102);
+      doc.setFontSize(8);
+      doc.setFont('helvetica', 'normal');
+      doc.text(
+        `Gerado em ${new Date().toLocaleString('pt-BR')}`,
+        105,
+        290,
+        { align: 'center' }
+      );
+    }
+
+    doc.save(
+      `OS_${ordem.cliente || 'ordem'}_${ordem.id?.slice(0, 8) || Date.now()}.pdf`
+    );
+
+    showToast('PDF gerado com sucesso!', 'success');
+
+  } catch (error) {
+    console.error(error);
+    showToast('Erro ao gerar PDF: ' + error.message, 'error');
+  }
+}
+
+
+// ============================= 
+// FUNÇÃO EDITAR OS
+// ============================= 
+let editingOSId = null;
+
+async function editarOS(orderId) {
+  try {
+    const snapshot = await database.ref(`orders/${orderId}`).once('value');
+    const ordem = snapshot.val();
+
+    if (!ordem) {
+      showToast('Ordem não encontrada no banco', 'error');
+      return;
+    }
+
+    editingOSId = orderId;
+
+    document.getElementById('editCliente').value = ordem.cliente || '';
+    document.getElementById('editCNPJ').value = ordem.cnpj || '';
+    document.getElementById('editEndereco').value = ordem.endereco || '';
+    document.getElementById('editServico').value = ordem.servico || '';
+    document.getElementById('editTecnico').value = ordem.tecnico || '';
+    document.getElementById('editPagamento').value =
+      ordem.payment_method || ordem.formaPagamento || '';
+
+    if (ordem.data) {
+      document.getElementById('editData').value =
+        new Date(ordem.data).toISOString().split('T')[0];
+    }
+
+    document.getElementById('editOSModal').style.display = 'flex';
+
+    showToast('Editando ordem de serviço', 'info');
+  } catch (err) {
+    console.error(err);
+    showToast('Erro ao carregar OS', 'error');
+  }
+}
+async function salvarEdicaoOS() {
+  if (!editingOSId) return;
+
+  try {
+    const dadosAtualizados = {
+      cliente: document.getElementById('editCliente').value,
+      cnpj: document.getElementById('editCNPJ').value,
+      endereco: document.getElementById('editEndereco').value,
+      servico: document.getElementById('editServico').value,
+      tecnico: document.getElementById('editTecnico').value,
+      payment_method: document.getElementById('editPagamento').value,
+      formaPagamento: document.getElementById('editPagamento').value,
+      data: document.getElementById('editData').value
+        ? new Date(document.getElementById('editData').value).toISOString()
+        : null
+    };
+
+    await database.ref(`orders/${editingOSId}`).update(dadosAtualizados);
+
+    closeEditOSModal();
+    showToast('Ordem atualizada com sucesso!', 'success');
+
+    if (typeof loadOrders === 'function') {
+      loadOrders();
+    }
+
+  } catch (err) {
+    console.error(err);
+    showToast('Erro ao salvar edição', 'error');
+  }
+}
+function closeEditOSModal() {
+  document.getElementById('editOSModal').style.display = 'none';
+}
+  
+
+// ============================= 
+// FUNÇÃO EXCLUIR OS
+// ============================= 
+async function excluirOS(orderId) {
+  const ordem = allOrders.find(o => o.id === orderId);
+  if (!ordem) {
+    showToast('Ordem não encontrada', 'error');
+    return;
+  }
+
+  const confirmed = await showConfirmDialog(
+    'Confirmar Exclusão',
+    `Tem certeza que deseja excluir a ordem de <strong>${escapeHtml(ordem.cliente || 'este cliente')}</strong>?<br><br><span style="color: #999;">Esta ação não pode ser desfeita.</span>`
+  );
+
+  if (!confirmed) return;
+
+  try {
+    showToast('Excluindo ordem...', 'info');
+    
+    const ordemRef = firebase.database().ref('orders/' + orderId);
+    await ordemRef.remove();
+
+    showToast('Ordem excluída com sucesso!', 'success');
+  } catch (error) {
+    console.error('Erro ao excluir ordem:', error);
+    showToast('Erro ao excluir: ' + error.message, 'error');
+  }
+}
+
+// ============================= 
+// DIALOG DE CONFIRMAÇÃO
+// ============================= 
+function showConfirmDialog(title, message) {
+  return new Promise((resolve) => {
+    const overlay = document.createElement('div');
+    overlay.style.cssText = `
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.85);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10000;
+      padding: 20px;
+      animation: fadeIn 0.2s ease;
+    `;
+
+    const dialog = document.createElement('div');
+    dialog.style.cssText = `
+      background: #1a1a1a;
+      border: 2px solid #D4C29A;
+      border-radius: 12px;
+      padding: 24px;
+      max-width: 420px;
+      width: 100%;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.9);
+      animation: slideUp 0.3s ease;
+    `;
+
+    dialog.innerHTML = `
+      <h3 style="color: #D4C29A; margin: 0 0 12px 0; font-size: 18px; display: flex; align-items: center; gap: 10px;">
+        <i class="fas fa-exclamation-triangle" style="font-size: 22px;"></i>
+        ${title}
+      </h3>
+      <p style="color: #fff; margin: 0 0 24px 0; font-size: 14px; line-height: 1.6;">${message}</p>
+      <div style="display: flex; gap: 10px; justify-content: flex-end; flex-wrap: wrap;">
+        <button id="cancelBtn" class="btn-secondary" style="
+          padding: 12px 24px;
+          border-radius: 8px;
+          font-size: 14px;
+          font-weight: 600;
+          flex: 1;
+          min-width: 100px;
+        ">
+          <i class="fas fa-times" style="margin-right: 6px;"></i>
+          Cancelar
+        </button>
+        <button id="confirmBtn" class="btn-danger" style="
+          padding: 12px 24px;
+          border-radius: 8px;
+          font-size: 14px;
+          font-weight: 600;
+          flex: 1;
+          min-width: 100px;
+        ">
+          <i class="fas fa-trash" style="margin-right: 6px;"></i>
+          Excluir
+        </button>
+      </div>
+    `;
+
+    overlay.appendChild(dialog);
+    document.body.appendChild(overlay);
+
+    document.getElementById('confirmBtn').onclick = () => {
+      document.body.removeChild(overlay);
+      resolve(true);
+    };
+
+    document.getElementById('cancelBtn').onclick = () => {
+      document.body.removeChild(overlay);
+      resolve(false);
+    };
+
+    overlay.onclick = (e) => {
+      if (e.target === overlay) {
+        document.body.removeChild(overlay);
+        resolve(false);
+      }
+    };
+  });
+}
+
+// ============================= 
+// ANIMAÇÕES CSS
+// ============================= 
+if (!document.getElementById('modalAnimations')) {
+  const style = document.createElement('style');
+  style.id = 'modalAnimations';
+  style.textContent = `
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    
+    @keyframes fadeOut {
+      from { opacity: 1; }
+      to { opacity: 0; }
+    }
+    
+    @keyframes slideUp {
+      from { 
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to { 
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+  `;
+  document.head.appendChild(style);
+}
+
+
 
 // Finalizar OS
 async function finalizarOS(orderId) {
@@ -3154,5 +4222,49 @@ document.getElementById('addExtintorBtn')?.addEventListener('click', () => {
   });
 
   section.insertBefore(clone, document.getElementById('addExtintorBtn'));
+});
+// Função para alternar entre Card e Lista
+function toggleView(viewMode) {
+  const buttons = document.querySelectorAll('.view-btn');
+  buttons.forEach(btn => {
+    btn.classList.remove('active');
+    if (btn.dataset.view === viewMode) {
+      btn.classList.add('active');
+    }
+  });
+
+  const ordersList = document.getElementById('ordersList');
+  if (viewMode === 'list') {
+    ordersList.classList.add('list-view');
+  } else {
+    ordersList.classList.remove('list-view');
+  }
+
+  // Salva preferência no localStorage
+  localStorage.setItem('ordersViewMode', viewMode);
+}
+
+// Carregar preferência salva ao iniciar (cole no final do seu código de inicialização)
+window.addEventListener('DOMContentLoaded', () => {
+  const savedView = localStorage.getItem('ordersViewMode') || 'card';
+  toggleView(savedView);
+});
+
+const searchInput = document.getElementById('productSearch');
+
+searchInput.addEventListener('input', () => {
+  const search = searchInput.value.toLowerCase().trim();
+
+  // 👉 pega TODOS os filhos diretos da lista
+  const list = document.getElementById('productsList');
+  if (!list) return;
+
+  const items = list.children;
+
+  Array.from(items).forEach(item => {
+    const text = item.innerText.toLowerCase();
+
+    item.style.display = text.includes(search) ? '' : 'none';
+  });
 });
 
