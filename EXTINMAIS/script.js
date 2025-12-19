@@ -4789,137 +4789,129 @@ function criarModalValidade() {
 // BUSCAR E AGRUPAR ALERTAS
 // ========================================
 async function buscarAlertasVencimento() {
-  try {
-    const snapshot = await firebase.database().ref('inspections').once('value');
-    const inspections = snapshot.val();
-    
-    if (!inspections) {
-      todosAlertas = [];
-      atualizarContadores();
-      renderizarAlertas();
-      return;
-    }
-    
-    // Agrupar por empresa (razão social)
-    const empresasMap = {};
-    
-    Object.entries(inspections).forEach(([id, inspecao]) => {
-      const razaoSocial = inspecao.razao_social || 'Empresa sem nome';
-      const cnpj = inspecao.cnpj || '-';
-      const dataInspecao = inspecao.data_inspecao || null;
+  // Referência para o nó de inspeções
+  const inspectionsRef = firebase.database().ref('inspections');
+
+  // .on('value') mantém uma conexão aberta. 
+  // Sempre que algo mudar no Firebase, ele executa o código abaixo instantaneamente.
+  inspectionsRef.on('value', (snapshot) => {
+    try {
+      const inspections = snapshot.val();
       
-      // Criar chave única para empresa
-      if (!empresasMap[razaoSocial]) {
-        empresasMap[razaoSocial] = {
-          empresa: razaoSocial,
-          cnpj: cnpj,
-          inspecoes: [],
-          totalVencidos: 0,
-          totalProximos: 0
-        };
+      if (!inspections) {
+        todosAlertas = [];
+        alertasFiltrados = []; // Limpa os filtrados também
+        atualizarContadores();
+        renderizarAlertas();
+        return;
       }
       
-      // Buscar itens vencidos desta inspeção
-      const itensVencidos = [];
+      const empresasMap = {};
       
-      Object.keys(inspecao).forEach(campo => {
-        if (campo.includes('validade') && inspecao[campo]) {
-          const dataValidade = inspecao[campo];
-          const diasRestantes = calcularDiasRestantes(dataValidade);
-          
-          // Só adiciona se a data for válida
-          if (diasRestantes !== null) {
-            const status = determinarStatus(diasRestantes);
+      Object.entries(inspections).forEach(([id, inspecao]) => {
+        const razaoSocial = inspecao.razao_social || 'Empresa sem nome';
+        const cnpj = inspecao.cnpj || '-';
+        const dataInspecao = inspecao.data_inspecao || null;
+        
+        if (!empresasMap[razaoSocial]) {
+          empresasMap[razaoSocial] = {
+            empresa: razaoSocial,
+            cnpj: cnpj,
+            inspecoes: [],
+            totalVencidos: 0,
+            totalProximos: 0
+          };
+        }
+        
+        const itensVencidos = [];
+        
+        Object.keys(inspecao).forEach(campo => {
+          if (campo.includes('validade') && inspecao[campo]) {
+            const dataValidade = inspecao[campo];
+            const diasRestantes = calcularDiasRestantes(dataValidade);
             
-            if (status !== 'ok') {
-              let tipo = '';
+            if (diasRestantes !== null) {
+              const status = determinarStatus(diasRestantes);
               
-              if (campo === 'cert_validade') {
-                tipo = `Certificado ${inspecao.cert_tipo || ''}`;
-              } else if (campo.startsWith('extintores_validade_')) {
-                const index = campo.replace('extintores_validade_', '');
-                const tipoExt = inspecao[`extintores_tipo_${index}`] || 'Extintor';
-                const peso = inspecao[`extintores_peso_${index}`] || '';
-                tipo = `${tipoExt} ${peso}`.trim();
-              } else if (campo === 'alarme_incendio_validade') {
-                tipo = 'Alarme de Incêndio';
-              } else if (campo === 'botoeira_validade') {
-                tipo = 'Botoeira';
-              } else if (campo === 'central_alarme_validade') {
-                tipo = 'Central de Alarme';
-              } else if (campo === 'detector_fumaca_validade') {
-                tipo = 'Detector de Fumaça';
-              } else if (campo === 'hidrante_validade') {
-                tipo = 'Hidrante';
-              } else if (campo === 'iluminacao_emergencia_validade') {
-                tipo = 'Iluminação de Emergência';
-              } else if (campo === 'mangueira_validade') {
-                tipo = 'Mangueira';
-              } else if (campo === 'projeto_spda_validade') {
-                tipo = 'Projeto SPDA';
-              } else if (campo === 'sprinklers_validade') {
-                tipo = 'Sprinklers';
-              } else {
-                tipo = campo.replace('_validade', '').replace(/_/g, ' ');
-              }
-              
-              itensVencidos.push({
-                id: `${id}-${campo}`,
-                tipo: tipo,
-                validade: dataValidade,
-                diasRestantes: diasRestantes,
-                status: status,
-                campo: campo,
-                inspectionId: id
-              });
-              
-              if (status === 'vencido') {
-                empresasMap[razaoSocial].totalVencidos++;
-              } else if (status === 'proximo') {
-                empresasMap[razaoSocial].totalProximos++;
+              if (status !== 'ok') {
+                let tipo = formatarTipoCampo(campo, inspecao); // Função auxiliar para limpar o código
+                
+                itensVencidos.push({
+                  id: `${id}-${campo}`,
+                  tipo: tipo,
+                  validade: dataValidade,
+                  diasRestantes: diasRestantes,
+                  status: status,
+                  campo: campo,
+                  inspectionId: id
+                });
+                
+                if (status === 'vencido') {
+                  empresasMap[razaoSocial].totalVencidos++;
+                } else if (status === 'proximo') {
+                  empresasMap[razaoSocial].totalProximos++;
+                }
               }
             }
           }
+        });
+        
+        if (itensVencidos.length > 0) {
+          empresasMap[razaoSocial].inspecoes.push({
+            inspectionId: id,
+            dataInspecao: dataInspecao,
+            itens: itensVencidos.sort((a, b) => {
+              if (a.status === 'vencido' && b.status !== 'vencido') return -1;
+              if (a.status !== 'vencido' && b.status === 'vencido') return 1;
+              return a.diasRestantes - b.diasRestantes;
+            })
+          });
         }
       });
       
-      // Adicionar inspeção se tiver itens vencidos
-      if (itensVencidos.length > 0) {
-        empresasMap[razaoSocial].inspecoes.push({
-          inspectionId: id,
-          dataInspecao: dataInspecao,
-          itens: itensVencidos.sort((a, b) => {
-            if (a.status === 'vencido' && b.status !== 'vencido') return -1;
-            if (a.status !== 'vencido' && b.status === 'vencido') return 1;
-            return a.diasRestantes - b.diasRestantes;
-          })
+      const empresasArray = Object.values(empresasMap)
+        .filter(emp => emp.inspecoes.length > 0)
+        .sort((a, b) => {
+          if (a.totalVencidos !== b.totalVencidos) return b.totalVencidos - a.totalVencidos;
+          if (a.totalProximos !== b.totalProximos) return b.totalProximos - a.totalProximos;
+          return a.empresa.localeCompare(b.empresa);
         });
-      }
-    });
-    
-    // Converter para array e ordenar
-    const empresasArray = Object.values(empresasMap)
-      .filter(emp => emp.inspecoes.length > 0)
-      .sort((a, b) => {
-        if (a.totalVencidos !== b.totalVencidos) {
-          return b.totalVencidos - a.totalVencidos;
-        }
-        if (a.totalProximos !== b.totalProximos) {
-          return b.totalProximos - a.totalProximos;
-        }
-        return a.empresa.localeCompare(b.empresa);
-      });
-    
-    todosAlertas = empresasArray;
-    alertasFiltrados = empresasArray;
-    
-    atualizarContadores();
-    renderizarAlertas();
-    
-  } catch (error) {
-    console.error('Erro ao buscar alertas:', error);
-    showToast('Erro ao carregar alertas', 'error');
+      
+      todosAlertas = empresasArray;
+      alertasFiltrados = empresasArray;
+      
+      atualizarContadores();
+      renderizarAlertas();
+      console.log("Alertas atualizados em tempo real.");
+
+    } catch (error) {
+      console.error('Erro ao processar alertas:', error);
+    }
+  }, (error) => {
+    console.error('Erro na conexão em tempo real:', error);
+    showToast('Erro ao sincronizar alertas', 'error');
+  });
+}
+
+// Função auxiliar para manter o código principal limpo
+function formatarTipoCampo(campo, inspecao) {
+  if (campo === 'cert_validade') return `Certificado ${inspecao.cert_tipo || ''}`;
+  if (campo.startsWith('extintores_validade_')) {
+    const index = campo.replace('extintores_validade_', '');
+    return `${inspecao[`extintores_tipo_${index}`] || 'Extintor'} ${inspecao[`extintores_peso_${index}`] || ''}`.trim();
   }
+  const nomes = {
+    'alarme_incendio_validade': 'Alarme de Incêndio',
+    'botoeira_validade': 'Botoeira',
+    'central_alarme_validade': 'Central de Alarme',
+    'detector_fumaca_validade': 'Detector de Fumaça',
+    'hidrante_validade': 'Hidrante',
+    'iluminacao_emergencia_validade': 'Iluminação de Emergência',
+    'mangueira_validade': 'Mangueira',
+    'projeto_spda_validade': 'Projeto SPDA',
+    'sprinklers_validade': 'Sprinklers'
+  };
+  return nomes[campo] || campo.replace('_validade', '').replace(/_/g, ' ');
 }
 
 // ========================================
