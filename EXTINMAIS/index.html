@@ -88,44 +88,80 @@
       </div>
     </aside><!-- Main Content -->
     <main class="main-content"><!-- Overview Section -->
-      <section id="overviewSection" class="content-section active">
-        <div class="page-header">
-          <h1 class="page-title">Visão Geral</h1>
-          <p class="page-subtitle">Dashboard de estatísticas</p>
-        </div>
-        <div class="stats-grid">
-          <div class="stat-card">
-            <div class="stat-icon"><i class="fas fa-building"></i>
-            </div>
-            <div class="stat-value" id="totalCompanies">
-              0
-            </div>
-            <div class="stat-label">
-              Empresas Cadastradas
-            </div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-icon"><i class="fas fa-clipboard-check"></i>
-            </div>
-            <div class="stat-value" id="totalInspections">
-              0
-            </div>
-            <div class="stat-label">
-              Inspeções Realizadas
-            </div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-icon"><i class="fas fa-clock"></i>
-            </div>
-            <div class="stat-value" id="pendingInspections">
-              0
-            </div>
-            <div class="stat-label">
-              Inspeções Pendentes
-            </div>
-          </div>
-        </div>
-      </section><!-- Companies Section -->
+     <section id="overviewSection" class="content-section active"><!-- Page Header -->
+   <div class="page-header">
+    <h1 class="page-title">Visão Geral</h1>
+    <p class="page-subtitle">Dashboard de estatísticas</p>
+   </div><!-- Stats Grid -->
+   <div class="stats-grid">
+    <div class="stat-card">
+     <div class="stat-icon blue"><i class="fas fa-building"></i>
+     </div>
+     <div class="stat-content">
+      <div class="stat-value" id="totalCompanies">
+       0
+      </div>
+      <div class="stat-label">
+       Empresas Cadastradas
+      </div>
+     </div>
+    </div>
+    <div class="stat-card">
+     <div class="stat-icon green"><i class="fas fa-clipboard-check"></i>
+     </div>
+     <div class="stat-content">
+      <div class="stat-value" id="totalInspections">
+       0
+      </div>
+      <div class="stat-label">
+       Inspeções Realizadas
+      </div>
+     </div>
+    </div>
+    <div class="stat-card">
+     <div class="stat-icon orange"><i class="fas fa-clock"></i>
+     </div>
+     <div class="stat-content">
+      <div class="stat-value" id="pendingInspections">
+       0
+      </div>
+      <div class="stat-label">
+       Inspeções Pendentes
+      </div>
+     </div>
+    </div>
+   </div><!-- Alertas de Vencimento -->
+   <div class="alerts-container">
+    <div class="alerts-header" id="alertsToggleBtn" onclick="toggleAlertsList()">
+     <div class="alerts-title">
+      <div class="alerts-icon"><i class="fas fa-bell"></i>
+      </div>
+      <div class="alerts-title-text">
+       <h2>Avisos de Vencimento</h2>
+       <p><span id="totalAlertas">0</span> itens precisam de atenção</p>
+      </div>
+     </div>
+     <div class="alerts-badge-container"><span class="alerts-badge" id="alertsBadge">0</span> <i class="fas fa-chevron-down alerts-toggle-icon"></i>
+     </div>
+    </div>
+    <div class="alerts-body" id="alertsBody" style="display: none;"><!-- Filtros -->
+     <div class="alerts-filters"><button class="filter-btn active" data-filter="all" onclick="filterAlerts('all')"> <i class="fas fa-list"></i> <span>Todos</span> <span class="count" id="countAll">0</span> </button> <button class="filter-btn" data-filter="vencido" onclick="filterAlerts('vencido')"> <i class="fas fa-times-circle"></i> <span>Vencidos</span> <span class="count" id="countVencido">0</span> </button> <button class="filter-btn" data-filter="proximo" onclick="filterAlerts('proximo')"> <i class="fas fa-exclamation-circle"></i> <span>Próximos</span> <span class="count" id="countProximo">0</span> </button>
+     </div><!-- Lista de Alertas -->
+     <div class="alerts-list" id="alertsList"><!-- Alertas carregados via JavaScript -->
+     </div><!-- Paginação -->
+     <div class="pagination-container" id="paginationContainer" style="display: none;">
+      <div class="pagination-info"><span id="showingFrom">1</span>-<span id="showingTo">10</span> de <span id="totalItems">0</span>
+      </div>
+      <div class="pagination-controls"><button class="pagination-btn" id="btnFirst" onclick="goToPage(1)" title="Primeira"> <i class="fas fa-angle-double-left"></i> </button> <button class="pagination-btn" id="btnPrev" onclick="previousPage()" title="Anterior"> <i class="fas fa-angle-left"></i> </button>
+       <div class="pagination-numbers" id="paginationNumbers"></div><button class="pagination-btn" id="btnNext" onclick="nextPage()" title="Próxima"> <i class="fas fa-angle-right"></i> </button> <button class="pagination-btn" id="btnLast" onclick="goToLastPage()" title="Última"> <i class="fas fa-angle-double-right"></i> </button>
+      </div>
+      <div class="items-per-page"><select id="itemsPerPage" onchange="changeItemsPerPage()"> <option value="5">5</option> <option value="10" selected>10</option> <option value="15">15</option> <option value="20">20</option> <option value="50">50</option> </select>
+      </div>
+     </div>
+    </div>
+   </div>
+  </section>
+<!-- Companies Section -->
       <section id="companiesSection" class="content-section">
         <div class="page-header">
           <h1 class="page-title">Empresas</h1>
@@ -157,7 +193,7 @@
 
   <div class="page-header">
     <h1 class="page-title">
-      <i class="fas fa-file-invoice"></i> Ordens de Serviço
+      Ordens de Serviço
     </h1>
     <p class="page-subtitle">Gerenciamento de ordens de serviço</p>
   </div>
