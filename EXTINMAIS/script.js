@@ -364,7 +364,7 @@ async function startInspection(companyId) {
     document.querySelector('input[name="telefone"]').value = company.telefone || '';
     document.querySelector('input[name="endereco"]').value = company.endereco || '';
     document.querySelector('input[name="responsavel"]').value = company.responsavel || '';
-  }, 100);
+  }, 200);
 }
 
 // Inspection Tabs
@@ -470,29 +470,26 @@ function generateCompletePDF(data) {
 
 
     // -------------------------------------
-    // Página 5 - Extintores (se existir)
+    // Extintores (se existir) - SEM wrapper, pois a função já controla a paginação
     // -------------------------------------
     if (data.has_extintores) {
-      html += `<div class="pdf-page">`;
-      html += generatePDFHeader('RELATÓRIO COMPLETO DE INSPEÇÃO');
       html += generateExtintoresSection(data);
-      html += generatePDFFooter();
-      html += `</div>`;
     }
 
 
     // -------------------------------------
     // Página 6 e 7 - Sinalização (somente se existir)
     // -------------------------------------
-    if (data.has_sinalizacao) {
-      // Parte 1
+     if (data.has_sinalizacao) {
       html += `<div class="pdf-page">`;
       html += generatePDFHeader('RELATÓRIO COMPLETO DE INSPEÇÃO');
       html += generateSinalizacaoSection_Parte1(data);
       html += generatePDFFooter();
       html += `</div>`;
 
-      // Parte 2
+      // -------------------------------------
+      // Página 7 - Sinalização PARTE 2
+      // -------------------------------------
       html += `<div class="pdf-page">`;
       html += generatePDFHeader('RELATÓRIO COMPLETO DE INSPEÇÃO');
       html += generateSinalizacaoSection_Parte2(data);
@@ -552,22 +549,22 @@ function generateCompletePDF(data) {
 
 
     // -------------------------------------
-    // Página 3 - Alarme e Extintores (somente se existir)
+    // Página 3 - Alarme (somente se existir)
     // -------------------------------------
-    if (data.has_alarme || data.has_extintores) {
+    if (data.has_alarme) {
       html += `<div class="pdf-page">`;
       html += generatePDFHeader('RELATÓRIO COMPLETO DE INSPEÇÃO');
-
-      if (data.has_alarme) {
-        html += generateAlarmeSection(data);
-      }
-
-      if (data.has_extintores) {
-        html += generateExtintoresSection(data);
-      }
-
+      html += generateAlarmeSection(data);
       html += generatePDFFooter();
       html += `</div>`;
+    }
+
+
+    // -------------------------------------
+    // Extintores (somente se existir) - SEM wrapper, pois a função já controla a paginação
+    // -------------------------------------
+    if (data.has_extintores) {
+      html += generateExtintoresSection(data);
     }
 
 
@@ -596,6 +593,8 @@ function generateCompletePDF(data) {
 
   return html;
 }
+
+
 
 
 
@@ -693,7 +692,6 @@ function generateSinalizacaoSection_Parte2(data) {
   html += `</div>`;
   return html;
 }
-
 // 2. PDF BOMBAS
 function generateBombasPDF(data) {
   let html = `<div class="pdf-page">`;
@@ -766,6 +764,8 @@ function generatePDFHeader(title) {
         <div class="pdf-main-title">${title}</div>
         <div class="pdf-subtitle">Sistema de Prevenção e Combate a Incêndio</div>
         <div style="font-size: 10px; color: #666; margin-top: 4px; font-weight: normal;">CNPJ: 52.026.476/001-3</div>
+                <div style="font-size: 10px; color: #666; margin-top: 4px; font-weight: normal;">Tel: 15 99137-1232</div>
+
       </div>
     </div>
   `;
@@ -1140,9 +1140,11 @@ function generateExtintoresGrid(extintores, startIndex) {
 // MANTÉM COMPATIBILIDADE COM CÓDIGO ANTIGO
 // ========================================
 function generateExtintoresSection(data) {
-  const extintores = getAllExtintores(data);
+  const isMobile = window.innerWidth <= 768;
+  const todosExtintores = getAllExtintores(data);
+  let html = '';
 
-  if (extintores.length === 0) {
+  if (todosExtintores.length === 0) {
     return `
       <div class="pdf-section">
         <div class="pdf-section-title">
@@ -1153,8 +1155,35 @@ function generateExtintoresSection(data) {
     `;
   }
 
-  return generateExtintoresGrid(extintores, 0);
+  if (isMobile) {
+    // MOBILE: 1 extintor por página
+    todosExtintores.forEach((ext, index) => {
+      html += `<div class="pdf-page">`;
+      html += generatePDFHeader('RELATÓRIO COMPLETO DE INSPEÇÃO');
+      html += generateExtintorCard(ext, index + 1);
+      html += generatePDFFooter();
+      html += `</div>`;
+    });
+  } else {
+    // DESKTOP: 2 extintores por página
+    const extintoresPorPagina = 2;
+    const totalPaginas = Math.ceil(todosExtintores.length / extintoresPorPagina);
+
+    for (let p = 0; p < totalPaginas; p++) {
+      const start = p * extintoresPorPagina;
+      const extintoresDessaPagina = todosExtintores.slice(start, start + extintoresPorPagina);
+
+      html += `<div class="pdf-page">`;
+      html += generatePDFHeader('RELATÓRIO COMPLETO DE INSPEÇÃO');
+      html += generateExtintoresGrid(extintoresDessaPagina, start);
+      html += generatePDFFooter();
+      html += `</div>`;
+    }
+  }
+
+  return html;
 }
+
 
 
 function generateExtintoresPDF(data) {
@@ -1188,7 +1217,7 @@ function generateExtintoresPDF(data) {
 
       html += `<div class="pdf-page">`;
       html += generatePDFHeader('RELATÓRIO DE INSPEÇÃO - EXTINTORES');
-      
+
       if (p === 0) {
         html += generateClientSection(data);
       }
@@ -1357,6 +1386,7 @@ function generatePDFFooter() {
         <div class="pdf-footer">
           <p>Relatório gerado em ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}</p>
           <p>EXTINMAIS - Sistema de Inspeção de Incêndio</p>
+         <p>extinmaiss@outlook.com</p>
         </div>
       `;
 }
@@ -2110,7 +2140,7 @@ async function loadOrders() {
 firebase.database().ref('orders').on('value', (snapshot) => {
   allOrders = [];
   const data = snapshot.val();
-  
+
   if (data) {
     Object.keys(data).forEach(key => {
       allOrders.push({
@@ -2119,16 +2149,16 @@ firebase.database().ref('orders').on('value', (snapshot) => {
       });
     });
   }
-  
+
   // Ordena por data mais recente
   allOrders.sort((a, b) => {
     const dateA = new Date(a.data || 0).getTime();
     const dateB = new Date(b.data || 0).getTime();
     return dateB - dateA;
   });
-  
+
   renderFilteredOrders();
-  
+
   // Atualiza dashboard se a função existir
   if (typeof updateDashboard === 'function') {
     updateDashboard();
@@ -2140,7 +2170,7 @@ firebase.database().ref('orders').on('value', (snapshot) => {
 // ============================= 
 function agruparProdutos(produtos) {
   const agrupados = {};
-  
+
   produtos.forEach(p => {
     const key = p.id || p.name;
     if (agrupados[key]) {
@@ -2154,13 +2184,14 @@ function agruparProdutos(produtos) {
       };
     }
   });
-  
+
   return Object.values(agrupados);
 }
 
 // ============================= 
 // RENDERIZAR ORDENS FILTRADAS
 // ============================= 
+
 function renderFilteredOrders() {
   const list = document.getElementById('ordersList');
   if (!list) return;
@@ -2206,7 +2237,7 @@ function renderFilteredOrders() {
     return;
   }
 
-  filtered.forEach(os => {
+  filtered.forEach((os, index) => {
     const statusText = (os.status || os.estado || (os.completed ? 'Concluída' : 'Pendente')).toString();
     const isFinalizada = /conclu|finaliz/i.test(statusText);
 
@@ -2221,7 +2252,7 @@ function renderFilteredOrders() {
       : '';
 
     const dataStr = os.data ? new Date(os.data).toLocaleDateString('pt-BR') : '-';
-    
+
     // Agrupa produtos duplicados
     const produtosOriginais = Array.isArray(os.products) ? os.products : [];
     const produtos = agruparProdutos(produtosOriginais);
@@ -2234,6 +2265,10 @@ function renderFilteredOrders() {
     });
 
     const formaPagamento = os.payment_method || os.formaPagamento || 'Não informado';
+    const statusPagamento = os.payment_status || os.statusPagamento || 'Não Pago';
+
+    // Extrai número da OS do ID (exemplo: "os-123" -> "123")
+    const numeroOS = os.osNumber || os.numero || (os.id ? os.id.replace(/\D/g, '') : (index + 1));
 
     let produtosListaHTML = '';
     if (produtos.length > 0) {
@@ -2242,31 +2277,31 @@ function renderFilteredOrders() {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          padding: 12px 14px;
+          padding: 8px 12px;
           background: #1a1a1a;
           border: 1px solid #333;
-          margin-bottom: 8px;
-          border-radius: 8px;
+          margin-bottom: 6px;
+          border-radius: 6px;
           transition: all 0.3s;
         ">
           <span style="
             color: #fff;
             flex: 1;
-            margin-right: 12px;
-            font-size: 14px;
+            margin-right: 10px;
+            font-size: 13px;
             font-weight: 500;
           ">
-            <i class="fas fa-box" style="margin-right: 10px; color: #D4C29A; font-size: 12px;"></i>
+            <i class="fas fa-box" style="margin-right: 8px; color: #D4C29A; font-size: 11px;"></i>
             ${escapeHtml(p.name || 'Produto')}
           </span>
           <span style="
             color: #D4C29A;
             font-weight: 700;
             background: #0d0d0d;
-            padding: 6px 14px;
-            border-radius: 6px;
+            padding: 4px 10px;
+            border-radius: 5px;
             white-space: nowrap;
-            font-size: 14px;
+            font-size: 12px;
             border: 1px solid #D4C29A;
           ">
             ${p.qty}x
@@ -2277,17 +2312,21 @@ function renderFilteredOrders() {
 
     const div = document.createElement('div');
     div.className = 'list-item';
+    div.style.marginBottom = '20px';
+    div.style.boxShadow = '0 8px 20px rgba(0, 0, 0, 0.5)';
+    div.style.borderRadius = '12px';
+    div.style.overflow = 'hidden';
 
     div.innerHTML = `
   <div class="list-item-header" style="
-    padding: 18px 20px;
+    padding: 12px 16px;
     background: linear-gradient(135deg, #1a1a1a 0%, #0d0d0d 100%);
     border-bottom: 2px solid #D4C29A;
   ">
     <div style="flex: 1;">
       <div class="list-item-title" style="
-        font-size: 18px;
-        margin-bottom: 8px;
+        font-size: 16px;
+        margin-bottom: 6px;
         color: #D4C29A;
         font-weight: 700;
         letter-spacing: 0.3px;
@@ -2295,13 +2334,13 @@ function renderFilteredOrders() {
         ${escapeHtml(os.cliente || 'Cliente não informado')}
       </div>
       <div class="list-item-subtitle" style="
-        font-size: 13px;
+        font-size: 12px;
         color: #999;
         display: flex;
         align-items: center;
         gap: 6px;
       ">
-        <i class="fas fa-calendar-alt" style="font-size: 11px;"></i>
+        <i class="fas fa-calendar-alt" style="font-size: 10px;"></i>
         ${dataStr}
       </div>
     </div>
@@ -2309,39 +2348,39 @@ function renderFilteredOrders() {
   </div>
 
   <div class="list-item-info" style="
-    padding: 20px;
-    gap: 16px;
+    padding: 14px;
+    gap: 12px;
     background: #0d0d0d;
   ">
 
     <div style="
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 16px;
-      margin-bottom: 18px;
+      gap: 12px;
+      margin-bottom: 12px;
     ">
       <div style="
         background: #1a1a1a;
         border: 1px solid #333;
-        border-radius: 8px;
-        padding: 14px;
+        border-radius: 6px;
+        padding: 10px;
         transition: all 0.3s;
       ">
         <div style="
-          font-size: 11px;
+          font-size: 10px;
           color: #888;
           text-transform: uppercase;
           letter-spacing: 0.5px;
-          margin-bottom: 8px;
+          margin-bottom: 6px;
           display: flex;
           align-items: center;
-          gap: 6px;
+          gap: 5px;
         ">
           <i class="fas fa-tools" style="color: #D4C29A;"></i>
           Serviço
         </div>
         <div style="
-          font-size: 14px;
+          font-size: 13px;
           color: #fff;
           font-weight: 600;
         ">
@@ -2352,25 +2391,25 @@ function renderFilteredOrders() {
       <div style="
         background: #1a1a1a;
         border: 1px solid #333;
-        border-radius: 8px;
-        padding: 14px;
+        border-radius: 6px;
+        padding: 10px;
         transition: all 0.3s;
       ">
         <div style="
-          font-size: 11px;
+          font-size: 10px;
           color: #888;
           text-transform: uppercase;
           letter-spacing: 0.5px;
-          margin-bottom: 8px;
+          margin-bottom: 6px;
           display: flex;
           align-items: center;
-          gap: 6px;
+          gap: 5px;
         ">
           <i class="fas fa-user-hard-hat" style="color: #D4C29A;"></i>
           Técnico
         </div>
         <div style="
-          font-size: 14px;
+          font-size: 13px;
           color: #fff;
           font-weight: 600;
         ">
@@ -2382,25 +2421,25 @@ function renderFilteredOrders() {
     <div style="
       background: #1a1a1a;
       border: 1px solid #333;
-      border-radius: 8px;
-      padding: 14px;
-      margin-bottom: 16px;
+      border-radius: 6px;
+      padding: 10px;
+      margin-bottom: 12px;
     ">
       <div style="
-        font-size: 11px;
+        font-size: 10px;
         color: #888;
         text-transform: uppercase;
         letter-spacing: 0.5px;
-        margin-bottom: 8px;
+        margin-bottom: 6px;
         display: flex;
         align-items: center;
-        gap: 6px;
+        gap: 5px;
       ">
         <i class="fas fa-map-marker-alt" style="color: #D4C29A;"></i>
         Endereço
       </div>
       <div style="
-        font-size: 14px;
+        font-size: 13px;
         color: #fff;
         font-weight: 500;
       ">
@@ -2411,25 +2450,55 @@ function renderFilteredOrders() {
     <div style="
       background: #1a1a1a;
       border: 1px solid #333;
-      border-radius: 8px;
-      padding: 14px;
-      margin-bottom: 16px;
+      border-radius: 6px;
+      padding: 10px;
+      margin-bottom: 12px;
     ">
+      <!-- Status de Pagamento -->
       <div style="
-        font-size: 11px;
+        font-size: 10px;
         color: #888;
         text-transform: uppercase;
         letter-spacing: 0.5px;
-        margin-bottom: 8px;
+        margin-bottom: 5px;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+      ">
+        <i class="fas fa-circle-check" style="color: ${statusPagamento === 'Pago' ? '#28a745' : '#dc3545'};"></i>
+        Status de Pagamento
+      </div>
+      <div style="
+        font-size: 13px;
+        color: ${statusPagamento === 'Pago' ? '#28a745' : '#dc3545'};
+        font-weight: 700;
+        margin-bottom: 10px;
         display: flex;
         align-items: center;
         gap: 6px;
+      ">
+        <i class="fas fa-${statusPagamento === 'Pago' ? 'check-circle' : 'times-circle'}"></i>
+        ${escapeHtml(statusPagamento)}
+      </div>
+
+      <!-- Forma de Pagamento -->
+      <div style="
+        font-size: 10px;
+        color: #888;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 5px;
+        padding-top: 10px;
+        border-top: 1px solid #333;
+        display: flex;
+        align-items: center;
+        gap: 5px;
       ">
         <i class="fas fa-credit-card" style="color: #D4C29A;"></i>
         Forma de Pagamento
       </div>
       <div style="
-        font-size: 14px;
+        font-size: 13px;
         color: #fff;
         font-weight: 600;
       ">
@@ -2440,9 +2509,9 @@ function renderFilteredOrders() {
     <div style="
       background: linear-gradient(135deg, #1a1a1a 0%, #0d0d0d 100%);
       border: 2px solid #D4C29A;
-      border-radius: 10px;
-      padding: 18px 20px;
-      margin: 18px 0;
+      border-radius: 8px;
+      padding: 12px 16px;
+      margin: 12px 0;
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -2450,17 +2519,17 @@ function renderFilteredOrders() {
     ">
       <span style="
         color: #D4C29A;
-        font-size: 13px;
+        font-size: 11px;
         font-weight: 700;
         text-transform: uppercase;
         letter-spacing: 0.5px;
       ">
-        <i class="fas fa-dollar-sign" style="margin-right: 8px;"></i>
+        <i class="fas fa-dollar-sign" style="margin-right: 6px;"></i>
         Valor Total
       </span>
       <span style="
         color: #D4C29A;
-        font-size: 24px;
+        font-size: 20px;
         font-weight: 800;
         text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
       ">
@@ -2469,50 +2538,50 @@ function renderFilteredOrders() {
     </div>
 
     ${produtosListaHTML ? `
-      <div style="margin-top: 16px; margin-bottom: 16px;">
+      <div style="margin-top: 12px; margin-bottom: 12px;">
         <div style="
           color: #D4C29A;
-          font-size: 12px;
+          font-size: 11px;
           font-weight: 700;
-          margin-bottom: 12px;
+          margin-bottom: 10px;
           text-transform: uppercase;
           letter-spacing: 0.5px;
-          padding-bottom: 8px;
+          padding-bottom: 6px;
           border-bottom: 2px solid #D4C29A;
         ">
-          <i class="fas fa-boxes" style="margin-right: 8px; font-size: 11px;"></i>
+          <i class="fas fa-boxes" style="margin-right: 6px; font-size: 10px;"></i>
           Produtos Utilizados (${qtdProdutos} un.)
         </div>
-        <div style="max-height: 240px; overflow-y: auto;">
+        <div style="max-height: 200px; overflow-y: auto;">
           ${produtosListaHTML}
         </div>
       </div>
     ` : `
       <div style="
-        margin: 16px 0;
-        padding: 16px;
+        margin: 12px 0;
+        padding: 12px;
         background: #1a1a1a;
         border: 2px dashed #333;
-        border-radius: 8px;
+        border-radius: 6px;
         color: #888;
-        font-size: 13px;
+        font-size: 12px;
         text-align: center;
       ">
-        <i class="fas fa-inbox" style="margin-right: 8px; font-size: 16px; color: #D4C29A;"></i>
+        <i class="fas fa-inbox" style="margin-right: 6px; font-size: 14px; color: #D4C29A;"></i>
         Nenhum produto cadastrado
       </div>
     `}
 
-    <div style="margin-top: 12px;">
+    <div style="margin-top: 10px;">
       <span style="
         display: inline-flex;
         align-items: center;
-        gap: 8px;
+        gap: 6px;
         background: linear-gradient(135deg, #1a1a1a 0%, #0d0d0d 100%);
         border: 1px solid #16a34a;
-        border-radius: 8px;
-        padding: 10px 16px;
-        font-size: 13px;
+        border-radius: 6px;
+        padding: 8px 12px;
+        font-size: 12px;
         color: #16a34a;
         font-weight: 700;
       ">
@@ -2527,15 +2596,15 @@ function renderFilteredOrders() {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  padding: 16px;
+  padding: 12px;
   background: #000;
   border-top: 2px solid #D4C29A;
 ">
   <!-- Ver - Azul -->
   <button class="btn-small" onclick="viewOrder('${os.id}')" style="
     flex: 1 1 calc(50% - 4px); 
-    font-size: 13px; 
-    padding: 12px 14px;
+    font-size: 12px; 
+    padding: 10px 12px;
     border-radius: 8px;
     font-weight: 600;
     background: #1a1a1a;
@@ -2550,8 +2619,8 @@ function renderFilteredOrders() {
   <!-- Pagamento - Verde -->
   <button class="btn-small" onclick="abrirModalPagamento('${os.id}')" style="
     flex: 1 1 calc(50% - 4px); 
-    font-size: 13px; 
-    padding: 12px 14px;
+    font-size: 12px; 
+    padding: 10px 12px;
     border-radius: 8px;
     font-weight: 600;
     background: #1a1a1a;
@@ -2566,8 +2635,8 @@ function renderFilteredOrders() {
   <!-- PDF - Rosa/Vermelho -->
   <button class="btn-small" onclick="gerarPDFOrdem('${os.id}')" style="
     flex: 1 1 calc(50% - 4px); 
-    font-size: 13px; 
-    padding: 12px 14px;
+    font-size: 12px; 
+    padding: 10px 12px;
     border-radius: 8px;
     font-weight: 600;
     background: #1a1a1a;
@@ -2582,8 +2651,8 @@ function renderFilteredOrders() {
   <!-- Editar - Dourado -->
   <button class="btn-small" onclick="editarOS('${os.id}')" style="
     flex: 1 1 calc(50% - 4px); 
-    font-size: 13px; 
-    padding: 12px 14px;
+    font-size: 12px; 
+    padding: 10px 12px;
     border-radius: 8px;
     font-weight: 600;
     background: #1a1a1a;
@@ -2600,8 +2669,8 @@ function renderFilteredOrders() {
   <!-- Excluir - Vermelho -->
   <button class="btn-small" onclick="excluirOS('${os.id}')" style="
     flex: 1 1 calc(50% - 4px); 
-    font-size: 13px; 
-    padding: 12px 14px;
+    font-size: 12px; 
+    padding: 10px 12px;
     border-radius: 8px;
     font-weight: 600;
     background: #1a1a1a;
@@ -2613,17 +2682,66 @@ function renderFilteredOrders() {
     <i class="fas fa-trash"></i> <span>Excluir</span>
   </button>
 </div>
-
-
 `;
 
     list.appendChild(div);
+
+    // Adiciona divisor com número da OS (exceto após o último card)
+    if (index < filtered.length - 1) {
+      const separator = document.createElement('div');
+      separator.style.cssText = `
+        display: flex;
+        align-items: center;
+        margin: 28px 0;
+        position: relative;
+      `;
+
+      separator.innerHTML = `
+        <div style="
+          flex: 1;
+          height: 2px;
+          background: linear-gradient(to right, transparent, #D4C29A, transparent);
+          box-shadow: 0 0 8px rgba(212, 194, 154, 0.5);
+        "></div>
+        <div style="
+          background: linear-gradient(135deg, #1a1a1a 0%, #0d0d0d 100%);
+          border: 2px solid #D4C29A;
+          border-radius: 20px;
+          padding: 8px 20px;
+          margin: 0 16px;
+          box-shadow: 0 4px 12px rgba(212, 194, 154, 0.3);
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        ">
+          <i class="fas fa-file-alt" style="color: #D4C29A; font-size: 12px;"></i>
+          <span style="
+            color: #D4C29A;
+            font-size: 13px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+          ">OS #${numeroOS}</span>
+        </div>
+        <div style="
+          flex: 1;
+          height: 2px;
+          background: linear-gradient(to right, #D4C29A, transparent);
+          box-shadow: 0 0 8px rgba(212, 194, 154, 0.5);
+        "></div>
+      `;
+
+      list.appendChild(separator);
+    }
   });
 }
+
+
 
 // ============================= 
 // MODAL DE PAGAMENTO
 // ============================= 
+
 function abrirModalPagamento(orderId) {
   const ordem = allOrders.find(o => o.id === orderId);
   if (!ordem) {
@@ -2632,6 +2750,7 @@ function abrirModalPagamento(orderId) {
   }
 
   const formaPagamento = ordem.payment_method || ordem.formaPagamento || 'Não informado';
+  const statusPagamento = ordem.payment_status || ordem.statusPagamento || 'Não Pago';
   const totalFinal = Number(ordem.total) || Number(ordem.preco) || 0;
   const precoFmt = totalFinal.toLocaleString('pt-BR', {
     style: 'currency',
@@ -2738,6 +2857,27 @@ function abrirModalPagamento(orderId) {
 
       <div style="margin-bottom: 24px;">
         <div style="color: #999; font-size: 12px; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">
+          Status de Pagamento Atual
+        </div>
+        <div style="
+          background: #2a2a2a;
+          border: 1px solid ${statusPagamento === 'Pago' ? '#28a745' : '#dc3545'};
+          border-radius: 6px;
+          padding: 12px 16px;
+          color: #fff;
+          font-size: 15px;
+          font-weight: 600;
+          display: flex;
+          align-items: center;
+          gap: 10px;
+        ">
+          <i class="fas fa-${statusPagamento === 'Pago' ? 'check-circle' : 'times-circle'}" style="color: ${statusPagamento === 'Pago' ? '#28a745' : '#dc3545'};"></i>
+          ${escapeHtml(statusPagamento)}
+        </div>
+      </div>
+
+      <div style="margin-bottom: 24px;">
+        <div style="color: #999; font-size: 12px; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">
           Forma de Pagamento Atual
         </div>
         <div style="
@@ -2752,9 +2892,30 @@ function abrirModalPagamento(orderId) {
           align-items: center;
           gap: 10px;
         ">
-          <i class="fas fa-check-circle" style="color: #D4C29A;"></i>
+          <i class="fas fa-wallet" style="color: #D4C29A;"></i>
           ${escapeHtml(formaPagamento)}
         </div>
+      </div>
+
+      <div style="margin-bottom: 20px;">
+        <div style="color: #999; font-size: 12px; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">
+          Alterar Status de Pagamento
+        </div>
+        <select id="novoStatusPagamento" style="
+          width: 100%;
+          padding: 12px 16px;
+          background: #2a2a2a;
+          border: 1px solid #D4C29A;
+          border-radius: 6px;
+          color: #fff;
+          font-size: 14px;
+          cursor: pointer;
+          transition: all 0.2s;
+        ">
+          <option value="">Selecione uma opção</option>
+          <option value="Pago">✓ Pago</option>
+          <option value="Não Pago">✗ Não Pago</option>
+        </select>
       </div>
 
       <div style="margin-bottom: 24px;">
@@ -2833,36 +2994,59 @@ function fecharModalPagamento() {
 }
 
 async function salvarFormaPagamento(orderId) {
-  const selectElement = document.getElementById('novaFormaPagamento');
-  const novaForma = selectElement?.value;
+  const selectForma = document.getElementById('novaFormaPagamento');
+  const selectStatus = document.getElementById('novoStatusPagamento');
 
-  if (!novaForma) {
-    showToast('Selecione uma forma de pagamento', 'error');
+  const novaForma = selectForma?.value;
+  const novoStatus = selectStatus?.value;
+
+  if (!novaForma && !novoStatus) {
+    showToast('Selecione pelo menos uma opção para atualizar', 'error');
     return;
   }
 
   try {
-    showToast('Salvando forma de pagamento...', 'info');
+    showToast('Salvando informações de pagamento...', 'info');
 
     const ordemRef = firebase.database().ref('orders/' + orderId);
-    await ordemRef.update({
-      payment_method: novaForma,
-      formaPagamento: novaForma
-    });
+    const updates = {};
 
-    showToast('Forma de pagamento atualizada!', 'success');
+    if (novaForma) {
+      updates.payment_method = novaForma;
+      updates.formaPagamento = novaForma;
+    }
+
+    if (novoStatus) {
+      updates.payment_status = novoStatus;
+      updates.statusPagamento = novoStatus;
+    }
+
+    await ordemRef.update(updates);
+
+    showToast('Informações de pagamento atualizadas!', 'success');
     fecharModalPagamento();
+
+    // Recarregar dados para atualizar a interface
+    if (typeof loadOrders === 'function') {
+      await loadOrders();
+    }
   } catch (error) {
-    console.error('Erro ao salvar forma de pagamento:', error);
+    console.error('Erro ao salvar pagamento:', error);
     showToast('Erro ao salvar: ' + error.message, 'error');
   }
 }
 
+
+
 // ============================= 
 // FUNÇÃO GERAR PDF COM JSPDF
 // ============================= 
+
+
+
+
 async function gerarPDFOrdem(orderId) {
-  
+
   const ordem = allOrders.find(o => o.id === orderId);
   if (!ordem) {
     showToast('Ordem não encontrada', 'error');
@@ -2894,6 +3078,11 @@ async function gerarPDFOrdem(orderId) {
       ordem.formaPagamento ||
       'Não informado';
 
+    const statusPagamento =
+      ordem.payment_status ||
+      ordem.statusPagamento ||
+      'Não Pago';
+
     const totalFinal =
       Number(ordem.total) ||
       Number(ordem.preco) ||
@@ -2906,14 +3095,14 @@ async function gerarPDFOrdem(orderId) {
     ).toString();
 
     // =============================
-    // HEADER (PADRÃO IGUAL OUTROS PDFs)
+    // HEADER
     // =============================
     doc.setFillColor(248, 249, 250);
-    doc.rect(0, 0, 210, 28, 'F');
+    doc.rect(0, 0, 210, 38, 'F');
 
-    // Barra lateral
+    // Barra lateral vermelha
     doc.setFillColor(179, 33, 23);
-    doc.rect(0, 0, 5, 28, 'F');
+    doc.rect(0, 0, 5, 38, 'F');
 
     // Logo
     if (window.currentLogoUrl) {
@@ -2922,9 +3111,9 @@ async function gerarPDFOrdem(orderId) {
           window.currentLogoUrl,
           'PNG',
           10,
-          6,
-          30,
-          15,
+          7,
+          28,
+          14,
           undefined,
           'FAST'
         );
@@ -2933,92 +3122,145 @@ async function gerarPDFOrdem(orderId) {
       }
     } else {
       doc.setTextColor(179, 33, 23);
-      doc.setFontSize(14);
+      doc.setFontSize(15);
       doc.setFont('helvetica', 'bold');
-      doc.text('EXTINMAIS', 12, 16);
+      doc.text('EXTINMAIS', 12, 15);
     }
+
+    // Informações da empresa
+    doc.setTextColor(90, 90, 90);
+    doc.setFontSize(7.5);
+    doc.setFont('helvetica', 'normal');
+    doc.text('CNPJ: 52.026.476/0001-03', 12, 24);
+    doc.text('Tel: (15) 99137-1232', 12, 28);
+    doc.text('extinmaiss@outlook.com', 12, 32);
 
     // Título
     doc.setTextColor(179, 33, 23);
-    doc.setFontSize(14);
+    doc.setFontSize(15);
     doc.setFont('helvetica', 'bold');
-    doc.text('ORDEM DE SERVIÇO', 200, 13, { align: 'right' });
+    doc.text('NOTA DE SERVIÇO', 200, 13, { align: 'right' });
 
-    // Subtítulo
+    // Número da OS
     doc.setTextColor(90, 90, 90);
-    doc.setFontSize(9);
+    doc.setFontSize(8.5);
     doc.setFont('helvetica', 'normal');
+    doc.text(
+      `N° ${ordem.id?.slice(0, 8) || '-'}`,
+      200,
+      19,
+      { align: 'right' }
+    );
+
     doc.text(
       `Status: ${statusText}`,
       200,
-      20,
+      24,
       { align: 'right' }
     );
 
     // =============================
     // DADOS DO CLIENTE
     // =============================
-    let yPos = 40;
+    let yPos = 46;
 
-    doc.setFillColor(248, 249, 250);
-    doc.rect(15, yPos, 180, 30, 'F');
+    // Card com sombra sutil
+    doc.setDrawColor(220, 220, 220);
+    doc.setLineWidth(0.3);
+    doc.roundedRect(15, yPos, 180, 37, 2, 2);
 
-    doc.setDrawColor(179, 33, 23);
-    doc.setLineWidth(1);
-    doc.line(15, yPos, 15, yPos + 30);
+    // Barra superior colorida
+    doc.setFillColor(179, 33, 23);
+    doc.roundedRect(15, yPos, 180, 7, 2, 2, 'F');
 
-    doc.setTextColor(179, 33, 23);
-    doc.setFontSize(11);
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(10);
     doc.setFont('helvetica', 'bold');
-    doc.text('DADOS DO CLIENTE', 20, yPos + 6);
+    doc.text('DADOS DO CLIENTE', 20, yPos + 5);
 
-    doc.setTextColor(0, 0, 0);
-    doc.setFontSize(9);
+    // Conteúdo
+    doc.setTextColor(60, 60, 60);
+    doc.setFontSize(8.5);
 
+    // Nome do Cliente
     doc.setFont('helvetica', 'bold');
     doc.text('Cliente:', 20, yPos + 13);
     doc.setFont('helvetica', 'normal');
     doc.text(ordem.cliente || '-', 38, yPos + 13);
 
+    // Data
     doc.setFont('helvetica', 'bold');
-    doc.text('Data:', 120, yPos + 13);
+    doc.text('Data:', 130, yPos + 13);
     doc.setFont('helvetica', 'normal');
-    doc.text(dataStr, 133, yPos + 13);
+    doc.text(dataStr, 143, yPos + 13);
 
+    // CNPJ/CPF
+    doc.setFont('helvetica', 'bold');
+    doc.text('CNPJ/CPF:', 20, yPos + 19);
+    doc.setFont('helvetica', 'normal');
     if (ordem.cnpj) {
-      doc.setFont('helvetica', 'bold');
-      doc.text('CNPJ:', 20, yPos + 19);
-      doc.setFont('helvetica', 'normal');
-      doc.text(ordem.cnpj, 35, yPos + 19);
+      doc.text(ordem.cnpj, 43, yPos + 19);
+    } else {
+      doc.text('____________________', 43, yPos + 19);
     }
 
+    // Telefone - campo para preencher
+    doc.setFont('helvetica', 'bold');
+    doc.text('Telefone:', 130, yPos + 19);
+    doc.setFont('helvetica', 'normal');
+    if (ordem.telefone || ordem.contato) {
+      doc.text(ordem.telefone || ordem.contato, 153, yPos + 19);
+    } else {
+      doc.text('____________________', 153, yPos + 19);
+    }
+    // Email - campo para preencher
+    doc.setFont('helvetica', 'bold');
+    doc.text('E-mail:', 130, yPos + 25);
+    doc.setFont('helvetica', 'normal');
+
+    if (ordem.email) {
+      doc.text(ordem.email, 153, yPos + 25);
+    } else {
+      doc.text('____________________', 153, yPos + 25);
+    }
+
+    // Endereço
     doc.setFont('helvetica', 'bold');
     doc.text('Endereço:', 20, yPos + 25);
     doc.setFont('helvetica', 'normal');
-    doc.text(
-      doc.splitTextToSize(ordem.endereco || '-', 150),
-      42,
-      yPos + 25
-    );
+    const enderecoText = ordem.endereco || '-';
+    const enderecoLines = doc.splitTextToSize(enderecoText, 140);
+    doc.text(enderecoLines[0] || '-', 42, yPos + 25);
+
+    // CEP
+    doc.setFont('helvetica', 'bold');
+    doc.text('CEP:', 20, yPos + 31);
+    doc.setFont('helvetica', 'normal');
+    if (ordem.cep) {
+      doc.text(ordem.cep, 33, yPos + 31);
+    } else {
+      doc.text('____________________', 33, yPos + 31);
+    }
 
     // =============================
     // DETALHES DO SERVIÇO
     // =============================
-    yPos += 40;
+    yPos += 42;
 
-    doc.setFillColor(248, 249, 250);
-    doc.rect(15, yPos, 180, 24, 'F');
+    doc.setDrawColor(220, 220, 220);
+    doc.setLineWidth(0.3);
+    doc.roundedRect(15, yPos, 180, 22, 2, 2);
 
-    doc.setDrawColor(179, 33, 23);
-    doc.line(15, yPos, 15, yPos + 24);
+    doc.setFillColor(179, 33, 23);
+    doc.roundedRect(15, yPos, 180, 7, 2, 2, 'F');
 
-    doc.setTextColor(179, 33, 23);
-    doc.setFontSize(11);
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(10);
     doc.setFont('helvetica', 'bold');
-    doc.text('DETALHES DO SERVIÇO', 20, yPos + 6);
+    doc.text('DESCRIÇÃO DO SERVIÇO', 20, yPos + 5);
 
-    doc.setTextColor(0, 0, 0);
-    doc.setFontSize(9);
+    doc.setTextColor(60, 60, 60);
+    doc.setFontSize(8.5);
 
     doc.setFont('helvetica', 'bold');
     doc.text('Serviço:', 20, yPos + 13);
@@ -3026,78 +3268,251 @@ async function gerarPDFOrdem(orderId) {
     doc.text(ordem.servico || '-', 38, yPos + 13);
 
     doc.setFont('helvetica', 'bold');
-    doc.text('Técnico:', 120, yPos + 13);
+    doc.text('Técnico:', 20, yPos + 18);
     doc.setFont('helvetica', 'normal');
-    doc.text(ordem.tecnico || '-', 138, yPos + 13);
+    doc.text(ordem.tecnico || '-', 40, yPos + 18);
 
+    doc.setFont('helvetica', 'bold');
+    doc.text('Data Execução:', 115, yPos + 18);
+    doc.setFont('helvetica', 'normal');
+    doc.text(dataStr, 150, yPos + 18);
+
+    // =============================
+    // PRODUTOS/MATERIAIS UTILIZADOS
+    // =============================
+    if (produtos.length) {
+      yPos += 28;
+
+      doc.setTextColor(179, 33, 23);
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'bold');
+      doc.text('MATERIAIS E PRODUTOS', 15, yPos);
+
+      doc.setDrawColor(179, 33, 23);
+      doc.setLineWidth(0.4);
+      doc.line(15, yPos + 1.5, 195, yPos + 1.5);
+      yPos += 5;
+
+      // Cabeçalho da tabela
+      doc.setFillColor(240, 240, 240);
+      doc.roundedRect(15, yPos, 180, 6, 1, 1, 'F');
+
+      doc.setTextColor(60, 60, 60);
+      doc.setFontSize(8.5);
+      doc.setFont('helvetica', 'bold');
+      doc.text('DESCRIÇÃO', 20, yPos + 4.5);
+      doc.text('QTD', 165, yPos + 4.5);
+
+      yPos += 6;
+
+      produtos.forEach(p => {
+        if (yPos > 240) {
+          doc.addPage();
+          yPos = 25;
+        }
+
+        // Linha alternada
+        doc.setFillColor(250, 250, 250);
+        doc.rect(15, yPos, 180, 7, 'F');
+
+        doc.setDrawColor(230, 230, 230);
+        doc.setLineWidth(0.2);
+        doc.rect(15, yPos, 180, 7);
+
+        doc.setTextColor(60, 60, 60);
+        doc.setFontSize(8.5);
+        doc.setFont('helvetica', 'normal');
+
+        const produtoNome = doc.splitTextToSize(p.name || '-', 125);
+        doc.text(produtoNome[0] || '-', 20, yPos + 4.5);
+
+        doc.setFont('helvetica', 'bold');
+        doc.text(`${p.qty}x`, 165, yPos + 4.5);
+
+        yPos += 7;
+      });
+    }
+
+    // =============================
+    // RESUMO FINANCEIRO
+    // =============================
+    yPos += 8;
+
+    doc.setDrawColor(220, 220, 220);
+    doc.setLineWidth(0.3);
+    doc.roundedRect(15, yPos, 180, 34, 2, 2);
+
+    doc.setFillColor(179, 33, 23);
+    doc.roundedRect(15, yPos, 180, 7, 2, 2, 'F');
+
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'bold');
+    doc.text('RESUMO FINANCEIRO', 20, yPos + 5);
+
+    doc.setTextColor(60, 60, 60);
+    doc.setFontSize(8.5);
+
+    // Quantidade de Produtos
+    const qtdTotal = produtos.reduce((acc, p) => acc + p.qty, 0);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Total de Itens:', 20, yPos + 14);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`${qtdTotal} ${qtdTotal === 1 ? 'un' : 'uns'}`, 50, yPos + 14);
+
+    // Forma de Pagamento
     doc.setFont('helvetica', 'bold');
     doc.text('Pagamento:', 20, yPos + 19);
     doc.setFont('helvetica', 'normal');
     doc.text(formaPagamento, 48, yPos + 19);
 
-    // =============================
-    // PRODUTOS
-    // =============================
-    if (produtos.length) {
-      yPos += 34;
+    // Status de Pagamento
+    const statusPago = statusPagamento === 'Pago';
+    doc.setFont('helvetica', 'bold');
+    doc.text('Status:', 110, yPos + 19);
 
-      doc.setTextColor(179, 33, 23);
-      doc.setFontSize(11);
-      doc.setFont('helvetica', 'bold');
-      doc.text('PRODUTOS UTILIZADOS', 15, yPos);
+    doc.setFillColor(statusPago ? 220 : 255, statusPago ? 252 : 243, statusPago ? 231 : 224);
+    doc.roundedRect(128, yPos + 16, 30, 5, 1, 1, 'F');
 
-      doc.line(15, yPos + 2, 195, yPos + 2);
-      yPos += 8;
+    doc.setTextColor(statusPago ? 22 : 220, statusPago ? 163 : 53, statusPago ? 74 : 69);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(7.5);
+    doc.text(statusPagamento.toUpperCase(), 143, yPos + 19.5, { align: 'center' });
 
-      produtos.forEach(p => {
-        if (yPos > 250) {
-          doc.addPage();
-          yPos = 30;
-        }
+    // Linha divisória
+    doc.setDrawColor(220, 220, 220);
+    doc.setLineWidth(0.3);
+    doc.line(20, yPos + 24, 190, yPos + 24);
 
-        const subtotal = (Number(p.price) || 0) * p.qty;
-
-        doc.setDrawColor(233, 236, 239);
-        doc.rect(15, yPos, 180, 8);
-
-        doc.setTextColor(0, 0, 0);
-        doc.setFontSize(9);
-        doc.text(p.name || '-', 18, yPos + 5);
-        doc.text(String(p.qty), 125, yPos + 5);
-        doc.text(`R$ ${Number(p.price).toFixed(2)}`, 145, yPos + 5);
-
-        doc.setFont('helvetica', 'bold');
-        doc.text(`R$ ${subtotal.toFixed(2)}`, 175, yPos + 5);
-        doc.setFont('helvetica', 'normal');
-
-        yPos += 8;
-      });
-    }
-
-    // =============================
-    // TOTAL
-    // =============================
-    yPos += 10;
-
-    doc.setFillColor(248, 249, 250);
-    doc.setDrawColor(179, 33, 23);
-    doc.rect(15, yPos, 180, 22, 'FD');
-
-    doc.setTextColor(102, 102, 102);
-    doc.setFontSize(10);
-    doc.text('Valor Total', 20, yPos + 8);
+    // Valor Total Destacado
+    doc.setTextColor(80, 80, 80);
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'bold');
+    doc.text('VALOR TOTAL', 20, yPos + 29);
 
     doc.setTextColor(179, 33, 23);
-    doc.setFontSize(18);
+    doc.setFontSize(14);
     doc.setFont('helvetica', 'bold');
     doc.text(
       totalFinal.toLocaleString('pt-BR', {
         style: 'currency',
         currency: 'BRL'
       }),
-      20,
-      yPos + 17
+      190,
+      yPos + 29,
+      { align: 'right' }
     );
+
+    // =============================
+    // OBSERVAÇÕES / NOTAS
+    // =============================
+    yPos += 40;
+
+    if (ordem.observacoes || ordem.notas || ordem.descricao) {
+      if (yPos > 220) {
+        doc.addPage();
+        yPos = 25;
+      }
+
+      doc.setDrawColor(245, 158, 11);
+      doc.setLineWidth(0.3);
+      doc.roundedRect(15, yPos, 180, 22, 2, 2);
+
+      doc.setFillColor(255, 251, 235);
+      doc.roundedRect(15, yPos, 180, 7, 2, 2, 'F');
+
+      doc.setTextColor(180, 83, 9);
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'bold');
+      doc.text('OBSERVAÇÕES', 20, yPos + 5);
+
+      doc.setTextColor(60, 60, 60);
+      doc.setFontSize(8);
+      doc.setFont('helvetica', 'normal');
+
+      const observacao = ordem.observacoes || ordem.notas || ordem.descricao;
+      const obsLines = doc.splitTextToSize(observacao, 170);
+      doc.text(obsLines.slice(0, 2), 20, yPos + 12);
+
+      yPos += 26;
+    }
+
+    // =============================
+    // TERMOS E CONDIÇÕES
+    // =============================
+    if (yPos > 210) {
+      doc.addPage();
+      yPos = 25;
+    }
+
+    doc.setDrawColor(220, 220, 220);
+    doc.setLineWidth(0.3);
+    doc.roundedRect(15, yPos, 180, 24, 2, 2);
+
+    doc.setFillColor(245, 245, 245);
+    doc.roundedRect(15, yPos, 180, 7, 2, 2, 'F');
+
+    doc.setTextColor(179, 33, 23);
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'bold');
+    doc.text('CONDIÇÕES GERAIS', 20, yPos + 5);
+
+    doc.setTextColor(60, 60, 60);
+    doc.setFontSize(7.5);
+    doc.setFont('helvetica', 'normal');
+
+    const termos = [
+      '• Garantia de 90 dias para serviços e peças instaladas.',
+      '• Garantia não cobre mau uso ou danos por terceiros.',
+      '• Validade do orçamento: 30 dias.',
+    ];
+
+    let termosY = yPos + 11;
+    termos.forEach(termo => {
+      doc.text(termo, 20, termosY);
+      termosY += 4;
+    });
+
+    // =============================
+    // ASSINATURAS
+    // =============================
+    yPos += 30;
+
+    if (yPos > 230) {
+      doc.addPage();
+      yPos = 25;
+    }
+
+    doc.setDrawColor(220, 220, 220);
+    doc.setLineWidth(0.3);
+    doc.roundedRect(15, yPos, 180, 30, 2, 2);
+
+    doc.setFillColor(245, 245, 245);
+    doc.roundedRect(15, yPos, 180, 7, 2, 2, 'F');
+
+    doc.setTextColor(179, 33, 23);
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'bold');
+    doc.text('ASSINATURAS', 105, yPos + 5, { align: 'center' });
+
+    // Campo Técnico
+    doc.setDrawColor(150, 150, 150);
+    doc.setLineWidth(0.4);
+    doc.line(25, yPos + 21, 95, yPos + 21);
+
+    doc.setTextColor(60, 60, 60);
+    doc.setFontSize(8.5);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Técnico Responsável', 60, yPos + 25, { align: 'center' });
+
+    // Campo Cliente
+    doc.setDrawColor(150, 150, 150);
+    doc.line(115, yPos + 21, 185, yPos + 21);
+
+    doc.setTextColor(60, 60, 60);
+    doc.setFontSize(8.5);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Cliente', 150, yPos + 25, { align: 'center' });
 
     // =============================
     // RODAPÉ
@@ -3105,30 +3520,34 @@ async function gerarPDFOrdem(orderId) {
     const pages = doc.internal.getNumberOfPages();
     for (let i = 1; i <= pages; i++) {
       doc.setPage(i);
-      doc.setDrawColor(212, 194, 154);
-      doc.line(15, 280, 195, 280);
+      doc.setDrawColor(220, 220, 220);
+      doc.setLineWidth(0.3);
+      doc.line(15, 282, 195, 282);
 
       doc.setTextColor(179, 33, 23);
-      doc.setFontSize(9);
+      doc.setFontSize(8.5);
       doc.setFont('helvetica', 'bold');
-      doc.text('EXTINMAIS', 105, 285, { align: 'center' });
+      doc.text('EXTINMAIS', 105, 286, { align: 'center' });
 
-      doc.setTextColor(102, 102, 102);
-      doc.setFontSize(8);
+      doc.setTextColor(100, 100, 100);
+      doc.setFontSize(6.5);
       doc.setFont('helvetica', 'normal');
+      doc.text('CNPJ: 52.026.476/0001-03 | Tel: (15) 99137-1232 | extinmaiss@outlook.com', 105, 289.5, { align: 'center' });
+
+      doc.setFontSize(6.5);
       doc.text(
-        `Gerado em ${new Date().toLocaleString('pt-BR')}`,
+        `Gerado em ${new Date().toLocaleString('pt-BR')} | Pág ${i}/${pages}`,
         105,
-        290,
+        293,
         { align: 'center' }
       );
     }
 
     doc.save(
-      `OS_${ordem.cliente || 'ordem'}_${ordem.id?.slice(0, 8) || Date.now()}.pdf`
+      `Nota_Servico_${ordem.cliente || 'cliente'}_${ordem.id?.slice(0, 8) || Date.now()}.pdf`
     );
 
-    showToast('PDF gerado com sucesso!', 'success');
+    showToast('Nota de Serviço gerada com sucesso!', 'success');
 
   } catch (error) {
     console.error(error);
@@ -3209,7 +3628,7 @@ async function salvarEdicaoOS() {
 function closeEditOSModal() {
   document.getElementById('editOSModal').style.display = 'none';
 }
-  
+
 
 // ============================= 
 // FUNÇÃO EXCLUIR OS
@@ -3230,7 +3649,7 @@ async function excluirOS(orderId) {
 
   try {
     showToast('Excluindo ordem...', 'info');
-    
+
     const ordemRef = firebase.database().ref('orders/' + orderId);
     await ordemRef.remove();
 
@@ -4268,3 +4687,757 @@ searchInput.addEventListener('input', () => {
   });
 });
 
+// ========================================
+// SISTEMA DE ALERTAS - MOBILE FIRST
+// ========================================
+
+let todosAlertas = [];
+let alertasFiltrados = [];
+let filtroAtual = 'all';
+let alertaSelecionado = null;
+let paginaAtual = 1;
+let itensPorPagina = 10;
+let empresasExpandidas = new Set();
+let inspecoesExpandidas = new Set();
+
+
+
+// ========================================
+// CRIAR MODAL DE EDIÇÃO
+// ========================================
+function criarModalValidade() {
+  if (document.getElementById('editValidadeModal')) {
+    return;
+  }
+
+  const modalHTML = `
+    <div id="editValidadeModal" class="modal-overlay">
+      <div class="modal-container">
+        <div class="modal-header">
+          <h3><i class="fas fa-edit"></i> Editar Validade</h3>
+          <button class="btn-close-modal" onclick="fecharModalValidade()">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        
+        <div class="modal-content">
+          <div class="info-card">
+            <div class="info-row">
+              <i class="fas fa-building"></i>
+              <div>
+                <span class="label">Empresa</span>
+                <span class="value" id="modalEmpresa">-</span>
+              </div>
+            </div>
+            
+            <div class="info-row">
+              <i class="fas fa-tag"></i>
+              <div>
+                <span class="label">Item</span>
+                <span class="value" id="modalTipo">-</span>
+              </div>
+            </div>
+            
+            <div class="info-row status-row" id="modalStatus">
+              <i class="fas fa-exclamation-triangle"></i>
+              <div>
+                <span class="label">Status</span>
+                <span class="value" id="modalStatusTexto">-</span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label>
+        <i class="fas fa-calendar-alt" style="font-size: 15px;"></i>
+              Nova Data de Validade
+            </label>
+            <input 
+              type="date" 
+              id="inputNovaValidade" 
+              class="input-date"
+            >
+          </div>
+          
+          <div class="info-atual">
+            <i class="fas fa-info-circle"></i>
+            <div>
+              <strong>Validade atual:</strong>
+              <span id="modalValidadeAtual">-</span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="modal-footer">
+          <button class="btn-cancel" onclick="fecharModalValidade()">
+            <i class="fas fa-times"></i>
+            Cancelar
+          </button>
+          <button class="btn-save" onclick="salvarNovaValidade()">
+            <i class="fas fa-save"></i>
+            Salvar
+          </button>
+        </div>
+      </div>
+    </div>
+  `;
+
+  document.body.insertAdjacentHTML('beforeend', modalHTML);
+}
+
+// ========================================
+// BUSCAR E AGRUPAR ALERTAS
+// ========================================
+async function buscarAlertasVencimento() {
+  try {
+    const snapshot = await firebase.database().ref('inspections').once('value');
+    const inspections = snapshot.val();
+    
+    if (!inspections) {
+      todosAlertas = [];
+      atualizarContadores();
+      renderizarAlertas();
+      return;
+    }
+    
+    // Agrupar por empresa (razão social)
+    const empresasMap = {};
+    
+    Object.entries(inspections).forEach(([id, inspecao]) => {
+      const razaoSocial = inspecao.razao_social || 'Empresa sem nome';
+      const cnpj = inspecao.cnpj || '-';
+      const dataInspecao = inspecao.data_inspecao || null;
+      
+      // Criar chave única para empresa
+      if (!empresasMap[razaoSocial]) {
+        empresasMap[razaoSocial] = {
+          empresa: razaoSocial,
+          cnpj: cnpj,
+          inspecoes: [],
+          totalVencidos: 0,
+          totalProximos: 0
+        };
+      }
+      
+      // Buscar itens vencidos desta inspeção
+      const itensVencidos = [];
+      
+      Object.keys(inspecao).forEach(campo => {
+        if (campo.includes('validade') && inspecao[campo]) {
+          const dataValidade = inspecao[campo];
+          const diasRestantes = calcularDiasRestantes(dataValidade);
+          
+          // Só adiciona se a data for válida
+          if (diasRestantes !== null) {
+            const status = determinarStatus(diasRestantes);
+            
+            if (status !== 'ok') {
+              let tipo = '';
+              
+              if (campo === 'cert_validade') {
+                tipo = `Certificado ${inspecao.cert_tipo || ''}`;
+              } else if (campo.startsWith('extintores_validade_')) {
+                const index = campo.replace('extintores_validade_', '');
+                const tipoExt = inspecao[`extintores_tipo_${index}`] || 'Extintor';
+                const peso = inspecao[`extintores_peso_${index}`] || '';
+                tipo = `${tipoExt} ${peso}`.trim();
+              } else if (campo === 'alarme_incendio_validade') {
+                tipo = 'Alarme de Incêndio';
+              } else if (campo === 'botoeira_validade') {
+                tipo = 'Botoeira';
+              } else if (campo === 'central_alarme_validade') {
+                tipo = 'Central de Alarme';
+              } else if (campo === 'detector_fumaca_validade') {
+                tipo = 'Detector de Fumaça';
+              } else if (campo === 'hidrante_validade') {
+                tipo = 'Hidrante';
+              } else if (campo === 'iluminacao_emergencia_validade') {
+                tipo = 'Iluminação de Emergência';
+              } else if (campo === 'mangueira_validade') {
+                tipo = 'Mangueira';
+              } else if (campo === 'projeto_spda_validade') {
+                tipo = 'Projeto SPDA';
+              } else if (campo === 'sprinklers_validade') {
+                tipo = 'Sprinklers';
+              } else {
+                tipo = campo.replace('_validade', '').replace(/_/g, ' ');
+              }
+              
+              itensVencidos.push({
+                id: `${id}-${campo}`,
+                tipo: tipo,
+                validade: dataValidade,
+                diasRestantes: diasRestantes,
+                status: status,
+                campo: campo,
+                inspectionId: id
+              });
+              
+              if (status === 'vencido') {
+                empresasMap[razaoSocial].totalVencidos++;
+              } else if (status === 'proximo') {
+                empresasMap[razaoSocial].totalProximos++;
+              }
+            }
+          }
+        }
+      });
+      
+      // Adicionar inspeção se tiver itens vencidos
+      if (itensVencidos.length > 0) {
+        empresasMap[razaoSocial].inspecoes.push({
+          inspectionId: id,
+          dataInspecao: dataInspecao,
+          itens: itensVencidos.sort((a, b) => {
+            if (a.status === 'vencido' && b.status !== 'vencido') return -1;
+            if (a.status !== 'vencido' && b.status === 'vencido') return 1;
+            return a.diasRestantes - b.diasRestantes;
+          })
+        });
+      }
+    });
+    
+    // Converter para array e ordenar
+    const empresasArray = Object.values(empresasMap)
+      .filter(emp => emp.inspecoes.length > 0)
+      .sort((a, b) => {
+        if (a.totalVencidos !== b.totalVencidos) {
+          return b.totalVencidos - a.totalVencidos;
+        }
+        if (a.totalProximos !== b.totalProximos) {
+          return b.totalProximos - a.totalProximos;
+        }
+        return a.empresa.localeCompare(b.empresa);
+      });
+    
+    todosAlertas = empresasArray;
+    alertasFiltrados = empresasArray;
+    
+    atualizarContadores();
+    renderizarAlertas();
+    
+  } catch (error) {
+    console.error('Erro ao buscar alertas:', error);
+    showToast('Erro ao carregar alertas', 'error');
+  }
+}
+
+// ========================================
+// FUNÇÕES AUXILIARES
+// ========================================
+function calcularDiasRestantes(dataValidade) {
+  if (!dataValidade) return null;
+  
+  try {
+    const hoje = new Date();
+    hoje.setHours(0, 0, 0, 0);
+    
+    const validade = new Date(dataValidade);
+    
+    // Verificar se a data é válida
+    if (isNaN(validade.getTime())) {
+      return null;
+    }
+    
+    validade.setHours(0, 0, 0, 0);
+    
+    const diffTime = validade - hoje;
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    return diffDays;
+  } catch (error) {
+    return null;
+  }
+}
+
+function determinarStatus(diasRestantes) {
+  if (diasRestantes === null) return 'ok';
+  if (diasRestantes < 0) {
+    return 'vencido';
+  } else if (diasRestantes <= 30) {
+    return 'proximo';
+  }
+  return 'ok';
+}
+
+function formatarData(dataStr) {
+  if (!dataStr) return '-';
+  
+  try {
+    const data = new Date(dataStr);
+    
+    // Verificar se a data é válida
+    if (isNaN(data.getTime())) {
+      return '-';
+    }
+    
+    return data.toLocaleDateString('pt-BR');
+  } catch (error) {
+    return '-';
+  }
+}
+
+function atualizarContadores() {
+  let totalItens = 0;
+  let totalVencidos = 0;
+  let totalProximos = 0;
+  
+  todosAlertas.forEach(empresa => {
+    totalVencidos += empresa.totalVencidos;
+    totalProximos += empresa.totalProximos;
+    empresa.inspecoes.forEach(inspecao => {
+      totalItens += inspecao.itens.length;
+    });
+  });
+  
+  const alertsBadge = document.getElementById('alertsBadge');
+  const totalAlertasEl = document.getElementById('totalAlertas');
+  
+  if (alertsBadge) alertsBadge.textContent = totalItens;
+  if (totalAlertasEl) totalAlertasEl.textContent = totalItens;
+  
+  const countAll = document.getElementById('countAll');
+  const countVencido = document.getElementById('countVencido');
+  const countProximo = document.getElementById('countProximo');
+  
+  if (countAll) countAll.textContent = totalItens;
+  if (countVencido) countVencido.textContent = totalVencidos;
+  if (countProximo) countProximo.textContent = totalProximos;
+}
+
+// ========================================
+// TOGGLE FUNCTIONS
+// ========================================
+function toggleAlertsList() {
+  const body = document.getElementById('alertsBody');
+  const btn = document.getElementById('alertsToggleBtn');
+  
+  if (body.style.display === 'none') {
+    body.style.display = 'block';
+    btn.classList.add('open');
+  } else {
+    body.style.display = 'none';
+    btn.classList.remove('open');
+  }
+}
+
+function toggleEmpresa(empresaNome) {
+  if (empresasExpandidas.has(empresaNome)) {
+    empresasExpandidas.delete(empresaNome);
+  } else {
+    empresasExpandidas.add(empresaNome);
+  }
+  renderizarAlertas();
+}
+
+function toggleInspecao(inspectionId) {
+  if (inspecoesExpandidas.has(inspectionId)) {
+    inspecoesExpandidas.delete(inspectionId);
+  } else {
+    inspecoesExpandidas.add(inspectionId);
+  }
+  renderizarAlertas();
+}
+
+// ========================================
+// FILTROS
+// ========================================
+function filterAlerts(tipo) {
+  filtroAtual = tipo;
+  paginaAtual = 1;
+  
+  document.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.classList.remove('active');
+  });
+  const filterBtn = document.querySelector(`[data-filter="${tipo}"]`);
+  if (filterBtn) {
+    filterBtn.classList.add('active');
+  }
+  
+  if (tipo === 'all') {
+    alertasFiltrados = todosAlertas;
+  } else {
+    alertasFiltrados = todosAlertas.map(empresa => {
+      const inspecoesFiltradas = empresa.inspecoes.map(inspecao => {
+        const itensFiltrados = inspecao.itens.filter(item => item.status === tipo);
+        if (itensFiltrados.length > 0) {
+          return { ...inspecao, itens: itensFiltrados };
+        }
+        return null;
+      }).filter(i => i !== null);
+      
+      if (inspecoesFiltradas.length > 0) {
+        const totalVencidos = inspecoesFiltradas.reduce((sum, insp) => 
+          sum + insp.itens.filter(i => i.status === 'vencido').length, 0);
+        const totalProximos = inspecoesFiltradas.reduce((sum, insp) => 
+          sum + insp.itens.filter(i => i.status === 'proximo').length, 0);
+        
+        return {
+          ...empresa,
+          inspecoes: inspecoesFiltradas,
+          totalVencidos,
+          totalProximos
+        };
+      }
+      return null;
+    }).filter(e => e !== null);
+  }
+  
+  renderizarAlertas();
+}
+
+// ========================================
+// RENDERIZAR ALERTAS (MOBILE FIRST)
+// ========================================
+function renderizarAlertas() {
+  const container = document.getElementById('alertsList');
+  const paginationContainer = document.getElementById('paginationContainer');
+  
+  if (!container) return;
+  
+  if (alertasFiltrados.length === 0) {
+    container.innerHTML = `
+      <div class="empty-state">
+        <i class="fas fa-check-circle"></i>
+        <p>Nenhum item ${filtroAtual === 'vencido' ? 'vencido' : filtroAtual === 'proximo' ? 'próximo do vencimento' : 'vencido ou próximo'}</p>
+      </div>
+    `;
+    if (paginationContainer) paginationContainer.style.display = 'none';
+    return;
+  }
+  
+  const totalItens = alertasFiltrados.length;
+  const totalPaginas = Math.ceil(totalItens / itensPorPagina);
+  
+  if (paginaAtual > totalPaginas) paginaAtual = totalPaginas;
+  if (paginaAtual < 1) paginaAtual = 1;
+  
+  const inicio = (paginaAtual - 1) * itensPorPagina;
+  const fim = Math.min(inicio + itensPorPagina, totalItens);
+  const empresasPaginadas = alertasFiltrados.slice(inicio, fim);
+  
+  container.innerHTML = empresasPaginadas.map(empresa => {
+    const isEmpresaExpanded = empresasExpandidas.has(empresa.empresa);
+    const statusClass = empresa.totalVencidos > 0 ? 'vencido' : 'proximo';
+    
+    return `
+      <div class="empresa-card ${statusClass}">
+        <div class="empresa-header" onclick="toggleEmpresa('${empresa.empresa.replace(/'/g, "\\'")}')">
+          <div class="empresa-info">
+            <div class="empresa-icon">
+              <i class="fas fa-building"></i>
+            </div>
+            <div class="empresa-data">
+              <div class="empresa-nome">${empresa.empresa}</div>
+              <div class="empresa-cnpj">${empresa.cnpj}</div>
+            </div>
+          </div>
+          
+          <div class="empresa-badges">
+            ${empresa.totalVencidos > 0 ? `
+              <span class="badge badge-vencido">${empresa.totalVencidos}</span>
+            ` : ''}
+            ${empresa.totalProximos > 0 ? `
+              <span class="badge badge-proximo">${empresa.totalProximos}</span>
+            ` : ''}
+            <i class="fas fa-chevron-${isEmpresaExpanded ? 'up' : 'down'} chevron-icon"></i>
+          </div>
+        </div>
+        
+        ${isEmpresaExpanded ? `
+          <div class="empresa-inspecoes">
+            ${empresa.inspecoes.map(inspecao => {
+              const isInspecaoExpanded = inspecoesExpandidas.has(inspecao.inspectionId);
+              const dataFormatada = formatarData(inspecao.dataInspecao);
+              
+              return `
+                <div class="inspecao-item">
+                  <div class="inspecao-header" onclick="event.stopPropagation(); toggleInspecao('${inspecao.inspectionId}')">
+                    <div class="inspecao-info">
+                      <i class="fas fa-clipboard-check"></i>
+                      <span>Inspeção ${dataFormatada !== '-' ? '- ' + dataFormatada : ''}</span>
+                    </div>
+                    <div class="inspecao-count">
+                      <span>${inspecao.itens.length} ${inspecao.itens.length === 1 ? 'item' : 'itens'}</span>
+                      <i class="fas fa-chevron-${isInspecaoExpanded ? 'up' : 'down'}"></i>
+                    </div>
+                  </div>
+                  
+                  ${isInspecaoExpanded ? `
+                    <div class="itens-list">
+                      ${inspecao.itens.map(item => {
+                        const icone = item.status === 'vencido' ? 'times-circle' : 'exclamation-circle';
+                        const textoStatus = item.status === 'vencido'
+                          ? `Vencido há ${Math.abs(item.diasRestantes)}d`
+                          : `Vence em ${item.diasRestantes}d`;
+                        
+                        return `
+                          <div class="item-card ${item.status}">
+                            <div class="item-header">
+                              <div class="item-icon">
+                                <i class="fas fa-${icone}"></i>
+                              </div>
+                              <div class="item-info">
+                                <div class="item-nome">${item.tipo}</div>
+                                <div class="item-meta">
+                                  <span><i class="fas fa-calendar"></i> ${formatarData(item.validade)}</span>
+                                  <span class="status-text">${textoStatus}</span>
+                                </div>
+                              </div>
+                            </div>
+                            <button class="btn-edit" onclick="event.stopPropagation(); abrirModalEdicaoItem('${item.inspectionId}', '${item.campo}', '${empresa.empresa.replace(/'/g, "\\'")}', '${item.tipo.replace(/'/g, "\\'")}')">
+                              <i class="fas fa-edit"></i>
+                            </button>
+                          </div>
+                        `;
+                      }).join('')}
+                    </div>
+                  ` : ''}
+                </div>
+              `;
+            }).join('')}
+          </div>
+        ` : ''}
+      </div>
+    `;
+  }).join('');
+  
+  if (totalItens > 5) {
+    if (paginationContainer) paginationContainer.style.display = 'flex';
+    atualizarPaginacao(totalItens, inicio, fim, totalPaginas);
+  } else {
+    if (paginationContainer) paginationContainer.style.display = 'none';
+  }
+}
+
+// ========================================
+// PAGINAÇÃO
+// ========================================
+function atualizarPaginacao(totalItens, inicio, fim, totalPaginas) {
+  document.getElementById('showingFrom').textContent = inicio + 1;
+  document.getElementById('showingTo').textContent = fim;
+  document.getElementById('totalItems').textContent = totalItens;
+  
+  const btnFirst = document.getElementById('btnFirst');
+  const btnPrev = document.getElementById('btnPrev');
+  const btnNext = document.getElementById('btnNext');
+  const btnLast = document.getElementById('btnLast');
+  
+  if (btnFirst) btnFirst.disabled = paginaAtual === 1;
+  if (btnPrev) btnPrev.disabled = paginaAtual === 1;
+  if (btnNext) btnNext.disabled = paginaAtual === totalPaginas;
+  if (btnLast) btnLast.disabled = paginaAtual === totalPaginas;
+  
+  const paginationNumbers = document.getElementById('paginationNumbers');
+  if (!paginationNumbers) return;
+  
+  paginationNumbers.innerHTML = '';
+  
+  let paginasParaMostrar = [];
+  
+  if (totalPaginas <= 5) {
+    for (let i = 1; i <= totalPaginas; i++) {
+      paginasParaMostrar.push(i);
+    }
+  } else {
+    if (paginaAtual <= 3) {
+      paginasParaMostrar = [1, 2, 3, '...', totalPaginas];
+    } else if (paginaAtual >= totalPaginas - 2) {
+      paginasParaMostrar = [1, '...', totalPaginas - 2, totalPaginas - 1, totalPaginas];
+    } else {
+      paginasParaMostrar = [1, '...', paginaAtual, '...', totalPaginas];
+    }
+  }
+  
+  paginasParaMostrar.forEach(page => {
+    if (page === '...') {
+      const dots = document.createElement('span');
+      dots.className = 'pagination-dots';
+      dots.textContent = '...';
+      paginationNumbers.appendChild(dots);
+    } else {
+      const btn = document.createElement('button');
+      btn.className = 'pagination-btn' + (page === paginaAtual ? ' active' : '');
+      btn.textContent = page;
+      btn.onclick = () => goToPage(page);
+      paginationNumbers.appendChild(btn);
+    }
+  });
+}
+
+function goToPage(page) {
+  paginaAtual = page;
+  renderizarAlertas();
+  const alertsList = document.getElementById('alertsList');
+  if (alertsList) {
+    alertsList.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+}
+
+function previousPage() {
+  if (paginaAtual > 1) {
+    goToPage(paginaAtual - 1);
+  }
+}
+
+function nextPage() {
+  const totalPaginas = Math.ceil(alertasFiltrados.length / itensPorPagina);
+  if (paginaAtual < totalPaginas) {
+    goToPage(paginaAtual + 1);
+  }
+}
+
+function goToLastPage() {
+  const totalPaginas = Math.ceil(alertasFiltrados.length / itensPorPagina);
+  goToPage(totalPaginas);
+}
+
+function changeItemsPerPage() {
+  const select = document.getElementById('itemsPerPage');
+  if (select) {
+    itensPorPagina = parseInt(select.value);
+    paginaAtual = 1;
+    renderizarAlertas();
+  }
+}
+
+// ========================================
+// MODAL DE EDIÇÃO
+// ========================================
+function abrirModalEdicaoItem(inspectionId, campo, empresa, tipo) {
+  criarModalValidade();
+  
+  firebase.database().ref(`inspections/${inspectionId}`).once('value').then(snapshot => {
+    const inspecao = snapshot.val();
+    if (!inspecao) return;
+    
+    const dataValidade = inspecao[campo];
+    const diasRestantes = calcularDiasRestantes(dataValidade);
+    const status = determinarStatus(diasRestantes);
+    
+    alertaSelecionado = {
+      inspectionId: inspectionId,
+      campo: campo,
+      empresa: empresa,
+      tipo: tipo,
+      validade: dataValidade,
+      diasRestantes: diasRestantes,
+      status: status
+    };
+    
+    document.getElementById('modalEmpresa').textContent = empresa;
+    document.getElementById('modalTipo').textContent = tipo;
+    document.getElementById('modalValidadeAtual').textContent = formatarData(dataValidade);
+    
+    const statusDiv = document.getElementById('modalStatus');
+    statusDiv.className = 'info-row status-row ' + status;
+    
+    const textoStatus = status === 'vencido'
+      ? `Vencido há ${Math.abs(diasRestantes)} ${Math.abs(diasRestantes) === 1 ? 'dia' : 'dias'}`
+      : `Vence em ${diasRestantes} ${diasRestantes === 1 ? 'dia' : 'dias'}`;
+    
+    document.getElementById('modalStatusTexto').textContent = textoStatus;
+    document.getElementById('inputNovaValidade').value = '';
+    
+    const modal = document.getElementById('editValidadeModal');
+    modal.classList.add('show');
+    document.body.style.overflow = 'hidden';
+  });
+}
+
+function fecharModalValidade() {
+  const modal = document.getElementById('editValidadeModal');
+  if (modal) {
+    modal.classList.remove('show');
+  }
+  alertaSelecionado = null;
+  document.body.style.overflow = '';
+}
+
+async function salvarNovaValidade() {
+  if (!alertaSelecionado) return;
+  
+  const novaValidade = document.getElementById('inputNovaValidade').value;
+  
+  if (!novaValidade) {
+    showToast('Selecione uma data', 'error');
+    return;
+  }
+  
+  try {
+    const campo = alertaSelecionado.campo;
+    const inspectionId = alertaSelecionado.inspectionId;
+    
+    await firebase.database().ref(`inspections/${inspectionId}`).update({
+      [campo]: novaValidade
+    });
+    
+    showToast('Validade atualizada com sucesso!', 'success');
+    fecharModalValidade();
+    await buscarAlertasVencimento();
+    
+  } catch (error) {
+    console.error('Erro ao salvar validade:', error);
+    showToast('Erro ao salvar alteração', 'error');
+  }
+}
+
+// ========================================
+// INICIALIZAÇÃO
+// ========================================
+function inicializarAlertas() {
+  criarModalValidade();
+  buscarAlertasVencimento();
+  
+  // Atualizar a cada 5 minutos
+  setInterval(buscarAlertasVencimento, 5 * 60 * 1000);
+}
+
+// Fechar modal ao clicar fora
+document.addEventListener('click', function(event) {
+  const modal = document.getElementById('editValidadeModal');
+  if (event.target === modal) {
+    fecharModalValidade();
+  }
+});
+
+// Fechar modal com ESC
+document.addEventListener('keydown', function(event) {
+  if (event.key === 'Escape') {
+    fecharModalValidade();
+  }
+});
+
+// Inicializar quando Firebase estiver pronto
+if (typeof firebase !== 'undefined' && firebase.database) {
+  setTimeout(() => {
+    inicializarAlertas();
+  }, 1000);
+  
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function() {
+      inicializarAlertas();
+    });
+  } else {
+    inicializarAlertas();
+  }
+} else {
+  setTimeout(() => {
+    if (typeof firebase !== 'undefined' && firebase.database) {
+      inicializarAlertas();
+    }
+  }, 2000);
+}
+
+function toggleAlertsList() {
+  const body = document.getElementById('alertsBody');
+  const btn = document.getElementById('alertsToggleBtn');
+  
+  if (body.style.display === 'none' || body.style.display === '') {
+    body.style.display = 'block';
+    btn.classList.add('open');
+  } else {
+    body.style.display = 'none';
+    btn.classList.remove('open');
+  }
+}
