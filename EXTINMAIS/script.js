@@ -362,6 +362,7 @@ async function startInspection(companyId) {
     document.querySelector('input[name="razao_social"]').value = company.razao_social;
     document.querySelector('input[name="cnpj"]').value = company.cnpj;
     document.querySelector('input[name="telefone"]').value = company.telefone || '';
+    document.querySelector('input[name="cep"]').value = company.cep || ''; // Adicionado aqui
     document.querySelector('input[name="endereco"]').value = company.endereco || '';
     document.querySelector('input[name="responsavel"]').value = company.responsavel || '';
   }, 200);
@@ -480,7 +481,7 @@ function generateCompletePDF(data) {
     // -------------------------------------
     // Página 6 e 7 - Sinalização (somente se existir)
     // -------------------------------------
-     if (data.has_sinalizacao) {
+    if (data.has_sinalizacao) {
       html += `<div class="pdf-page">`;
       html += generatePDFHeader('RELATÓRIO COMPLETO DE INSPEÇÃO');
       html += generateSinalizacaoSection_Parte1(data);
@@ -773,31 +774,35 @@ function generatePDFHeader(title) {
 
 function generateClientSection(data) {
   return `
-        <div class="pdf-section">
-          <div class="pdf-section-title">
-            <i class="fas fa-building"></i> Dados do Cliente
-          </div>
-          <div class="pdf-field">
-            <div class="pdf-field-label">Razão Social:</div>
-            <div class="pdf-field-value">${data.razao_social || '-'}</div>
-          </div>
-          <div class="pdf-field">
-            <div class="pdf-field-label">CNPJ:</div>
-            <div class="pdf-field-value">${data.cnpj || '-'}</div>
-          </div>
-          <div class="pdf-field">
-            <div class="pdf-field-label">Telefone:</div>
-            <div class="pdf-field-value">${data.telefone || '-'}</div>
-          </div>
-          <div class="pdf-field">
-            <div class="pdf-field-label">Endereço:</div>
-            <div class="pdf-field-value">${data.endereco || '-'}</div>
-          </div>
-          <div class="pdf-field">
-            <div class="pdf-field-label">Responsável:</div>
-            <div class="pdf-field-value">${data.responsavel || '-'}</div>
-          </div>
-        </div>
+     <div class="pdf-section">
+  <div class="pdf-section-title">
+    <i class="fas fa-building"></i> Dados do Cliente
+  </div>
+  <div class="pdf-field">
+    <div class="pdf-field-label">Razão Social:</div>
+    <div class="pdf-field-value">${data.razao_social || '-'}</div>
+  </div>
+  <div class="pdf-field">
+    <div class="pdf-field-label">CNPJ:</div>
+    <div class="pdf-field-value">${data.cnpj || '-'}</div>
+  </div>
+  <div class="pdf-field">
+    <div class="pdf-field-label">Telefone:</div>
+    <div class="pdf-field-value">${data.telefone || '-'}</div>
+  </div>
+  <div class="pdf-field">
+    <div class="pdf-field-label">CEP:</div>
+    <div class="pdf-field-value">${data.cep || '-'}</div>
+  </div>
+  <div class="pdf-field">
+    <div class="pdf-field-label">Endereço:</div>
+    <div class="pdf-field-value">${data.endereco || '-'}</div>
+  </div>
+  <div class="pdf-field">
+    <div class="pdf-field-label">Responsável:</div>
+    <div class="pdf-field-value">${data.responsavel || '-'}</div>
+  </div>
+</div>
       `;
 }
 
@@ -2418,14 +2423,14 @@ function renderFilteredOrders() {
       </div>
     </div>
 
-    <div style="
+   <div style="
       background: #1a1a1a;
       border: 1px solid #333;
       border-radius: 6px;
       padding: 10px;
       margin-bottom: 12px;
     ">
-      <div style="
+  <div style="
         font-size: 10px;
         color: #888;
         text-transform: uppercase;
@@ -2435,17 +2440,27 @@ function renderFilteredOrders() {
         align-items: center;
         gap: 5px;
       ">
-        <i class="fas fa-map-marker-alt" style="color: #D4C29A;"></i>
-        Endereço
-      </div>
-      <div style="
+    <i class="fas fa-map-marker-alt" style="color: #D4C29A;"></i>
+    Endereço e CEP
+  </div>
+  
+  <div style="
         font-size: 13px;
         color: #fff;
         font-weight: 500;
+        margin-bottom: 4px;
       ">
-        ${escapeHtml(os.endereco || '-')}
-      </div>
-    </div>
+    ${escapeHtml(os.endereco || '-')}
+  </div>
+
+  <div style="
+        font-size: 12px; 
+        color: #aaa; /* Um cinza levemente mais claro para diferenciar do endereço */
+        font-weight: 400;
+      ">
+    CEP: ${escapeHtml(os.cep || '-')}
+  </div>
+</div>
 
     <div style="
       background: #1a1a1a;
@@ -2938,6 +2953,7 @@ function abrirModalPagamento(orderId) {
           <option value="Pix">Pix</option>
           <option value="Cartão de Crédito">Cartão de Crédito</option>
           <option value="Cartão de Débito">Cartão de Débito</option>
+           <option value="Cheque Especial">Cheque Especial</option>
           <option value="Boleto">Boleto</option>
           <option value="Transferência">Transferência</option>
           <option value="A Prazo">A Prazo</option>
@@ -3213,7 +3229,7 @@ async function gerarPDFOrdem(orderId) {
     } else {
       doc.text('____________________', 153, yPos + 19);
     }
-    // Email - campo para preencher
+   // Email - campo para preencher
     doc.setFont('helvetica', 'bold');
     doc.text('E-mail:', 130, yPos + 25);
     doc.setFont('helvetica', 'normal');
@@ -3228,20 +3244,23 @@ async function gerarPDFOrdem(orderId) {
     doc.setFont('helvetica', 'bold');
     doc.text('Endereço:', 20, yPos + 25);
     doc.setFont('helvetica', 'normal');
+    
     const enderecoText = ordem.endereco || '-';
-    const enderecoLines = doc.splitTextToSize(enderecoText, 140);
-    doc.text(enderecoLines[0] || '-', 42, yPos + 25);
+    const enderecoLines = doc.splitTextToSize(enderecoText, 85); 
+    doc.text(enderecoLines, 42, yPos + 25);
 
-    // CEP
+    // Calcula espaço extra se o endereço quebrar linha (cada linha extra soma aprox. 3.5mm)
+    const alturaExtra = (enderecoLines.length - 1) * 3.5;
+
+    // --- NOVO CAMPO: CEP (com posição ajustada pela alturaExtra) ---
     doc.setFont('helvetica', 'bold');
-    doc.text('CEP:', 20, yPos + 31);
+    doc.text('CEP:', 20, yPos + 31 + alturaExtra);
     doc.setFont('helvetica', 'normal');
     if (ordem.cep) {
-      doc.text(ordem.cep, 33, yPos + 31);
+      doc.text(ordem.cep, 33, yPos + 31 + alturaExtra);
     } else {
-      doc.text('____________________', 33, yPos + 31);
+      doc.text('____________________', 33, yPos + 31 + alturaExtra);
     }
-
     // =============================
     // DETALHES DO SERVIÇO
     // =============================
@@ -3824,10 +3843,11 @@ document.getElementById('orderForm')?.addEventListener('submit', async (e) => {
     /* MONTAR OBJETO DA OS */
     /* ============================= */
 
-    const data = {
+   const data = {
       cliente: raw.cliente || '',
       cnpj: raw.cnpj || '',
       endereco: raw.endereco || '',
+      cep: raw.cep || '', // 🔥 ADICIONE ESTA LINHA PARA SALVAR O CEP
       servico: raw.servico || '',
       tecnico: currentUser?.nome || 'Técnico',
 
@@ -4046,9 +4066,10 @@ function preencherDadosInspecaoFromObj(obj) {
   const mapById = {
     'inspecaoRazao': obj.razao_social || obj.razao || '',
     'inspecaoCnpj': obj.cnpj || '',
-    'inspecaoTelefone': obj.telefone || obj.telefone || '',
-    'inspecaoResponsavel': obj.responsavel || obj.responsavel || '',
-    'inspecaoEndereco': obj.endereco || obj.endereco || ''
+    'inspecaoTelefone': obj.telefone || '',
+    'inspecaoResponsavel': obj.responsavel || '',
+    'inspecaoCep': obj.cep || '', // Adicionado aqui
+    'inspecaoEndereco': obj.endereco || ''
   };
 
   Object.entries(mapById).forEach(([id, val]) => {
@@ -4107,11 +4128,12 @@ if (addCompanyForm) {
     const raw = Object.fromEntries(new FormData(form).entries());
 
     // Apenas salva localmente (não envia para o Firebase)
-    const companyData = {
+const companyData = {
       razao_social: raw.razao_social || '',
       cnpj: raw.cnpj || '',
       telefone: raw.telefone || '',
       responsavel: raw.responsavel || '',
+      cep: raw.cep || '', // 🔥 Adicione esta linha aqui
       endereco: raw.endereco || '',
     };
 
@@ -4144,10 +4166,11 @@ function preencherDadosInspecao(data) {
     if (el) el.value = value || '';
   };
 
-  set('razao_social', data.razao_social);
+set('razao_social', data.razao_social);
   set('cnpj', data.cnpj);
   set('telefone', data.telefone);
   set('responsavel', data.responsavel);
+  set('cep', data.cep); // 🔥 Adicionado aqui
   set('endereco', data.endereco);
 }
 
@@ -4797,7 +4820,7 @@ async function buscarAlertasVencimento() {
   inspectionsRef.on('value', (snapshot) => {
     try {
       const inspections = snapshot.val();
-      
+
       if (!inspections) {
         todosAlertas = [];
         alertasFiltrados = []; // Limpa os filtrados também
@@ -4805,14 +4828,14 @@ async function buscarAlertasVencimento() {
         renderizarAlertas();
         return;
       }
-      
+
       const empresasMap = {};
-      
+
       Object.entries(inspections).forEach(([id, inspecao]) => {
         const razaoSocial = inspecao.razao_social || 'Empresa sem nome';
         const cnpj = inspecao.cnpj || '-';
         const dataInspecao = inspecao.data_inspecao || null;
-        
+
         if (!empresasMap[razaoSocial]) {
           empresasMap[razaoSocial] = {
             empresa: razaoSocial,
@@ -4822,20 +4845,20 @@ async function buscarAlertasVencimento() {
             totalProximos: 0
           };
         }
-        
+
         const itensVencidos = [];
-        
+
         Object.keys(inspecao).forEach(campo => {
           if (campo.includes('validade') && inspecao[campo]) {
             const dataValidade = inspecao[campo];
             const diasRestantes = calcularDiasRestantes(dataValidade);
-            
+
             if (diasRestantes !== null) {
               const status = determinarStatus(diasRestantes);
-              
+
               if (status !== 'ok') {
                 let tipo = formatarTipoCampo(campo, inspecao); // Função auxiliar para limpar o código
-                
+
                 itensVencidos.push({
                   id: `${id}-${campo}`,
                   tipo: tipo,
@@ -4845,7 +4868,7 @@ async function buscarAlertasVencimento() {
                   campo: campo,
                   inspectionId: id
                 });
-                
+
                 if (status === 'vencido') {
                   empresasMap[razaoSocial].totalVencidos++;
                 } else if (status === 'proximo') {
@@ -4855,7 +4878,7 @@ async function buscarAlertasVencimento() {
             }
           }
         });
-        
+
         if (itensVencidos.length > 0) {
           empresasMap[razaoSocial].inspecoes.push({
             inspectionId: id,
@@ -4868,7 +4891,7 @@ async function buscarAlertasVencimento() {
           });
         }
       });
-      
+
       const empresasArray = Object.values(empresasMap)
         .filter(emp => emp.inspecoes.length > 0)
         .sort((a, b) => {
@@ -4876,10 +4899,10 @@ async function buscarAlertasVencimento() {
           if (a.totalProximos !== b.totalProximos) return b.totalProximos - a.totalProximos;
           return a.empresa.localeCompare(b.empresa);
         });
-      
+
       todosAlertas = empresasArray;
       alertasFiltrados = empresasArray;
-      
+
       atualizarContadores();
       renderizarAlertas();
       console.log("Alertas atualizados em tempo real.");
@@ -4919,23 +4942,23 @@ function formatarTipoCampo(campo, inspecao) {
 // ========================================
 function calcularDiasRestantes(dataValidade) {
   if (!dataValidade) return null;
-  
+
   try {
     const hoje = new Date();
     hoje.setHours(0, 0, 0, 0);
-    
+
     const validade = new Date(dataValidade);
-    
+
     // Verificar se a data é válida
     if (isNaN(validade.getTime())) {
       return null;
     }
-    
+
     validade.setHours(0, 0, 0, 0);
-    
+
     const diffTime = validade - hoje;
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    
+
     return diffDays;
   } catch (error) {
     return null;
@@ -4954,15 +4977,15 @@ function determinarStatus(diasRestantes) {
 
 function formatarData(dataStr) {
   if (!dataStr) return '-';
-  
+
   try {
     const data = new Date(dataStr);
-    
+
     // Verificar se a data é válida
     if (isNaN(data.getTime())) {
       return '-';
     }
-    
+
     return data.toLocaleDateString('pt-BR');
   } catch (error) {
     return '-';
@@ -4973,7 +4996,7 @@ function atualizarContadores() {
   let totalItens = 0;
   let totalVencidos = 0;
   let totalProximos = 0;
-  
+
   todosAlertas.forEach(empresa => {
     totalVencidos += empresa.totalVencidos;
     totalProximos += empresa.totalProximos;
@@ -4981,17 +5004,17 @@ function atualizarContadores() {
       totalItens += inspecao.itens.length;
     });
   });
-  
+
   const alertsBadge = document.getElementById('alertsBadge');
   const totalAlertasEl = document.getElementById('totalAlertas');
-  
+
   if (alertsBadge) alertsBadge.textContent = totalItens;
   if (totalAlertasEl) totalAlertasEl.textContent = totalItens;
-  
+
   const countAll = document.getElementById('countAll');
   const countVencido = document.getElementById('countVencido');
   const countProximo = document.getElementById('countProximo');
-  
+
   if (countAll) countAll.textContent = totalItens;
   if (countVencido) countVencido.textContent = totalVencidos;
   if (countProximo) countProximo.textContent = totalProximos;
@@ -5003,7 +5026,7 @@ function atualizarContadores() {
 function toggleAlertsList() {
   const body = document.getElementById('alertsBody');
   const btn = document.getElementById('alertsToggleBtn');
-  
+
   if (body.style.display === 'none') {
     body.style.display = 'block';
     btn.classList.add('open');
@@ -5037,7 +5060,7 @@ function toggleInspecao(inspectionId) {
 function filterAlerts(tipo) {
   filtroAtual = tipo;
   paginaAtual = 1;
-  
+
   document.querySelectorAll('.filter-btn').forEach(btn => {
     btn.classList.remove('active');
   });
@@ -5045,7 +5068,7 @@ function filterAlerts(tipo) {
   if (filterBtn) {
     filterBtn.classList.add('active');
   }
-  
+
   if (tipo === 'all') {
     alertasFiltrados = todosAlertas;
   } else {
@@ -5057,13 +5080,13 @@ function filterAlerts(tipo) {
         }
         return null;
       }).filter(i => i !== null);
-      
+
       if (inspecoesFiltradas.length > 0) {
-        const totalVencidos = inspecoesFiltradas.reduce((sum, insp) => 
+        const totalVencidos = inspecoesFiltradas.reduce((sum, insp) =>
           sum + insp.itens.filter(i => i.status === 'vencido').length, 0);
-        const totalProximos = inspecoesFiltradas.reduce((sum, insp) => 
+        const totalProximos = inspecoesFiltradas.reduce((sum, insp) =>
           sum + insp.itens.filter(i => i.status === 'proximo').length, 0);
-        
+
         return {
           ...empresa,
           inspecoes: inspecoesFiltradas,
@@ -5074,47 +5097,77 @@ function filterAlerts(tipo) {
       return null;
     }).filter(e => e !== null);
   }
-  
+
   renderizarAlertas();
 }
 
 // ========================================
 // RENDERIZAR ALERTAS (MOBILE FIRST)
 // ========================================
+
 function renderizarAlertas() {
   const container = document.getElementById('alertsList');
   const paginationContainer = document.getElementById('paginationContainer');
-  
+
   if (!container) return;
-  
+
   if (alertasFiltrados.length === 0) {
     container.innerHTML = `
-      <div class="empty-state">
-        <i class="fas fa-check-circle"></i>
+      <div class="empty-state" style="padding: 40px; text-align: center; color: #D4C29A;">
+        <i class="fas fa-check-circle" style="font-size: 3rem; margin-bottom: 1rem;"></i>
         <p>Nenhum item ${filtroAtual === 'vencido' ? 'vencido' : filtroAtual === 'proximo' ? 'próximo do vencimento' : 'vencido ou próximo'}</p>
       </div>
     `;
     if (paginationContainer) paginationContainer.style.display = 'none';
     return;
   }
-  
+
   const totalItens = alertasFiltrados.length;
   const totalPaginas = Math.ceil(totalItens / itensPorPagina);
-  
+
   if (paginaAtual > totalPaginas) paginaAtual = totalPaginas;
   if (paginaAtual < 1) paginaAtual = 1;
-  
+
   const inicio = (paginaAtual - 1) * itensPorPagina;
   const fim = Math.min(inicio + itensPorPagina, totalItens);
   const empresasPaginadas = alertasFiltrados.slice(inicio, fim);
-  
-  container.innerHTML = empresasPaginadas.map(empresa => {
+
+  // BOTÃO GERAL - COMBINANDO COM O TEMA DOURADO/DARK
+  const btnPDFGeral = `
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; width: 100%; background: #1a1a1a; padding: 15px; border-radius: 12px; border: 1px solid #333;">
+      <div style="color: #efefef; font-size: 0.9rem;">
+        <i class="fas fa-file-invoice" style="color: #D4C29A; margin-right: 8px;"></i>
+        Relatório de <strong>${totalItens}</strong> registros
+      </div>
+      <button onclick="gerarPDFVencimentos()" style="
+        background: linear-gradient(180deg, #D4C29A, #a7926d);
+        color: #0f0f0f;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 8px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 14px;
+        font-weight: 700;
+        transition: all 0.3s ease;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      " onmouseover="this.style.filter='brightness(1.2)'; this.style.transform='scale(1.02)'" onmouseout="this.style.filter='none'; this.style.transform='scale(1)'">
+        <i class="fas fa-file-pdf"></i> Exportar Tudo
+      </button>
+    </div>
+  `;
+
+  container.innerHTML = btnPDFGeral + empresasPaginadas.map(empresa => {
     const isEmpresaExpanded = empresasExpandidas.has(empresa.empresa);
     const statusClass = empresa.totalVencidos > 0 ? 'vencido' : 'proximo';
-    
+    const empresaNomeEscaped = empresa.empresa.replace(/'/g, "\\'");
+
     return `
       <div class="empresa-card ${statusClass}">
-        <div class="empresa-header" onclick="toggleEmpresa('${empresa.empresa.replace(/'/g, "\\'")}')">
+        <div class="empresa-header" onclick="toggleEmpresa('${empresaNomeEscaped}')">
           <div class="empresa-info">
             <div class="empresa-icon">
               <i class="fas fa-building"></i>
@@ -5125,13 +5178,31 @@ function renderizarAlertas() {
             </div>
           </div>
           
-          <div class="empresa-badges">
-            ${empresa.totalVencidos > 0 ? `
-              <span class="badge badge-vencido">${empresa.totalVencidos}</span>
-            ` : ''}
-            ${empresa.totalProximos > 0 ? `
-              <span class="badge badge-proximo">${empresa.totalProximos}</span>
-            ` : ''}
+          <div class="empresa-badges" style="display: flex; align-items: center; gap: 12px;">
+            
+            <button onclick="event.stopPropagation(); gerarPDFVencimentos('${empresaNomeEscaped}')" 
+              title="Baixar PDF desta empresa" 
+              style="
+                background: transparent;
+                border: 1px solid #D4C29A;
+                padding: 6px 10px;
+                border-radius: 6px;
+                cursor: pointer;
+                color: #D4C29A;
+                display: flex;
+                align-items: center;
+                gap: 5px;
+                font-size: 11px;
+                font-weight: 600;
+                transition: all 0.2s;
+              "
+              onmouseover="this.style.background='#D4C29A'; this.style.color='#0f0f0f'" 
+              onmouseout="this.style.background='transparent'; this.style.color='#D4C29A'">
+              <i class="fas fa-download"></i> PDF
+            </button>
+
+            ${empresa.totalVencidos > 0 ? `<span class="badge badge-vencido">${empresa.totalVencidos}</span>` : ''}
+            ${empresa.totalProximos > 0 ? `<span class="badge badge-proximo">${empresa.totalProximos}</span>` : ''}
             <i class="fas fa-chevron-${isEmpresaExpanded ? 'up' : 'down'} chevron-icon"></i>
           </div>
         </div>
@@ -5140,49 +5211,59 @@ function renderizarAlertas() {
           <div class="empresa-inspecoes">
             ${empresa.inspecoes.map(inspecao => {
               const isInspecaoExpanded = inspecoesExpandidas.has(inspecao.inspectionId);
-              const dataFormatada = formatarData(inspecao.dataInspecao);
-              
               return `
                 <div class="inspecao-item">
                   <div class="inspecao-header" onclick="event.stopPropagation(); toggleInspecao('${inspecao.inspectionId}')">
                     <div class="inspecao-info">
                       <i class="fas fa-clipboard-check"></i>
-                      <span>Inspeção ${dataFormatada !== '-' ? '- ' + dataFormatada : ''}</span>
+                      <span>Inspeção ${formatarData(inspecao.dataInspecao)}</span>
                     </div>
                     <div class="inspecao-count">
-                      <span>${inspecao.itens.length} ${inspecao.itens.length === 1 ? 'item' : 'itens'}</span>
+                      <span>${inspecao.itens.length} itens</span>
                       <i class="fas fa-chevron-${isInspecaoExpanded ? 'up' : 'down'}"></i>
                     </div>
                   </div>
-                  
                   ${isInspecaoExpanded ? `
                     <div class="itens-list">
                       ${inspecao.itens.map(item => {
-                        const icone = item.status === 'vencido' ? 'times-circle' : 'exclamation-circle';
-                        const textoStatus = item.status === 'vencido'
-                          ? `Vencido há ${Math.abs(item.diasRestantes)}d`
-                          : `Vence em ${item.diasRestantes}d`;
-                        
+                        const tipoEscaped = item.tipo.replace(/'/g, "\\'");
+                        const campoEscaped = item.campo ? item.campo.replace(/'/g, "\\'") : '';
                         return `
-                          <div class="item-card ${item.status}">
-                            <div class="item-header">
-                              <div class="item-icon">
-                                <i class="fas fa-${icone}"></i>
-                              </div>
-                              <div class="item-info">
-                                <div class="item-nome">${item.tipo}</div>
-                                <div class="item-meta">
-                                  <span><i class="fas fa-calendar"></i> ${formatarData(item.validade)}</span>
-                                  <span class="status-text">${textoStatus}</span>
-                                </div>
+                        <div class="item-card ${item.status}">
+                          <div class="item-header">
+                            <div class="item-icon"><i class="fas fa-${item.status === 'vencido' ? 'times-circle' : 'exclamation-circle'}"></i></div>
+                            <div class="item-info">
+                              <div class="item-nome">${item.tipo}</div>
+                              <div class="item-meta">
+                                <span><i class="fas fa-calendar"></i> ${formatarData(item.validade)}</span>
+                                <span class="status-text">${item.status === 'vencido' ? 'Vencido' : 'Próximo'}</span>
                               </div>
                             </div>
-                            <button class="btn-edit" onclick="event.stopPropagation(); abrirModalEdicaoItem('${item.inspectionId}', '${item.campo}', '${empresa.empresa.replace(/'/g, "\\'")}', '${item.tipo.replace(/'/g, "\\'")}')">
-                              <i class="fas fa-edit"></i>
+                            <button 
+                              onclick="event.stopPropagation(); abrirModalEdicaoItem('${inspecao.inspectionId}', '${campoEscaped}', '${empresaNomeEscaped}', '${tipoEscaped}')" 
+                              title="Editar validade" 
+                              style="
+                                background: transparent;
+                                border: 1px solid #D4C29A;
+                                padding: 6px 12px;
+                                border-radius: 6px;
+                                cursor: pointer;
+                                color: #D4C29A;
+                                display: flex;
+                                align-items: center;
+                                gap: 5px;
+                                font-size: 11px;
+                                font-weight: 600;
+                                transition: all 0.2s;
+                                margin-left: auto;
+                              "
+                              onmouseover="this.style.background='#D4C29A'; this.style.color='#0f0f0f'" 
+                              onmouseout="this.style.background='transparent'; this.style.color='#D4C29A'">
+                              <i class="fas fa-edit"></i> Editar
                             </button>
                           </div>
-                        `;
-                      }).join('')}
+                        </div>
+                      `;}).join('')}
                     </div>
                   ` : ''}
                 </div>
@@ -5193,7 +5274,7 @@ function renderizarAlertas() {
       </div>
     `;
   }).join('');
-  
+
   if (totalItens > 5) {
     if (paginationContainer) paginationContainer.style.display = 'flex';
     atualizarPaginacao(totalItens, inicio, fim, totalPaginas);
@@ -5202,6 +5283,464 @@ function renderizarAlertas() {
   }
 }
 
+
+// ===================================
+// FUNÇÃO PRINCIPAL PARA GERAR PDF
+// ===================================
+async function gerarPDFVencimentos(empresaAlvo = null) {
+  try {
+    const dadosParaImprimir = empresaAlvo 
+      ? alertasFiltrados.filter(e => e.empresa === empresaAlvo)
+      : alertasFiltrados;
+
+    if (dadosParaImprimir.length === 0) {
+      showToast('Nenhum dado encontrado para gerar o PDF', 'warning');
+      return;
+    }
+
+    const isIndividual = empresaAlvo !== null;
+    const tipoRelatorio = isIndividual ? 'Individual' : 'Geral';
+    const totalEmpresas = dadosParaImprimir.length;
+
+    // Mensagem inicial
+    showToast(`Iniciando geração de ${totalEmpresas} PDF${totalEmpresas > 1 ? 's' : ''}...`, 'info');
+
+    // =============================
+    // PROCESSAR CADA EMPRESA
+    // =============================
+    for (const [empresaIdx, empresa] of dadosParaImprimir.entries()) {
+      
+      // Mensagem de progresso
+      showToast(`Gerando PDF ${empresaIdx + 1} de ${totalEmpresas}: ${empresa.empresa}`, 'info');
+
+      // Buscar dados completos da empresa
+      let dadosEmpresaCompletos = null;
+      try {
+        const dbRef = firebase.database().ref('companies');
+        const snapshot = await dbRef.once('value');
+        
+        if (snapshot.exists()) {
+          const companies = snapshot.val();
+          
+          for (const [id, empresaData] of Object.entries(companies)) {
+            if (empresaData.razao_social === empresa.empresa || 
+                empresaData.razao_social?.toLowerCase() === empresa.empresa?.toLowerCase() ||
+                empresa.cnpj === empresaData.cnpj) {
+              dadosEmpresaCompletos = empresaData;
+              break;
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Erro ao buscar dados da empresa:', error);
+      }
+
+      // Coletar todos os vencimentos da empresa
+      const todosVencimentos = [];
+      empresa.inspecoes.forEach(inspecao => {
+        inspecao.itens.forEach(item => {
+          todosVencimentos.push({
+            ...item,
+            inspecaoTipo: inspecao.tipo,
+            inspecaoData: inspecao.data
+          });
+        });
+      });
+
+      // Calcular estatísticas gerais da empresa
+      const totalItensEmpresa = todosVencimentos.length;
+      const vencidosEmpresa = todosVencimentos.filter(i => i.status === 'vencido').length;
+      const aVencerEmpresa = totalItensEmpresa - vencidosEmpresa;
+      const percentualVencidos = totalItensEmpresa > 0 ? ((vencidosEmpresa / totalItensEmpresa) * 100).toFixed(1) : 0;
+      const percentualAVencer = totalItensEmpresa > 0 ? ((aVencerEmpresa / totalItensEmpresa) * 100).toFixed(1) : 0;
+
+      // Inicializar jsPDF para esta empresa
+      const { jsPDF } = window.jspdf;
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4',
+        compress: true
+      });
+
+      // =============================
+      // GERAR UMA PÁGINA PARA CADA VENCIMENTO
+      // =============================
+      for (const [vencimentoIndex, vencimento] of todosVencimentos.entries()) {
+        
+        // Mensagem de progresso do vencimento
+        if (todosVencimentos.length > 5) {
+          showToast(`Processando vencimento ${vencimentoIndex + 1} de ${todosVencimentos.length}...`, 'info');
+        }
+
+        // Adicionar quebra de página entre vencimentos (exceto primeiro)
+        if (vencimentoIndex > 0) {
+          pdf.addPage();
+        }
+
+        // Renderizar página do vencimento
+        const paginaHTML = montarPaginaVencimentoHTML({
+          tipoRelatorio,
+          empresa,
+          dadosEmpresaCompletos,
+          vencimento,
+          vencimentoIndex,
+          totalVencimentos: todosVencimentos.length,
+          totalItensEmpresa,
+          vencidosEmpresa,
+          aVencerEmpresa,
+          percentualVencidos,
+          percentualAVencer
+        });
+
+        await renderizarPaginaNoPDF(pdf, paginaHTML);
+      }
+
+      // Salvar PDF da empresa
+      const nomeEmpresaLimpo = empresa.empresa.replace(/[^a-zA-Z0-9]/g, '_');
+      const dataAtual = new Date().toLocaleDateString('pt-BR').replace(/\//g, '-');
+      const nomeArquivo = isIndividual 
+        ? `Vencimento_${nomeEmpresaLimpo}_${dataAtual}.pdf`
+        : `Relatorio_Geral_${nomeEmpresaLimpo}_${dataAtual}.pdf`;
+      
+      showToast(`Baixando: ${empresa.empresa}...`, 'info');
+      pdf.save(nomeArquivo);
+
+      // Aguardar entre downloads
+      await new Promise(resolve => setTimeout(resolve, 800));
+    }
+
+    // Mensagem de conclusão
+    showToast(`✅ ${totalEmpresas} PDF${totalEmpresas > 1 ? 's' : ''} gerado${totalEmpresas > 1 ? 's' : ''} com sucesso!`, 'success');
+
+  } catch (error) {
+    console.error('Erro ao gerar PDFs:', error);
+    showToast('❌ Erro ao gerar PDFs: ' + error.message, 'error');
+  }
+}
+
+// ===================================
+// FUNÇÃO PARA MONTAR HTML DA PÁGINA DO VENCIMENTO
+// ===================================
+function montarPaginaVencimentoHTML(opcoes) {
+  const {
+    tipoRelatorio,
+    empresa,
+    dadosEmpresaCompletos,
+    vencimento,
+    vencimentoIndex,
+    totalVencimentos,
+    totalItensEmpresa,
+    vencidosEmpresa,
+    aVencerEmpresa,
+    percentualVencidos,
+    percentualAVencer
+  } = opcoes;
+
+  const statusClass = vencimento.status === 'vencido' ? 'vencido' : 'avencer';
+  const statusTexto = vencimento.status === 'vencido' ? 'VENCIDO' : 'A VENCER';
+  const statusIcon = vencimento.status === 'vencido' ? 'fa-times-circle' : 'fa-exclamation-triangle';
+  const statusColor = vencimento.status === 'vencido' ? '#dc2626' : '#f59e0b';
+
+  return `
+    <!DOCTYPE html>
+    <html lang="pt-BR">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+      <link rel="stylesheet" href="pdf-vencimentos-styles.css">
+      <style>
+        /* Estilos dinâmicos baseados no status */
+        .vencimento-card {
+          border-color: ${statusColor} !important;
+        }
+        .vencimento-header {
+          background: ${statusColor} !important;
+        }
+        .info-box {
+          border-left-color: ${statusColor} !important;
+        }
+        .info-box-value.destaque {
+          color: ${statusColor} !important;
+        }
+        .info-box-value.status-color {
+          color: ${statusColor} !important;
+        }
+      </style>
+    </head>
+    <body>
+      <div class="pdf-page">
+        <!-- HEADER -->
+        <div class="pdf-header">
+          <div class="header-top">
+            <div class="logo-section">
+              <div class="logo-box">
+                <div class="logo-text">EXTINMAIS</div>
+              </div>
+            </div>
+            <div class="header-title">
+              <h1>
+                <i class="fas fa-file-alt"></i> 
+                RELATÓRIO DE VENCIMENTO
+              </h1>
+              <div class="tipo-relatorio-badge">
+                <i class="fas ${tipoRelatorio === 'Individual' ? 'fa-user' : 'fa-users'}"></i>
+                RELATÓRIO ${tipoRelatorio.toUpperCase()}
+              </div>
+            </div>
+          </div>
+          <div class="header-divider"></div>
+          <div class="header-info">
+            <div class="header-info-left">
+              <div class="header-info-item">
+                <i class="fas fa-id-card"></i>
+                <span>CNPJ: 52.026.476/0001-03</span>
+              </div>
+              <div class="header-info-item">
+                <i class="fas fa-phone"></i>
+                <span>(15) 99137-1232</span>
+              </div>
+              <div class="header-info-item">
+                <i class="fas fa-envelope"></i>
+                <span>extinmaiss@outlook.com</span>
+              </div>
+            </div>
+            <div class="header-info-item">
+              <i class="far fa-clock"></i>
+              <span>${formatarDataHora()}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- BODY -->
+        <div class="pdf-body">
+          <!-- Identificação da Empresa -->
+          <div class="empresa-identificacao">
+            <div class="empresa-identificacao-header">
+              <div class="empresa-icon">
+                <i class="fas fa-building"></i>
+              </div>
+              <div class="empresa-dados">
+                <div class="empresa-nome">${empresa.empresa.toUpperCase()}</div>
+                <div class="empresa-cnpj">
+                  <i class="fas fa-id-card"></i>
+                  ${empresa.cnpj}
+                </div>
+              </div>
+            </div>
+            
+            ${dadosEmpresaCompletos ? `
+              <div class="empresa-detalhes">
+                <div class="empresa-detalhe-item">
+                  <span class="detalhe-label">
+                    <i class="fas fa-phone"></i> Telefone
+                  </span>
+                  <span class="detalhe-value">${dadosEmpresaCompletos.telefone || '-'}</span>
+                </div>
+                <div class="empresa-detalhe-item">
+                  <span class="detalhe-label">
+                    <i class="fas fa-user-tie"></i> Responsável
+                  </span>
+                  <span class="detalhe-value">${dadosEmpresaCompletos.responsavel || '-'}</span>
+                </div>
+                <div class="empresa-detalhe-item">
+                  <span class="detalhe-label">
+                    <i class="fas fa-map-marker-alt"></i> CEP
+                  </span>
+                  <span class="detalhe-value">${dadosEmpresaCompletos.cep || '-'}</span>
+                </div>
+                <div class="empresa-detalhe-item">
+                  <span class="detalhe-label">
+                    <i class="fas fa-location-arrow"></i> Endereço
+                  </span>
+                  <span class="detalhe-value">${dadosEmpresaCompletos.endereco || '-'}</span>
+                </div>
+              </div>
+            ` : ''}
+          </div>
+
+          <!-- Card do Vencimento -->
+          <div class="vencimento-card">
+            <div class="vencimento-header">
+              <div class="vencimento-header-left">
+                <div class="vencimento-titulo">
+                  <i class="fas fa-bell"></i>
+                  VENCIMENTO
+                  <span class="vencimento-numero">${vencimentoIndex + 1} de ${totalVencimentos}</span>
+                </div>
+                <div class="vencimento-tipo-item">
+                  <i class="fas fa-box"></i>
+                  ${vencimento.tipo}
+                </div>
+              </div>
+              <div class="vencimento-status-badge">
+                <i class="fas ${statusIcon}"></i>
+                ${statusTexto}
+              </div>
+            </div>
+
+            <div class="vencimento-body">
+              <div class="vencimento-info-grid">
+                <div class="info-box">
+                  <div class="info-box-label">
+                    <i class="far fa-calendar-alt"></i>
+                    Data de Validade
+                  </div>
+                  <div class="info-box-value">${formatarData(vencimento.validade)}</div>
+                </div>
+
+                <div class="info-box">
+                  <div class="info-box-label">
+                    <i class="fas fa-hourglass-half"></i>
+                    Dias ${vencimento.status === 'vencido' ? 'Vencidos' : 'Restantes'}
+                  </div>
+                  <div class="info-box-value destaque">${Math.abs(vencimento.diasRestantes)}</div>
+                </div>
+
+                <div class="info-box">
+                  <div class="info-box-label">
+                    <i class="fas fa-info-circle"></i>
+                    Status
+                  </div>
+                  <div class="info-box-value status-color">${statusTexto}</div>
+                </div>
+              </div>
+
+              <div class="detalhes-adicionais">
+                <div class="detalhes-adicionais-titulo">
+                  <i class="fas fa-clipboard-list"></i>
+                  Detalhes da Inspeção
+                </div>
+                <div class="detalhes-linha">
+                  <span class="detalhes-label">Tipo de Inspeção:</span>
+                  <span class="detalhes-valor">${vencimento.inspecaoTipo || '-'}</span>
+                </div>
+                <div class="detalhes-linha">
+                  <span class="detalhes-label">Data da Inspeção:</span>
+                  <span class="detalhes-valor">${formatarData(vencimento.inspecaoData) || '-'}</span>
+                </div>
+                <div class="detalhes-linha">
+                  <span class="detalhes-label">Item:</span>
+                  <span class="detalhes-valor">${vencimento.tipo}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Resumo Estatístico da Empresa -->
+          <div class="resumo-estatistico">
+            <div class="resumo-titulo">
+              <i class="fas fa-chart-pie"></i>
+              RESUMO GERAL DA EMPRESA
+            </div>
+            <div class="resumo-grid">
+              <div class="resumo-item">
+                <div class="resumo-item-label">Total de Vencimentos</div>
+                <div class="resumo-item-valor total">${totalItensEmpresa}</div>
+              </div>
+              <div class="resumo-item">
+                <div class="resumo-item-label">Vencidos</div>
+                <div class="resumo-item-valor vencidos">${vencidosEmpresa}</div>
+              </div>
+              <div class="resumo-item">
+                <div class="resumo-item-label">A Vencer</div>
+                <div class="resumo-item-valor avencer">${aVencerEmpresa}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- FOOTER -->
+        <div class="pdf-footer">
+          <div class="footer-brand">
+            <i class="fas fa-fire-extinguisher"></i> EXTINMAIS
+          </div>
+          <div class="footer-info">
+            CNPJ: 52.026.476/0001-03 | Tel: (15) 99137-1232 | extinmaiss@outlook.com
+          </div>
+          <div class="footer-timestamp">
+            Documento gerado em ${formatarDataHora()}
+          </div>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+}
+
+// ===================================
+// FUNÇÃO PARA RENDERIZAR PÁGINA NO PDF
+// ===================================
+async function renderizarPaginaNoPDF(pdf, htmlString) {
+  return new Promise((resolve, reject) => {
+    const iframe = document.createElement('iframe');
+    iframe.style.position = 'absolute';
+    iframe.style.left = '-9999px';
+    iframe.style.top = '0';
+    iframe.style.width = '210mm';
+    iframe.style.height = '297mm';
+    iframe.style.border = 'none';
+    document.body.appendChild(iframe);
+
+    const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+    iframeDoc.open();
+    iframeDoc.write(htmlString);
+    iframeDoc.close();
+
+    iframe.onload = async () => {
+      try {
+        await new Promise(resolve => setTimeout(resolve, 1000));
+
+        const canvas = await html2canvas(iframeDoc.body, {
+          scale: 3,
+          useCORS: true,
+          allowTaint: false,
+          logging: false,
+          backgroundColor: '#ffffff',
+          width: 794,
+          height: 1123,
+          windowWidth: 794,
+          windowHeight: 1123
+        });
+
+        const imgData = canvas.toDataURL('image/jpeg', 0.95);
+        pdf.addImage(imgData, 'JPEG', 0, 0, 210, 297, undefined, 'FAST');
+
+        document.body.removeChild(iframe);
+        resolve();
+      } catch (error) {
+        document.body.removeChild(iframe);
+        reject(error);
+      }
+    };
+
+    iframe.onerror = (error) => {
+      document.body.removeChild(iframe);
+      reject(error);
+    };
+  });
+}
+
+// ===================================
+// FUNÇÕES AUXILIARES
+// ===================================
+function formatarData(data) {
+  if (!data) return '-';
+  const d = new Date(data);
+  return d.toLocaleDateString('pt-BR');
+}
+
+function formatarDataHora() {
+  const agora = new Date();
+  return `${agora.toLocaleDateString('pt-BR')} às ${agora.toLocaleTimeString('pt-BR', {hour: '2-digit', minute: '2-digit'})}`;
+}
+
+
+
+
+
+
 // ========================================
 // PAGINAÇÃO
 // ========================================
@@ -5209,24 +5748,24 @@ function atualizarPaginacao(totalItens, inicio, fim, totalPaginas) {
   document.getElementById('showingFrom').textContent = inicio + 1;
   document.getElementById('showingTo').textContent = fim;
   document.getElementById('totalItems').textContent = totalItens;
-  
+
   const btnFirst = document.getElementById('btnFirst');
   const btnPrev = document.getElementById('btnPrev');
   const btnNext = document.getElementById('btnNext');
   const btnLast = document.getElementById('btnLast');
-  
+
   if (btnFirst) btnFirst.disabled = paginaAtual === 1;
   if (btnPrev) btnPrev.disabled = paginaAtual === 1;
   if (btnNext) btnNext.disabled = paginaAtual === totalPaginas;
   if (btnLast) btnLast.disabled = paginaAtual === totalPaginas;
-  
+
   const paginationNumbers = document.getElementById('paginationNumbers');
   if (!paginationNumbers) return;
-  
+
   paginationNumbers.innerHTML = '';
-  
+
   let paginasParaMostrar = [];
-  
+
   if (totalPaginas <= 5) {
     for (let i = 1; i <= totalPaginas; i++) {
       paginasParaMostrar.push(i);
@@ -5240,7 +5779,7 @@ function atualizarPaginacao(totalItens, inicio, fim, totalPaginas) {
       paginasParaMostrar = [1, '...', paginaAtual, '...', totalPaginas];
     }
   }
-  
+
   paginasParaMostrar.forEach(page => {
     if (page === '...') {
       const dots = document.createElement('span');
@@ -5298,15 +5837,15 @@ function changeItemsPerPage() {
 // ========================================
 function abrirModalEdicaoItem(inspectionId, campo, empresa, tipo) {
   criarModalValidade();
-  
+
   firebase.database().ref(`inspections/${inspectionId}`).once('value').then(snapshot => {
     const inspecao = snapshot.val();
     if (!inspecao) return;
-    
+
     const dataValidade = inspecao[campo];
     const diasRestantes = calcularDiasRestantes(dataValidade);
     const status = determinarStatus(diasRestantes);
-    
+
     alertaSelecionado = {
       inspectionId: inspectionId,
       campo: campo,
@@ -5316,21 +5855,21 @@ function abrirModalEdicaoItem(inspectionId, campo, empresa, tipo) {
       diasRestantes: diasRestantes,
       status: status
     };
-    
+
     document.getElementById('modalEmpresa').textContent = empresa;
     document.getElementById('modalTipo').textContent = tipo;
     document.getElementById('modalValidadeAtual').textContent = formatarData(dataValidade);
-    
+
     const statusDiv = document.getElementById('modalStatus');
     statusDiv.className = 'info-row status-row ' + status;
-    
+
     const textoStatus = status === 'vencido'
       ? `Vencido há ${Math.abs(diasRestantes)} ${Math.abs(diasRestantes) === 1 ? 'dia' : 'dias'}`
       : `Vence em ${diasRestantes} ${diasRestantes === 1 ? 'dia' : 'dias'}`;
-    
+
     document.getElementById('modalStatusTexto').textContent = textoStatus;
     document.getElementById('inputNovaValidade').value = '';
-    
+
     const modal = document.getElementById('editValidadeModal');
     modal.classList.add('show');
     document.body.style.overflow = 'hidden';
@@ -5348,26 +5887,26 @@ function fecharModalValidade() {
 
 async function salvarNovaValidade() {
   if (!alertaSelecionado) return;
-  
+
   const novaValidade = document.getElementById('inputNovaValidade').value;
-  
+
   if (!novaValidade) {
     showToast('Selecione uma data', 'error');
     return;
   }
-  
+
   try {
     const campo = alertaSelecionado.campo;
     const inspectionId = alertaSelecionado.inspectionId;
-    
+
     await firebase.database().ref(`inspections/${inspectionId}`).update({
       [campo]: novaValidade
     });
-    
+
     showToast('Validade atualizada com sucesso!', 'success');
     fecharModalValidade();
     await buscarAlertasVencimento();
-    
+
   } catch (error) {
     console.error('Erro ao salvar validade:', error);
     showToast('Erro ao salvar alteração', 'error');
@@ -5380,13 +5919,13 @@ async function salvarNovaValidade() {
 function inicializarAlertas() {
   criarModalValidade();
   buscarAlertasVencimento();
-  
+
   // Atualizar a cada 5 minutos
   setInterval(buscarAlertasVencimento, 5 * 60 * 1000);
 }
 
 // Fechar modal ao clicar fora
-document.addEventListener('click', function(event) {
+document.addEventListener('click', function (event) {
   const modal = document.getElementById('editValidadeModal');
   if (event.target === modal) {
     fecharModalValidade();
@@ -5394,7 +5933,7 @@ document.addEventListener('click', function(event) {
 });
 
 // Fechar modal com ESC
-document.addEventListener('keydown', function(event) {
+document.addEventListener('keydown', function (event) {
   if (event.key === 'Escape') {
     fecharModalValidade();
   }
@@ -5405,9 +5944,9 @@ if (typeof firebase !== 'undefined' && firebase.database) {
   setTimeout(() => {
     inicializarAlertas();
   }, 1000);
-  
+
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function () {
       inicializarAlertas();
     });
   } else {
@@ -5424,7 +5963,7 @@ if (typeof firebase !== 'undefined' && firebase.database) {
 function toggleAlertsList() {
   const body = document.getElementById('alertsBody');
   const btn = document.getElementById('alertsToggleBtn');
-  
+
   if (body.style.display === 'none' || body.style.display === '') {
     body.style.display = 'block';
     btn.classList.add('open');
@@ -5433,3 +5972,13 @@ function toggleAlertsList() {
     btn.classList.remove('open');
   }
 }
+// versão silenciosa
+(function corrigirCepDuplicado() {
+  const elementos = document.querySelectorAll('#cep');
+  if (elementos.length <= 1) return;
+
+  elementos.forEach((el, index) => {
+    if (index === 0) return;
+    el.id = `cep-${index + 1}`;
+  });
+})();
