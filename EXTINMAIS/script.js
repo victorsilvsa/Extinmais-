@@ -1936,9 +1936,8 @@ document.getElementById('passwordForm').addEventListener('submit', async (e) => 
   showToast('Senha alterada com sucesso!');
   e.target.reset();
 });
-
 // =============================
-// ARQUIVAR (SEM PRODUTOS)
+// FUNÇÃO ARQUIVAR (Backup)
 // =============================
 document.getElementById('archiveMonthBtn')?.addEventListener('click', async () => {
   const button = document.getElementById('archiveMonthBtn');
@@ -1950,48 +1949,42 @@ document.getElementById('archiveMonthBtn')?.addEventListener('click', async () =
     const month = now.getMonth() + 1;
     const year = now.getFullYear();
 
-    // Buscar apenas dados que DEVEM ser arquivados
     const [inspectionsSnap, companiesSnap, ordersSnap] = await Promise.all([
       database.ref('inspections').once('value'),
       database.ref('companies').once('value'),
       database.ref('orders').once('value')
     ]);
 
-    // Backup SEM produtos
     const backup = {
       version: '1.2',
       exportDate: now.toISOString(),
       month,
       year,
-      user: {
-        nome: currentUser?.nome || '',
-        cnpj: currentUser?.cnpj || ''
-      },
+      user: { nome: currentUser?.nome || '', cnpj: currentUser?.cnpj || '' },
       inspections: inspectionsSnap.val() || {},
       companies: companiesSnap.val() || {},
-      orders: ordersSnap.val() || {}
+      orders: ordersSnap.val() || {}, // As ordens já eram salvas aqui
+      logo: currentLogoUrl // Adicionado para garantir que a logo vá no backup
     };
 
-    // Download
     const json = JSON.stringify(backup, null, 2);
     const blob = new Blob([json], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
-
     const a = document.createElement('a');
     a.href = url;
     a.download = `backup_${year}_${String(month).padStart(2, '0')}.json`;
     a.click();
-
     URL.revokeObjectURL(url);
 
-    // 🔥 ZERAR APENAS O QUE FOI ARQUIVADO
+    // ZERAR DADOS APÓS BACKUP
     await Promise.all([
       database.ref('inspections').set(null),
       database.ref('companies').set(null),
       database.ref('orders').set(null)
     ]);
 
-    showToast('Backup criado com sucesso! Produtos preservados ✅');
+    showToast('Backup criado com sucesso! Dados arquivados ✅');
+    loadDashboard(); // Recarrega a tela para sumir o que foi zerado
   } catch (err) {
     console.error('Erro ao arquivar:', err);
     showToast('Erro ao criar backup', 'error');
@@ -2001,12 +1994,14 @@ document.getElementById('archiveMonthBtn')?.addEventListener('click', async () =
   }
 });
 
-// Restore Backup
+// =============================
+// FUNÇÃO RESTAURAR (Restore)
+// =============================
 document.getElementById('restoreFile').addEventListener('change', async (e) => {
   const file = e.target.files[0];
   if (!file) return;
 
-  if (!confirm('Tem certeza que deseja restaurar este backup? Isso irá adicionar os dados ao sistema atual.')) {
+  if (!confirm('Deseja restaurar este backup? Os dados serão adicionados ao sistema atual.')) {
     e.target.value = '';
     return;
   }
@@ -2017,49 +2012,60 @@ document.getElementById('restoreFile').addEventListener('change', async (e) => {
       try {
         const backup = JSON.parse(event.target.result);
 
-        // Validate backup structure
-        if (!backup.version || !backup.inspections) {
+        if (!backup.version) {
           showToast('Arquivo de backup inválido', 'error');
           return;
         }
 
-        // Restore companies
+        const updates = {};
+        let ordersCount = 0;
+
+        // 1. Preparar Empresas
         if (backup.companies) {
-          for (let key in backup.companies) {
-            await database.ref(`companies/${key}`).set(backup.companies[key]);
+          for (let key in backup.companies) updates[`companies/${key}`] = backup.companies[key];
+        }
+
+        // 2. Preparar Inspeções
+        if (backup.inspections) {
+          for (let key in backup.inspections) updates[`inspections/${key}`] = backup.inspections[key];
+        }
+
+        // 3. Preparar Ordens de Serviço (CORREÇÃO: Agora elas voltam!)
+        if (backup.orders) {
+          for (let key in backup.orders) {
+            updates[`orders/${key}`] = backup.orders[key];
+            ordersCount++;
           }
         }
 
-        // Restore inspections
-        let restoredCount = 0;
-        for (let key in backup.inspections) {
-          await database.ref(`inspections/${key}`).set(backup.inspections[key]);
-          restoredCount++;
-        }
-
-        // Restore logo if exists
+        // 4. Restaurar Logo
         if (backup.logo) {
-          await database.ref('settings/logo').set({
+          updates['settings/logo'] = {
             url: backup.logo,
             uploadDate: new Date().toISOString(),
-            uploadedBy: currentUser.nome
-          });
-          currentLogoUrl = backup.logo;
-          updateLogoDisplay(backup.logo);
+            uploadedBy: currentUser?.nome || 'Sistema'
+          };
+          localStorage.setItem('cachedLogoUrl', backup.logo);
         }
 
-        showToast(`Backup restaurado! ${restoredCount} inspeções adicionadas.`);
+        // Executa todas as gravações de uma vez só no Firebase
+        await database.ref().update(updates);
+
+        showToast(`Sucesso! ${ordersCount} ordens de serviço restauradas.`);
+        
+        // Atualizar interface
         loadDashboard();
         loadCompanies();
         loadInspections();
+        if (typeof loadOrders === 'function') loadOrders();
+        if (backup.logo) updateLogoDisplay(backup.logo);
+
       } catch (parseError) {
-        console.error('Error parsing backup:', parseError);
-        showToast('Erro ao ler arquivo de backup', 'error');
+        showToast('Erro ao ler arquivo JSON', 'error');
       }
     };
     reader.readAsText(file);
   } catch (error) {
-    console.error('Error restoring backup:', error);
     showToast('Erro ao restaurar backup', 'error');
   } finally {
     e.target.value = '';
