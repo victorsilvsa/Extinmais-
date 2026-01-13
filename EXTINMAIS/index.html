@@ -1,6 +1,5 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="pt-BR">
-
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -66,7 +65,8 @@
         <div class="nav-item-desktop" data-section="orders">
           <i class="fas fa-tools"></i> <span>Ordens de Serviço</span>
         </div>
-
+ <div class="nav-item-desktop" data-section="calendar"><i class="fas fa-calendar-alt"></i> <span>Calendário</span>
+  </div>
         <div class="nav-item-desktop" data-section="config"><i class="fas fa-cog"></i> <span>Configurações</span>
         </div>
       </nav>
@@ -301,6 +301,117 @@
 
       </section>
 
+  <section id="calendarSection" class="content-section">
+   <div class="page-header">
+    <h1 class="page-title"> Calendário de Inspeções</h1>
+    <p class="page-subtitle">Gerenciar agendamentos de inspeções</p>
+   </div>
+   <div class="calendar-top-actions"><button class="btn" id="addScheduleBtn"> <i class="fas fa-plus"></i> Nova Inspeção </button> <button class="btn btn-info" id="exportMonthPDFBtn"> <i class="fas fa-file-pdf"></i> Exportar Mês </button>
+   </div><!-- Controles do Calendário -->
+   <div class="calendar-controls"><button class="calendar-nav-btn" id="prevMonthBtn"> <i class="fas fa-chevron-left"></i> <span class="btn-text">Anterior</span> </button>
+    <h2 class="calendar-month-title" id="currentMonthTitle">Janeiro 2024</h2><button class="calendar-nav-btn" id="nextMonthBtn"> <span class="btn-text">Próximo</span> <i class="fas fa-chevron-right"></i> </button>
+   </div><!-- Grid do Calendário -->
+   <div class="calendar-grid" id="calendarGrid"><!-- Será preenchido dinamicamente -->
+   </div><!-- Lista de Inspeções do Dia -->
+   <div id="dayInspectionsList" style="display: none;">
+    <div class="day-inspections-header">
+     <h3 id="selectedDayTitle">Inspeções do dia</h3><button class="btn-close-day" id="closeDayListBtn"> <i class="fas fa-times"></i> Fechar </button>
+    </div>
+    <div id="dayInspectionsContent"></div>
+   </div>
+  </section><!-- ========================================
+     MODAL: AGENDAR NOVA INSPEÇÃO
+========================================= -->
+ <div id="scheduleModal" class="modal">
+  <div class="modal-content">
+
+    <!-- Header -->
+    <div class="modal-header">
+      <h2 class="modal-title">
+        <i class="fas fa-calendar-plus"></i> Agendar Inspeção
+      </h2>
+      <button class="close-modal" onclick="fecharModalAgendamento()">×</button>
+    </div>
+
+    <!-- Body -->
+    <form id="scheduleForm">
+
+      <div class="form-group">
+        <label for="scheduleClientSelect">Cliente *</label>
+        <select id="scheduleClientSelect" required>
+          <option value="">Selecione um cliente</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="scheduleDate">Data da Inspeção *</label>
+        <input type="date" id="scheduleDate" required>
+      </div>
+
+      <div class="form-group">
+        <label for="scheduleTime">Horário *</label>
+        <input type="time" id="scheduleTime" required>
+      </div>
+
+      <div class="form-group">
+        <label for="scheduleAddress">Endereço</label>
+        <input type="text" id="scheduleAddress" readonly>
+      </div>
+
+      <div class="form-group">
+        <label for="scheduleCNPJ">CNPJ</label>
+        <input type="text" id="scheduleCNPJ" readonly>
+      </div>
+
+      <div class="form-group">
+        <label for="scheduleNotes">Observações</label>
+        <textarea id="scheduleNotes" rows="3"
+          placeholder="Observações adicionais (opcional)"></textarea>
+      </div>
+
+      <input type="hidden" id="scheduleClientId">
+      <input type="hidden" id="scheduleClientName">
+      <input type="hidden" id="scheduleClientType">
+
+      <div style="display:flex; gap:10px; margin-top:20px;">
+        <button type="submit" class="btn">
+          <i class="fas fa-save"></i> Salvar
+        </button>
+
+        <button type="button" class="btn" onclick="fecharModalAgendamento()"
+          style="background:#6b7280;">
+          <i class="fas fa-times"></i> Cancelar
+        </button>
+      </div>
+
+    </form>
+  </div>
+</div>
+<!-- ========================================
+     MODAL: DETALHES DA INSPEÇÃO
+========================================= -->
+<div id="inspectionDetailModal" class="modal">
+    <div class="modal-content">
+
+        <!-- Header -->
+        <div class="modal-header">
+            <h2 class="modal-title">
+                <i class="fas fa-info-circle"></i> Detalhes da Inspeção
+            </h2>
+
+            <button class="close-modal" onclick="fecharModalDetalhes()">
+                &times;
+            </button>
+        </div>
+
+        <!-- Body -->
+        <div id="inspectionDetailContent">
+            <!-- Conteúdo preenchido dinamicamente -->
+        </div>
+
+    </div>
+</div>
+
 
 
       <!-- Config Section -->
@@ -402,7 +513,8 @@
       <div class="nav-item-mobile" data-section="orders">
         <i class="fas fa-tools"></i> <span>OS</span>
       </div>
-
+<div class="nav-item-mobile" data-section="calendar"><i class="fas fa-calendar-alt"></i> <span>Agenda</span>
+  </div>
       <div class="nav-item-mobile" data-section="config"><i class="fas fa-cog"></i> <span>Config</span>
       </div>
     </nav>
@@ -410,40 +522,105 @@
   <div id="addCompanyModal" class="modal">
     <div class="modal-content">
       <div class="modal-header">
-        <h3 class="modal-title">Nova Empresa</h3><button class="close-modal" onclick="closeModal('addCompanyModal')"> <i
-            class="fas fa-times"></i> </button>
+        <h3 class="modal-title">Novo Cadastro</h3>
+        <button class="close-modal" onclick="closeModal('addCompanyModal')">
+          <i class="fas fa-times"></i>
+        </button>
       </div>
-      <form id="addCompanyForm">
-     <div class="form-group">
-  <label>Razão Social</label> 
-  <input type="text" name="razao_social" required>
-</div>
 
-<div class="form-group">
-  <label>CNPJ</label> 
-  <input type="text" name="cnpj" required>
-</div>
+      <!-- Sub-abas -->
+      <div class="sub-tabs">
+        <button class="sub-tab active" onclick="switchSubTab('empresa')">Empresa</button>
+        <button class="sub-tab" onclick="switchSubTab('predio')">Prédio</button>
+      </div>
 
-<div class="form-group">
-  <label>Telefone</label> 
-  <input type="tel" name="telefone">
-</div>
+      <!-- Conteúdo Empresa -->
+      <div id="empresaContent" class="sub-tab-content active">
+        <form id="addCompanyForm">
+          <div class="form-group">
+            <label>Razão Social</label>
+            <input type="text" name="razao_social" required>
+          </div>
 
-<div class="form-group">
-  <label>CEP</label> 
-  <input type="text" name="cep" id="cep">
-</div>
+          <div class="form-group">
+            <label>CNPJ</label>
+            <input type="text" name="cnpj" required>
+          </div>
 
-<div class="form-group">
-  <label>Endereço</label> 
-  <input type="text" name="endereco">
-</div>
+          <div class="form-group">
+            <label>Telefone</label>
+            <input type="tel" name="telefone">
+          </div>
 
-<div class="form-group">
-  <label>Responsável</label> 
-  <input type="text" name="responsavel">
-</div><button type="submit" class="btn"> <i class="fas fa-save"></i> Cadastrar Empresa </button>
-      </form>
+          <div class="form-group">
+            <label>CEP</label>
+            <input type="text" name="cep" id="cep">
+          </div>
+
+          <div class="form-group">
+            <label>Número da Empresa</label>
+            <input type="text" name="numero_empresa" required>
+          </div>
+
+          <div class="form-group">
+            <label>Endereço</label>
+            <input type="text" name="endereco">
+          </div>
+
+          <div class="form-group">
+            <label>Responsável</label>
+            <input type="text" name="responsavel">
+          </div>
+
+          <button type="submit" class="btn">
+            <i class="fas fa-save"></i> Cadastrar Empresa
+          </button>
+        </form>
+      </div>
+
+      <!-- Conteúdo Prédio -->
+      <div id="predioContent" class="sub-tab-content">
+        <form id="addBuildingForm">
+          <div class="form-group">
+            <label>Razão Social</label>
+            <input type="text" name="razao_social_predio" required>
+          </div>
+
+          <div class="form-group">
+            <label>CNPJ</label>
+            <input type="text" name="cnpj_predio" required>
+          </div>
+
+          <div class="form-group">
+            <label>Telefone</label>
+            <input type="tel" name="telefone_predio">
+          </div>
+
+          <div class="form-group">
+            <label>CEP</label>
+            <input type="text" name="cep_predio" id="cep_predio">
+          </div>
+
+          <div class="form-group">
+            <label>Número do Prédio</label>
+            <input type="text" name="numero_predio" required>
+          </div>
+
+          <div class="form-group">
+            <label>Endereço (Rua/Avenida)</label>
+            <input type="text" name="endereco_predio">
+          </div>
+
+          <div class="form-group">
+            <label>Responsável</label>
+            <input type="text" name="responsavel_predio">
+          </div>
+
+          <button type="submit" class="btn">
+            <i class="fas fa-save"></i> Cadastrar Prédio
+          </button>
+        </form>
+      </div>
     </div>
   </div><!-- PDF Selection Modal -->
   <div id="pdfSelectionModal" class="modal">
@@ -495,10 +672,9 @@
 
             <div class="form-row">
               <div class="form-group">
-                <label>Razão Social</label>
+                <label id="labelRazaoNome">Razão Social</label>
                 <input type="text" name="razao_social" id="inspecaoRazao" required>
               </div>
-
               <div class="form-group">
                 <label>CNPJ</label>
                 <input type="text" name="cnpj" id="inspecaoCnpj" required>
@@ -510,7 +686,6 @@
                 <label>Telefone</label>
                 <input type="tel" name="telefone" id="inspecaoTelefone">
               </div>
-
               <div class="form-group">
                 <label>Responsável</label>
                 <input type="text" name="responsavel" id="inspecaoResponsavel">
@@ -522,28 +697,61 @@
                 <label>CEP</label>
                 <input type="text" name="cep" id="inspecaoCep" maxlength="9" placeholder="00000-000">
               </div>
-
               <div class="form-group">
                 <label>Endereço</label>
                 <input type="text" name="endereco" id="inspecaoEndereco">
               </div>
             </div>
+
+            <div class="form-row" id="rowNumeroPredio" style="display: none;">
+              <div class="form-group">
+                <label>Número do Prédio</label>
+                <input type="text" name="numero_predio" id="inspecaoNumeroPredio">
+              </div>
+            </div>
+
+            <div class="form-row" id="rowNumeroEmpresa" style="display: none;">
+              <div class="form-group">
+                <label>Número da Empresa</label>
+                <input type="text" name="numero_empresa" id="inspecaoNumeroEmpresa">
+              </div>
+            </div>
           </div>
+
+
+
+
+
           <!-- Certificado Section -->
           <div class="inspection-section" id="section-certificado">
             <h3>Certificado AVCB/CLCB</h3>
             <div class="form-row">
-              <div class="form-group"><label>Tipo de Certificado</label> <select name="cert_tipo">
+              <div class="form-group">
+                <label>Tipo de Certificado</label>
+                <select name="cert_tipo">
                   <option value="">Selecione</option>
                   <option value="AVCB">AVCB</option>
                   <option value="CLCB">CLCB</option>
                 </select>
               </div>
-              <div class="form-group"><label>Número</label> <input type="text" name="cert_numero">
+              <div class="form-group">
+                <label>Número</label>
+                <input type="text" name="cert_numero">
               </div>
             </div>
-            <div class="form-group"><label>Validade</label> <input type="date" name="cert_validade">
+
+            <div class="form-row">
+              <div class="form-group">
+                <label>Data de Início da Validade</label>
+                <input type="date" name="cert_inicio_validade">
+              </div>
+              <div class="form-group">
+                <label>Validade</label>
+                <input type="date" name="cert_validade">
+              </div>
             </div>
+
+
           </div><!-- Bombas Section -->
           <div class="inspection-section" id="section-bombas">
             <h3>Sistema de Bombas</h3>
@@ -603,104 +811,170 @@
               </div>
             </div>
           </div><!-- Hidrantes Section -->
-          <div class="inspection-section" id="section-hidrantes">
-            <h3>Rede de Hidrantes</h3>
-            <div class="checkbox-group"><input type="checkbox" id="hasHidrantes" name="has_hidrantes"> <label
-                for="hasHidrantes">Possui Rede de Hidrantes?</label>
-            </div>
-            <div id="hidrantesSection" class="conditional-section">
-              <div class="form-row">
-                <div class="form-group"><label>Diâmetro da Tubulação</label> <input type="text"
-                    name="hidrantes_diametro">
-                </div>
-                <div class="form-group"><label>Quantidade de Pontos</label> <input type="number"
-                    name="hidrantes_quantidade">
-                </div>
-              </div>
-              <div class="form-row">
-                <div class="form-group"><label>Suportes Firmes</label> <select name="hidrantes_suportes">
-                    <option value="">Selecione</option>
-                    <option value="Sim">Sim</option>
-                    <option value="Não">Não</option>
-                  </select>
-                </div>
-                <div class="form-group"><label>Sem Vazamentos</label> <select name="hidrantes_vazamentos">
-                    <option value="">Selecione</option>
-                    <option value="Sim">Sim</option>
-                    <option value="Não">Não</option>
-                  </select>
-                </div>
-              </div>
-              <div class="form-group"><label>Identificação Conforme Norma</label> <select
-                  name="hidrantes_identificacao">
-                  <option value="">Selecione</option>
-                  <option value="Sim">Sim</option>
-                  <option value="Não">Não</option>
-                </select>
-              </div>
-              <h4>Acessórios</h4>
-              <div class="form-row">
-                <div class="form-group"><label>Adaptador Storz</label> <select name="adaptador_storz">
-                    <option value="">Selecione</option>
-                    <option value="1½&quot;">1½"</option>
-                    <option value="2½&quot;">2½"</option>
-                  </select>
-                </div>
-                <div class="form-group"><label>Material do Adaptador</label> <select name="adaptador_material">
-                    <option value="">Selecione</option>
-                    <option value="Latão">Latão</option>
-                    <option value="Alumínio">Alumínio</option>
-                  </select>
-                </div>
-              </div>
-              <div class="form-row">
-                <div class="form-group"><label>Esguicho</label> <select name="esguicho_tipo">
-                    <option value="">Selecione</option>
-                    <option value="Regulável (neblina/jato sólido)">Regulável (neblina/jato sólido)</option>
-                    <option value="Fixo (jato pleno)">Fixo (jato pleno)</option>
-                  </select>
-                </div>
-                <div class="form-group"><label>Material do Esguicho</label> <select name="esguicho_material">
-                    <option value="">Selecione</option>
-                    <option value="Alumínio">Alumínio</option>
-                    <option value="Latão">Latão</option>
-                  </select>
-                </div>
-              </div>
-              <div class="form-row">
-                <div class="form-group"><label>Chave Storz</label> <select name="chave_storz">
-                    <option value="">Selecione</option>
-                    <option value="Sim">Sim</option>
-                    <option value="Não">Não</option>
-                  </select>
-                </div>
-                <div class="form-group"><label>Material da Chave</label> <select name="chave_material">
-                    <option value="">Selecione</option>
-                    <option value="Aço">Aço</option>
-                    <option value="Alumínio">Alumínio</option>
-                  </select>
-                </div>
-              </div>
-              <div class="form-row">
-                <div class="form-group"><label>Tipo de Mangueira</label> <select name="mangueira_tipo">
-                    <option value="">Selecione</option>
-                    <option value="Tipo 1 (Predial)">Tipo 1 (Predial)</option>
-                    <option value="Tipo 2 (Industrial Leve)">Tipo 2 (Industrial Leve)</option>
-                    <option value="Tipo 3 (Industrial Pesado)">Tipo 3 (Industrial Pesado)</option>
-                  </select>
-                </div>
-                <div class="form-group"><label>Diâmetro da Mangueira</label> <select name="mangueira_diametro">
-                    <option value="">Selecione</option>
-                    <option value="1½&quot; (38mm)">1½" (38mm)</option>
-                    <option value="2½&quot; (63mm)">2½" (63mm)</option>
-                  </select>
-                </div>
-              </div>
-              <div class="form-group"><label>Comprimento da Mangueira (metros)</label> <input type="number"
-                  name="mangueira_comprimento">
-              </div>
-            </div>
-          </div><!-- Alarme Section -->
+     <div class="inspection-section" id="section-hidrantes">
+  <h3>Rede de Hidrantes</h3>
+  <div class="checkbox-group">
+    <input type="checkbox" id="hasHidrantes" name="has_hidrantes">
+    <label for="hasHidrantes">Possui Rede de Hidrantes?</label>
+  </div>
+
+  <div id="hidrantesSection" class="conditional-section">
+    <div class="form-row">
+      <div class="form-group">
+        <label>Diâmetro da Tubulação</label>
+        <input type="text" name="hidrantes_diametro">
+      </div>
+      <div class="form-group">
+        <label>Quantidade de Pontos</label>
+        <input type="number" name="hidrantes_quantidade">
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>Suportes Firmes</label>
+        <select name="hidrantes_suportes">
+          <option value="">Selecione</option>
+          <option value="Sim">Sim</option>
+          <option value="Não">Não</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Sem Vazamentos</label>
+        <select name="hidrantes_vazamentos">
+          <option value="">Selecione</option>
+          <option value="Sim">Sim</option>
+          <option value="Não">Não</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Identificação Conforme Norma</label>
+      <select name="hidrantes_identificacao">
+        <option value="">Selecione</option>
+        <option value="Sim">Sim</option>
+        <option value="Não">Não</option>
+      </select>
+    </div>
+
+    <h4>Acessórios</h4>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Adaptador Storz</label>
+        <select name="adaptador_storz">
+          <option value="">Selecione</option>
+          <option value="1½&quot;">1½"</option>
+          <option value="2½&quot;">2½"</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Material do Adaptador</label>
+        <select name="adaptador_material">
+          <option value="">Selecione</option>
+          <option value="Latão">Latão</option>
+          <option value="Alumínio">Alumínio</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>Esguicho</label>
+        <select name="esguicho_tipo">
+          <option value="">Selecione</option>
+          <option value="Regulável (neblina/jato sólido)">Regulável (neblina/jato sólido)</option>
+          <option value="Fixo (jato pleno)">Fixo (jato pleno)</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Material do Esguicho</label>
+        <select name="esguicho_material">
+          <option value="">Selecione</option>
+          <option value="Alumínio">Alumínio</option>
+          <option value="Latão">Latão</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>Chave Storz</label>
+        <select name="chave_storz">
+          <option value="">Selecione</option>
+          <option value="Sim">Sim</option>
+          <option value="Não">Não</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Material da Chave</label>
+        <select name="chave_material">
+          <option value="">Selecione</option>
+          <option value="Aço">Aço</option>
+          <option value="Alumínio">Alumínio</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>Tipo de Mangueira</label>
+        <select name="mangueira_tipo">
+          <option value="">Selecione</option>
+          <option value="Tipo 1 (Predial)">Tipo 1 (Predial)</option>
+          <option value="Tipo 2 (Industrial Leve)">Tipo 2 (Industrial Leve)</option>
+          <option value="Tipo 3 (Industrial Pesado)">Tipo 3 (Industrial Pesado)</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Diâmetro da Mangueira</label>
+        <select name="mangueira_diametro">
+          <option value="">Selecione</option>
+          <option value="1½&quot; (38mm)">1½" (38mm)</option>
+          <option value="2½&quot; (63mm)">2½" (63mm)</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Comprimento da Mangueira (metros)</label>
+      <input type="number" name="mangueira_comprimento">
+    </div>
+
+    <h4>Hidrantes – Registro de Recalque (RR)</h4>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Possui Hidrante RR?</label>
+        <select name="hidrante_rr_possui">
+          <option value="">Selecione</option>
+          <option value="Sim">Sim</option>
+          <option value="Não">Não</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Possui Adaptador?</label>
+        <select name="hidrante_rr_adaptador">
+          <option value="">Selecione</option>
+          <option value="Sim">Sim</option>
+          <option value="Não">Não</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>Medida do Adaptador</label>
+        <input type="text" name="hidrante_rr_medida" placeholder='Ex: 2½"'>
+      </div>
+      <div class="form-group">
+        <label>Observações (opcional)</label>
+        <input type="text" name="hidrante_rr_observacoes" placeholder="Digite observações se necessário">
+      </div>
+    </div>
+  </div>
+</div>
+
+
           <div class="inspection-section" id="section-alarme">
             <h3>Sistema de Alarme</h3>
             <div class="checkbox-group"><input type="checkbox" id="hasAlarme" name="has_alarme"> <label
@@ -977,52 +1251,101 @@
         </button>
       </div>
 
-      <!-- FORM -->
-      <form id="orderForm" style="
-        flex:1;
-        overflow-y:auto;
-        padding-right:6px;
-      ">
+      <form id="orderForm" style="flex:1; overflow-y:auto; padding-right:6px;">
+        <!-- ===================== DADOS DA OS ===================== -->
+        <div class="form-row" style="grid-template-columns:1fr 1fr;">
+          <div class="form-group">
+            <label>Cliente</label>
+            <select id="clienteSelect" required>
+              <option value="">Selecione um cliente</option>
+            </select>
+            <input type="hidden" name="cliente" id="clienteNomeHidden">
+            <input type="hidden" name="cliente_tipo" id="clienteTipoHidden">
+          </div>
+          <div class="form-group">
+            <label>CNPJ</label>
+            <input type="text" name="cnpj" id="cnpjInput" required>
+          </div>
+        </div>
 
-        <!-- ===================== -->
-        <!-- DADOS DA OS -->
-        <!-- ===================== -->
+        <!-- CAMPOS ESPECÍFICOS DE EMPRESA -->
+        <div id="camposEmpresa" style="display:none;">
+          <div class="form-row" style="grid-template-columns:1fr 1fr;">
+            <div class="form-group">
+              <label>Telefone</label>
+              <input type="text" name="telefone" id="telefoneEmpresaInput">
+            </div>
+            <div class="form-group">
+              <label>Email</label>
+              <input type="email" name="email" id="emailEmpresaInput">
+            </div>
+          </div>
+          <div class="form-row" style="grid-template-columns:1fr 1fr;">
+            <div class="form-group">
+              <label>Responsável</label>
+              <input type="text" name="responsavel" id="responsavelEmpresaInput">
+            </div>
+            <div class="form-group">
+              <label>CEP</label>
+              <input type="text" name="cep" id="cepEmpresaInput">
+            </div>
+          </div>
+          <div class="form-row" style="grid-template-columns:3fr 1fr;">
+            <div class="form-group">
+              <label>Endereço</label>
+              <input type="text" name="endereco" id="enderecoEmpresaInput">
+            </div>
+            <div class="form-group">
+              <label>Nº Empresa</label>
+              <input type="text" name="numero_empresa" id="numeroEmpresaInput">
+            </div>
+          </div>
+        </div>
 
-<div class="form-row" style="grid-template-columns:1fr 1fr;">
-  <div class="form-group">
-    <label>Cliente</label>
-    <input type="text" name="cliente" id="cliente" required>
-  </div>
+        <!-- CAMPOS ESPECÍFICOS DE PRÉDIO -->
+        <div id="camposPredio" style="display:none;">
+          <div class="form-row" style="grid-template-columns:1fr 1fr;">
+            <div class="form-group">
+              <label>Telefone do Prédio</label>
+              <input type="text" name="telefone_predio" id="telefonePredioInput">
+            </div>
+            <div class="form-group">
+              <label>Email do Prédio</label>
+              <input type="email" name="email_predio" id="emailPredioInput">
+            </div>
+          </div>
+          <div class="form-row" style="grid-template-columns:1fr 1fr;">
+            <div class="form-group">
+              <label>Responsável do Prédio</label>
+              <input type="text" name="responsavel_predio" id="responsavelPredioInput">
+            </div>
+            <div class="form-group">
+              <label>CEP do Prédio</label>
+              <input type="text" name="cep_predio" id="cepPredioInput">
+            </div>
+          </div>
+          <div class="form-row" style="grid-template-columns:3fr 1fr;">
+            <div class="form-group">
+              <label>Endereço do Prédio</label>
+              <input type="text" name="endereco_predio" id="enderecoPredioInput">
+            </div>
+            <div class="form-group">
+              <label>Nº Prédio</label>
+              <input type="text" name="numero_predio" id="numeroPredioInput">
+            </div>
+          </div>
+        </div>
 
-  <div class="form-group">
-    <label>CNPJ</label>
-    <input type="text" name="cnpj" id="cnpj" required>
-  </div>
-</div>
-
-<div class="form-row" style="grid-template-columns: 1fr 3fr;">
-  <div class="form-group">
-    <label>CEP</label>
-    <input type="text" name="cep" id="cep" required>
-  </div>
-
-  <div class="form-group">
-    <label>Endereço</label>
-    <input type="text" name="endereco" id="endereco" required>
-  </div>
-</div>
-
-<div class="form-row" style="grid-template-columns:1fr 1fr;">
-  <div class="form-group">
-    <label>Serviço</label>
-    <input type="text" name="servico" id="servico" required>
-  </div>
-
-  <div class="form-group">
-    <label>Técnico</label>
-    <input type="text" name="tecnico" id="tecnicoInput" required>
-  </div>
-</div>
+        <div class="form-row" style="grid-template-columns:1fr 1fr;">
+          <div class="form-group">
+            <label>Serviço</label>
+            <input type="text" name="servico" id="servico" required>
+          </div>
+          <div class="form-group">
+            <label>Técnico</label>
+            <input type="text" name="tecnico" id="tecnicoInput" required>
+          </div>
+        </div>
 
         <div class="form-row" style="grid-template-columns:1fr;">
           <div class="form-group">
@@ -1034,15 +1357,8 @@
           </div>
         </div>
 
-        <!-- ===================== -->
-        <!-- PRODUTOS -->
-        <!-- ===================== -->
-
         <hr style="margin:20px 0; border-color:#333;">
-
-        <h4 style="margin-bottom:10px;">
-          <i class="fas fa-box"></i> Produtos da Ordem
-        </h4>
+        <h4 style="margin-bottom:10px;"><i class="fas fa-box"></i> Produtos da Ordem</h4>
 
         <div class="form-row" style="grid-template-columns:2fr 1fr 1fr;">
           <div class="form-group">
@@ -1051,12 +1367,10 @@
               <option value="">Selecione um produto</option>
             </select>
           </div>
-
           <div class="form-group">
             <label>Qtd</label>
             <input type="number" id="osProductQty" value="1" min="1">
           </div>
-
           <div class="form-group" style="display:flex; align-items:flex-end;">
             <button type="button" class="btn" id="addProductToOSBtn" style="width:100%;">
               <i class="fas fa-plus"></i> Adicionar
@@ -1064,20 +1378,11 @@
           </div>
         </div>
 
-        <!-- LISTA FIXA -->
-        <div id="osProductsList" style="
-          max-height:160px;
-          overflow-y:auto;
-          margin:15px 0;
-          padding:8px;
-          background:#1b1b1b;
-          border:1px solid #333;
-          border-radius:6px;
-        ">
+        <div id="osProductsList"
+          style="max-height:160px; overflow-y:auto; margin:15px 0; padding:8px; background:#1b1b1b; border:1px solid #333; border-radius:6px;">
           <p style="color:#777;">Nenhum produto adicionado.</p>
         </div>
 
-        <!-- LUCRO -->
         <div class="form-row" style="grid-template-columns:1fr;">
           <div class="form-group">
             <label>Lucro sobre produtos (%)</label>
@@ -1085,34 +1390,19 @@
           </div>
         </div>
 
-        <!-- TOTAIS -->
-        <div style="
-          background:#1f1f1f;
-          border:1px solid #333;
-          border-radius:8px;
-          padding:12px;
-          margin-bottom:20px;
-        ">
-          <p style="margin:4px 0; color:#ccc;">
-            Subtotal Produtos:
-            <strong id="productsSubtotal">R$ 0,00</strong>
-          </p>
-          <p style="margin:4px 0; color:#ccc;">
-            Lucro:
-            <strong id="productsProfitValue">R$ 0,00</strong>
-          </p>
-          <p style="margin:4px 0; color:#fff;">
-            Total Final:
-            <strong id="productsTotalWithProfit">R$ 0,00</strong>
-          </p>
+        <div style="background:#1f1f1f; border:1px solid #333; border-radius:8px; padding:12px; margin-bottom:20px;">
+          <p style="margin:4px 0; color:#ccc;">Subtotal Produtos: <strong id="productsSubtotal">R$ 0,00</strong></p>
+          <p style="margin:4px 0; color:#ccc;">Lucro: <strong id="productsProfitValue">R$ 0,00</strong></p>
+          <p style="margin:4px 0; color:#fff;">Total Final: <strong id="productsTotalWithProfit">R$ 0,00</strong></p>
         </div>
 
-        <!-- SALVAR -->
         <button type="submit" class="btn btn-success" style="width:100%; margin-bottom:10px;">
           <i class="fas fa-save"></i> Salvar OS
         </button>
-
       </form>
+
+
+
     </div>
   </div>
 
