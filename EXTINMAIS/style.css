@@ -3268,4 +3268,660 @@
     flex: 1;
     overflow-y: auto;
   }
+}.tabs-container {
+  width: 100%;
+}
+
+.tabs-header {
+  display: flex;
+  gap: 10px;
+  border-bottom: 2px solid #ddd;
+  margin-bottom: 20px;
+}
+
+.tab-button {
+  padding: 12px 24px;
+  background: transparent;
+  border: none;
+  border-bottom: 3px solid transparent;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 500;
+  color: #666;
+  transition: all 0.3s ease;
+}
+
+.tab-button:hover {
+  color: #333;
+  background: #f5f5f5;
+}
+
+.tab-button.active {
+  color: #007bff;
+  border-bottom-color: #007bff;
+}
+
+.tab-content {
+  display: none;
+}
+
+.tab-content.active {
+  display: block;
+}
+/* Empresa - mantém o estilo atual dourado */
+.list-item {
+  border-left: 4px solid #D4C29A;
+}
+
+.list-item:hover {
+  border-left-color: #D4C29A;
+}
+
+/* Prédio - estilo verde */
+.list-item-building {
+  border-left: 4px solid #2ecc71 !important;
+}
+
+.list-item-building:hover {
+  border-left-color: #27ae60 !important;
+}
+
+.list-item-building .list-item-title {
+  color: #2ecc71;
+}
+
+.list-item-building .list-item-info-label {
+  color: #2ecc71;
+}
+.pdf-columns {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+}
+.pdf-column {
+  width: 48%;
+}
+
+
+/* ========================================
+   CALENDÁRIO DE INSPEÇÕES - CSS MOBILE FIRST
+======================================== */
+
+/* Ações do Topo - MOBILE FIRST */
+.calendar-top-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.calendar-top-actions .btn {
+  width: 100%;
+  justify-content: center;
+  font-size: 14px;
+  padding: 12px;
+}
+
+/* Controles do Calendário - MOBILE FIRST */
+.calendar-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+  padding: 12px 10px;
+  background: #1a1a1a;
+  border: 2px solid #D4C29A;
+  border-radius: 8px;
+  gap: 8px;
+}
+
+.calendar-month-title {
+  font-size: 15px;
+  font-weight: 800;
+  color: #D4C29A;
+  text-align: center;
+  flex: 1;
+  white-space: nowrap;
+}
+
+.calendar-nav-btn {
+  background: linear-gradient(135deg, #D4C29A 0%, #a7926d 100%);
+  color: #0f0f0f;
+  border: none;
+  padding: 10px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  min-width: 44px;
+  min-height: 44px;
+}
+
+.calendar-nav-btn .btn-text {
+  display: none;
+}
+
+.calendar-nav-btn:active {
+  transform: scale(0.95);
+}
+
+/* Grid do Calendário - MOBILE FIRST */
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  background: #1a1a1a;
+  padding: 8px;
+  border-radius: 8px;
+  border: 2px solid #D4C29A;
+}
+
+.calendar-day-header {
+  background: linear-gradient(135deg, #D4C29A 0%, #a7926d 100%);
+  color: #0f0f0f;
+  padding: 8px 2px;
+  text-align: center;
+  font-weight: 800;
+  font-size: 10px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.calendar-day {
+  background: #2a2a2a;
+  border: 2px solid #333;
+  border-radius: 6px;
+  min-height: 65px;
+  padding: 6px 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.calendar-day:active {
+  transform: scale(0.95);
+  border-color: #D4C29A;
+}
+
+.calendar-day.other-month {
+  background: #1a1a1a;
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+.calendar-day.today {
+  border-color: #B32117;
+  background: linear-gradient(135deg, #2a2a2a 0%, #1f1f1f 100%);
+  box-shadow: 0 0 12px rgba(179, 33, 23, 0.6);
+}
+
+.calendar-day.has-inspections {
+  border-color: #D4C29A;
+  background: linear-gradient(135deg, #2a2a2a 0%, #3a3a2a 100%);
+  box-shadow: 0 0 8px rgba(212, 194, 154, 0.3);
+}
+
+.calendar-day-number {
+  font-size: 14px;
+  font-weight: 800;
+  color: #D4C29A;
+  margin-bottom: 4px;
+  text-align: center;
+  line-height: 1;
+}
+
+.calendar-day.today .calendar-day-number {
+  color: #B32117;
+}
+
+.calendar-inspections {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  flex: 1;
+  overflow: hidden;
+}
+
+.calendar-inspection-tag {
+  background: linear-gradient(135deg, #B32117 0%, #8a1911 100%);
+  color: white;
+  padding: 4px;
+  border-radius: 4px;
+  font-size: 8px;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: center;
+  line-height: 1.2;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.calendar-inspection-tag:active {
+  transform: scale(0.95);
+  filter: brightness(1.2);
+}
+
+.calendar-inspection-time {
+  display: none;
+}
+
+.calendar-add-btn {
+  background: transparent;
+  border: 2px solid #D4C29A;
+  color: #D4C29A;
+  padding: 6px 4px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 3px;
+  transition: all 0.2s ease;
+  min-height: 28px;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.calendar-add-btn span {
+  display: none;
+}
+
+.calendar-add-btn:active {
+  background: rgba(212, 194, 154, 0.2);
+  transform: scale(0.95);
+}
+
+/* Esconder botão quando tem inspeção */
+.calendar-day.has-inspections .calendar-add-btn {
+  display: none;
+}
+
+/* Lista de Inspeções do Dia - MOBILE FIRST */
+#dayInspectionsList {
+  margin-top: 20px;
+  background: #1a1a1a;
+  border: 2px solid #D4C29A;
+  border-radius: 8px;
+  padding: 15px;
+}
+
+.day-inspections-header {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 15px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid #333;
+}
+
+.day-inspections-header h3 {
+  color: #D4C29A;
+  font-size: 16px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-close-day {
+  background: transparent;
+  border: 2px solid #D4C29A;
+  color: #D4C29A;
+  padding: 10px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.btn-close-day:active {
+  background: #D4C29A;
+  color: #0f0f0f;
+  transform: scale(0.98);
+}
+
+.day-inspection-card {
+  background: #2a2a2a;
+  border: 2px solid #333;
+  border-radius: 8px;
+  padding: 15px;
+  margin-bottom: 12px;
+  transition: all 0.2s ease;
+}
+
+.day-inspection-card:active {
+  border-color: #D4C29A;
+  transform: scale(0.98);
+}
+
+.day-inspection-header {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.day-inspection-client {
+  flex: 1;
+}
+
+.day-inspection-client-name {
+  font-size: 16px;
+  font-weight: 800;
+  color: #D4C29A;
+  margin-bottom: 4px;
+}
+
+.day-inspection-client-type {
+  font-size: 11px;
+  color: #999;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.day-inspection-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.btn-action-small {
+  background: transparent;
+  border: 1px solid #D4C29A;
+  color: #D4C29A;
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  white-space: nowrap;
+  flex: 1;
+  min-width: 80px;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.btn-action-small:active {
+  background: #D4C29A;
+  color: #0f0f0f;
+  transform: scale(0.95);
+}
+
+.btn-action-small.btn-delete:active {
+  background: #B32117;
+  border-color: #B32117;
+  color: white;
+}
+
+.btn-action-small.btn-pdf {
+  border-color: #3b82f6;
+  color: #3b82f6;
+}
+
+.btn-action-small.btn-pdf:active {
+  background: #3b82f6;
+  color: white;
+}
+
+.day-inspection-info {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+
+.day-inspection-info-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  color: #ccc;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.day-inspection-info-item i {
+  color: #D4C29A;
+  font-size: 13px;
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
+/* ========================================
+   RESPONSIVIDADE TABLET E DESKTOP
+======================================== */
+
+@media (min-width: 640px) {
+  .calendar-top-actions {
+    flex-direction: row;
+  }
+  
+  .calendar-top-actions .btn {
+    flex: 1;
+  }
+  
+  .calendar-month-title {
+    font-size: 18px;
+  }
+  
+  .calendar-grid {
+    gap: 6px;
+    padding: 12px;
+  }
+  
+  .calendar-day {
+    min-height: 80px;
+    padding: 8px 6px;
+  }
+  
+  .calendar-day-number {
+    font-size: 16px;
+  }
+  
+  .calendar-day-header {
+    font-size: 11px;
+    padding: 10px 4px;
+  }
+  
+  .calendar-inspection-tag {
+    font-size: 9px;
+    padding: 5px;
+  }
+  
+  .calendar-add-btn span {
+    display: inline;
+    font-size: 10px;
+  }
+  
+  .calendar-add-btn {
+    font-size: 14px;
+  }
+  
+  .day-inspections-header {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .day-inspections-header h3 {
+    font-size: 18px;
+  }
+  
+  .btn-close-day {
+    width: auto;
+  }
+  
+  .day-inspection-info {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 768px) {
+  .calendar-controls {
+    padding: 15px 20px;
+    gap: 15px;
+  }
+  
+  .calendar-month-title {
+    font-size: 20px;
+  }
+  
+  .calendar-nav-btn {
+    padding: 10px 20px;
+  }
+  
+  .calendar-nav-btn .btn-text {
+    display: inline;
+  }
+  
+  .calendar-grid {
+    gap: 8px;
+    padding: 16px;
+  }
+  
+  .calendar-day {
+    min-height: 100px;
+    padding: 10px;
+  }
+  
+  .calendar-day:hover {
+    border-color: #D4C29A;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(212, 194, 154, 0.3);
+  }
+  
+  .calendar-day-number {
+    font-size: 18px;
+    margin-bottom: 6px;
+    text-align: left;
+  }
+  
+  .calendar-day-header {
+    font-size: 12px;
+    padding: 12px;
+  }
+  
+  .calendar-inspection-tag {
+    font-size: 10px;
+    padding: 6px 8px;
+    text-align: left;
+  }
+  
+  .calendar-inspection-tag:hover {
+    filter: brightness(1.3);
+    transform: scale(1.05);
+  }
+  
+  .calendar-inspection-time {
+    display: inline;
+    font-size: 9px;
+  }
+  
+  .calendar-add-btn {
+    font-size: 11px;
+    padding: 8px;
+  }
+  
+  .calendar-add-btn:hover {
+    background: rgba(212, 194, 154, 0.1);
+  }
+  
+  #dayInspectionsList {
+    padding: 20px;
+  }
+  
+  .day-inspections-header h3 {
+    font-size: 20px;
+  }
+  
+  .day-inspection-card {
+    padding: 20px;
+  }
+  
+  .day-inspection-card:hover {
+    border-color: #D4C29A;
+    transform: translateX(5px);
+  }
+  
+  .day-inspection-header {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+  
+  .day-inspection-client-name {
+    font-size: 18px;
+  }
+  
+  .day-inspection-actions {
+    flex-wrap: nowrap;
+  }
+  
+  .btn-action-small {
+    flex: 0;
+  }
+  
+  .btn-action-small:hover {
+    background: #D4C29A;
+    color: #0f0f0f;
+  }
+  
+  .btn-action-small.btn-delete:hover {
+    background: #B32117;
+    border-color: #B32117;
+    color: white;
+  }
+  
+  .btn-action-small.btn-pdf:hover {
+    background: #3b82f6;
+    color: white;
+  }
+  
+  .day-inspection-info-item {
+    font-size: 13px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .calendar-month-title {
+    font-size: 22px;
+  }
+  
+  .calendar-grid {
+    gap: 10px;
+    padding: 20px;
+  }
+  
+  .calendar-day {
+    min-height: 120px;
+  }
+  
+  .calendar-day-header {
+    font-size: 13px;
+  }
+  
+  .calendar-inspection-tag {
+    font-size: 11px;
+  }
 }
