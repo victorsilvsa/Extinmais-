@@ -282,6 +282,15 @@ async function loadDashboard() {
 /* ==========================================================
    FUNÇÃO PRINCIPAL PARA CARREGAR EMPRESAS E PRÉDIOS
 ========================================================== */
+// Variáveis de paginação
+let currentCompanyPage = 1;
+let currentBuildingPage = 1;
+const itemsPerPage = 10;
+
+// Variáveis de controle de expansão
+let companiesExpanded = true;
+let buildingsExpanded = true;
+
 async function loadCompanies() {
   const list = document.getElementById('companiesList');
 
@@ -309,18 +318,21 @@ async function loadCompanies() {
     return;
   }
 
-  // (continua o código de renderização que você já tem)
-
-
   // ================= EMPRESAS =================
   if (Object.keys(companies).length > 0) {
+    const totalCompanies = Object.keys(companies).length;
+    
     const empresasSeparator = document.createElement('div');
     empresasSeparator.style.cssText = `
       display: flex;
       align-items: center;
       margin: 30px 0;
       position: relative;
+      cursor: pointer;
+      transition: all 0.3s ease;
     `;
+    
+    empresasSeparator.onclick = () => toggleCompanies();
 
     empresasSeparator.innerHTML = `
       <div style="flex: 1; height: 2px; background: linear-gradient(to right, transparent, #D4C29A); box-shadow: 0 0 6px rgba(212, 194, 154, 0.35);"></div>
@@ -328,69 +340,189 @@ async function loadCompanies() {
         <div style="position: relative; z-index: 2; background: linear-gradient(135deg, #D4C29A 0%, #B8A47E 100%); width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 3px 10px rgba(212, 194, 154, 0.35), inset 0 2px 4px rgba(255, 255, 255, 0.25);">
           <i class="fas fa-briefcase" style="color: #0d0d0d; font-size: 18px;"></i>
         </div>
-        <div style="position: relative; z-index: 2;">
+        <div style="position: relative; z-index: 2; display: flex; align-items: center; gap: 12px;">
           <div style="color: #D4C29A; font-size: 18px; font-weight: 900; letter-spacing: 1.2px; text-shadow: 0 2px 6px rgba(0, 0, 0, 0.45);">EMPRESAS</div>
+          <div style="background: rgba(212, 194, 154, 0.2); padding: 4px 12px; border-radius: 20px; color: #D4C29A; font-size: 14px; font-weight: bold;">${totalCompanies}</div>
+        </div>
+        <div style="position: relative; z-index: 2; margin-left: 8px;">
+          <i class="fas fa-chevron-${companiesExpanded ? 'up' : 'down'}" style="color: #D4C29A; font-size: 16px;"></i>
         </div>
       </div>
       <div style="flex: 1; height: 2px; background: linear-gradient(to left, transparent, #D4C29A); box-shadow: 0 0 6px rgba(212, 194, 154, 0.35);"></div>
     `;
     list.appendChild(empresasSeparator);
 
-    for (let key in companies) {
-      const company = companies[key];
-      const item = document.createElement('div');
-      item.className = 'list-item';
-      item.innerHTML = `
-        <div class="list-item-header">
-          <div style="flex: 1; min-width: 0; overflow: hidden;">
-            <div class="list-item-title" style="word-wrap: break-word; word-break: break-word; overflow-wrap: break-word; hyphens: auto; line-height: 1.3;">${company.razao_social}</div>
-            <div class="list-item-subtitle">${company.cnpj}</div>
-          </div>
-        </div>
-        <div class="list-item-info">
-          <div class="list-item-info-row">
-            <span class="list-item-info-label">Telefone:</span>
-            <span class="list-item-info-value">${company.telefone || '-'}</span>
-          </div>
-          <div class="list-item-info-row">
-            <span class="list-item-info-label">Número da Empresa:</span>
-            <span class="list-item-info-value">${company.numero_empresa || '-'}</span>
-          </div>
-          <div class="list-item-info-row">
-            <span class="list-item-info-label">Responsável:</span>
-            <span class="list-item-info-value" style="word-wrap: break-word; word-break: break-word; overflow-wrap: break-word; hyphens: auto;">${company.responsavel || '-'}</span>
-          </div>
-          <div class="list-item-info-row">
-            <span class="list-item-info-label">Endereço:</span>
-            <span class="list-item-info-value" style="word-wrap: break-word; word-break: break-word; overflow-wrap: break-word; hyphens: auto; line-height: 1.4;">${company.endereco || '-'}</span>
-          </div>
-        </div>
-        <div class="list-item-actions">
-          <button class="btn-small btn-primary" onclick="startInspection('${key}')">
-            <i class="fas fa-clipboard-check"></i> Nova Inspeção
-          </button>
-        <button
-          class="btn-small btn-danger"
-          style="background-color:#D4C29A; border-color:#D4C29A; color:#000;"
-          onclick="deleteCompany('${key}')">
-          <i class="fas fa-trash"></i> Excluir
-        </button>
+    // Container para as empresas
+    const companiesContainer = document.createElement('div');
+    companiesContainer.id = 'companiesContainer';
+    companiesContainer.style.display = companiesExpanded ? 'block' : 'none';
+    companiesContainer.style.transition = 'all 0.3s ease';
 
-        </div>
-      `;
-      list.appendChild(item);
+    if (companiesExpanded) {
+      // Paginação de empresas
+      const companiesArray = Object.entries(companies);
+      const totalCompanyPages = Math.ceil(companiesArray.length / itemsPerPage);
+      const startIndex = (currentCompanyPage - 1) * itemsPerPage;
+      const endIndex = startIndex + itemsPerPage;
+      const paginatedCompanies = companiesArray.slice(startIndex, endIndex);
+
+      for (let [key, company] of paginatedCompanies) {
+        const item = document.createElement('div');
+        item.className = 'list-item';
+        item.innerHTML = `
+          <div class="list-item-header">
+            <div style="flex: 1; min-width: 0; overflow: hidden;">
+              <div class="list-item-title" style="word-wrap: break-word; word-break: break-word; overflow-wrap: break-word; hyphens: auto; line-height: 1.3;">${company.razao_social}</div>
+              <div class="list-item-subtitle">${company.cnpj}</div>
+            </div>
+          </div>
+          <div class="list-item-info">
+            <div class="list-item-info-row">
+              <span class="list-item-info-label">Telefone:</span>
+              <span class="list-item-info-value">${company.telefone || '-'}</span>
+            </div>
+            <div class="list-item-info-row">
+              <span class="list-item-info-label">Número da Empresa:</span>
+              <span class="list-item-info-value">${company.numero_empresa || '-'}</span>
+            </div>
+            <div class="list-item-info-row">
+              <span class="list-item-info-label">Responsável:</span>
+              <span class="list-item-info-value" style="word-wrap: break-word; word-break: break-word; overflow-wrap: break-word; hyphens: auto;">${company.responsavel || '-'}</span>
+            </div>
+            <div class="list-item-info-row">
+              <span class="list-item-info-label">Endereço:</span>
+              <span class="list-item-info-value" style="word-wrap: break-word; word-break: break-word; overflow-wrap: break-word; hyphens: auto; line-height: 1.4;">${company.endereco || '-'}</span>
+            </div>
+          </div>
+          <div class="list-item-actions">
+            <button class="btn-small btn-primary" onclick="startInspection('${key}')">
+              <i class="fas fa-clipboard-check"></i> Nova Inspeção
+            </button>
+            <button
+              class="btn-small btn-danger"
+              style="background-color:#D4C29A; border-color:#D4C29A; color:#000;"
+              onclick="deleteCompany('${key}')">
+              <i class="fas fa-trash"></i> Excluir
+            </button>
+          </div>
+        `;
+        companiesContainer.appendChild(item);
+      }
+
+      // Controles de paginação de empresas
+      if (totalCompanyPages > 1) {
+        const paginationControls = document.createElement('div');
+        paginationControls.style.cssText = `
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 15px;
+          margin: 25px 0;
+          padding: 20px;
+          background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
+          border-radius: 12px;
+          box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+          flex-wrap: wrap;
+        `;
+
+        paginationControls.innerHTML = `
+          <button 
+            onclick="changeCompanyPage(${currentCompanyPage - 1})"
+            ${currentCompanyPage === 1 ? 'disabled' : ''}
+            style="
+              padding: 10px 20px;
+              background: ${currentCompanyPage === 1 ? '#444' : 'linear-gradient(135deg, #D4C29A 0%, #B8A47E 100%)'};
+              color: ${currentCompanyPage === 1 ? '#888' : '#0d0d0d'};
+              border: none;
+              border-radius: 8px;
+              cursor: ${currentCompanyPage === 1 ? 'not-allowed' : 'pointer'};
+              font-weight: bold;
+              box-shadow: ${currentCompanyPage === 1 ? 'none' : '0 3px 10px rgba(212, 194, 154, 0.35)'};
+              transition: all 0.3s;
+            ">
+            <i class="fas fa-chevron-left"></i> Anterior
+          </button>
+          
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <span style="color: #D4C29A; font-weight: bold; font-size: 14px;">Página</span>
+            <input 
+              type="number"
+              id="companyPageInput"
+              min="1"
+              max="${totalCompanyPages}"
+              value="${currentCompanyPage}"
+              onkeypress="if(event.key === 'Enter') { const val = parseInt(this.value); if(val >= 1 && val <= ${totalCompanyPages}) changeCompanyPage(val); }"
+              style="
+                width: 70px;
+                padding: 8px 12px;
+                background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
+                color: #D4C29A;
+                border: 2px solid #D4C29A;
+                border-radius: 8px;
+                text-align: center;
+                font-weight: bold;
+                font-size: 14px;
+                outline: none;
+                box-shadow: 0 3px 10px rgba(212, 194, 154, 0.2);
+              ">
+            <span style="color: #D4C29A; font-weight: bold; font-size: 14px;">de ${totalCompanyPages}</span>
+            <button 
+              onclick="const val = parseInt(document.getElementById('companyPageInput').value); if(val >= 1 && val <= ${totalCompanyPages}) changeCompanyPage(val);"
+              style="
+                padding: 8px 16px;
+                background: linear-gradient(135deg, #D4C29A 0%, #B8A47E 100%);
+                color: #0d0d0d;
+                border: none;
+                border-radius: 8px;
+                cursor: pointer;
+                font-weight: bold;
+                font-size: 14px;
+                box-shadow: 0 3px 10px rgba(212, 194, 154, 0.35);
+                transition: all 0.3s;
+              ">
+              <i class="fas fa-arrow-right"></i>
+            </button>
+          </div>
+          
+          <button 
+            onclick="changeCompanyPage(${currentCompanyPage + 1})"
+            ${currentCompanyPage === totalCompanyPages ? 'disabled' : ''}
+            style="
+              padding: 10px 20px;
+              background: ${currentCompanyPage === totalCompanyPages ? '#444' : 'linear-gradient(135deg, #D4C29A 0%, #B8A47E 100%)'};
+              color: ${currentCompanyPage === totalCompanyPages ? '#888' : '#0d0d0d'};
+              border: none;
+              border-radius: 8px;
+              cursor: ${currentCompanyPage === totalCompanyPages ? 'not-allowed' : 'pointer'};
+              font-weight: bold;
+              box-shadow: ${currentCompanyPage === totalCompanyPages ? 'none' : '0 3px 10px rgba(212, 194, 154, 0.35)'};
+              transition: all 0.3s;
+            ">
+            Próxima <i class="fas fa-chevron-right"></i>
+          </button>
+        `;
+        companiesContainer.appendChild(paginationControls);
+      }
     }
+    
+    list.appendChild(companiesContainer);
   }
 
   // ================= PRÉDIOS =================
   if (Object.keys(buildings).length > 0) {
+    const totalBuildings = Object.keys(buildings).length;
+    
     const prediosSeparator = document.createElement('div');
     prediosSeparator.style.cssText = `
       display: flex;
       align-items: center;
       margin: 50px 0 30px 0;
       position: relative;
+      cursor: pointer;
+      transition: all 0.3s ease;
     `;
+    
+    prediosSeparator.onclick = () => toggleBuildings();
 
     prediosSeparator.innerHTML = `
       <div style="flex: 1; height: 2px; background: linear-gradient(to right, transparent, #2ecc71); box-shadow: 0 0 6px rgba(46, 204, 113, 0.35);"></div>
@@ -398,59 +530,302 @@ async function loadCompanies() {
         <div style="position: relative; z-index: 2; background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%); width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 3px 10px rgba(46, 204, 113, 0.35), inset 0 2px 4px rgba(255, 255, 255, 0.25);">
           <i class="fas fa-building" style="color: #0d0d0d; font-size: 18px;"></i>
         </div>
-        <div style="position: relative; z-index: 2;">
+        <div style="position: relative; z-index: 2; display: flex; align-items: center; gap: 12px;">
           <div style="color: #2ecc71; font-size: 18px; font-weight: 900; letter-spacing: 1.2px; text-shadow: 0 2px 6px rgba(0, 0, 0, 0.45);">PRÉDIOS</div>
+          <div style="background: rgba(46, 204, 113, 0.2); padding: 4px 12px; border-radius: 20px; color: #2ecc71; font-size: 14px; font-weight: bold;">${totalBuildings}</div>
+        </div>
+        <div style="position: relative; z-index: 2; margin-left: 8px;">
+          <i class="fas fa-chevron-${buildingsExpanded ? 'up' : 'down'}" style="color: #2ecc71; font-size: 16px;"></i>
         </div>
       </div>
       <div style="flex: 1; height: 2px; background: linear-gradient(to left, transparent, #2ecc71); box-shadow: 0 0 6px rgba(46, 204, 113, 0.35);"></div>
     `;
     list.appendChild(prediosSeparator);
 
-    for (let key in buildings) {
-      const building = buildings[key];
-      const item = document.createElement('div');
-      item.className = 'list-item list-item-building';
-      item.innerHTML = `
-        <div class="list-item-header">
-          <div style="flex: 1; min-width: 0; overflow: hidden;">
-            <div class="list-item-title" style="word-wrap: break-word; word-break: break-word; overflow-wrap: break-word; hyphens: auto; line-height: 1.3;">${building.razao_social_predio}</div>
-            <div class="list-item-subtitle">${building.cnpj_predio}</div>
-          </div>
-        </div>
-        <div class="list-item-info">
-          <div class="list-item-info-row">
-            <span class="list-item-info-label">Telefone:</span>
-            <span class="list-item-info-value">${building.telefone_predio || '-'}</span>
-          </div>
-          <div class="list-item-info-row">
-            <span class="list-item-info-label">Número do Prédio:</span>
-            <span class="list-item-info-value">${building.numero_predio || '-'}</span>
-          </div>
-          <div class="list-item-info-row">
-            <span class="list-item-info-label">Endereço:</span>
-            <span class="list-item-info-value" style="word-wrap: break-word; word-break: break-word; overflow-wrap: break-word; hyphens: auto; line-height: 1.4;">${building.endereco_predio || '-'}</span>
-          </div>
-          <div class="list-item-info-row">
-            <span class="list-item-info-label">Responsável:</span>
-            <span class="list-item-info-value" style="word-wrap: break-word; word-break: break-word; overflow-wrap: break-word; hyphens: auto;">${building.responsavel_predio || '-'}</span>
-          </div>
-        </div>
-        <div class="list-item-actions">
-          <button class="btn-small btn-primary" onclick="startInspectionBuilding('${key}')">
-            <i class="fas fa-clipboard-check"></i> Nova Inspeção
-          </button>
-          <button
-            class="btn-small btn-danger"
-            style="background-color:#D4C29A; border-color:#D4C29A; color:#000;"
-            onclick="deleteBuilding('${key}')">
-            <i class="fas fa-trash"></i> Excluir
-          </button>
+    // Container para os prédios
+    const buildingsContainer = document.createElement('div');
+    buildingsContainer.id = 'buildingsContainer';
+    buildingsContainer.style.display = buildingsExpanded ? 'block' : 'none';
+    buildingsContainer.style.transition = 'all 0.3s ease';
 
-        </div>
-      `;
-      list.appendChild(item);
+    if (buildingsExpanded) {
+      // Paginação de prédios
+      const buildingsArray = Object.entries(buildings);
+      const totalBuildingPages = Math.ceil(buildingsArray.length / itemsPerPage);
+      const startIndex = (currentBuildingPage - 1) * itemsPerPage;
+      const endIndex = startIndex + itemsPerPage;
+      const paginatedBuildings = buildingsArray.slice(startIndex, endIndex);
+
+      for (let [key, building] of paginatedBuildings) {
+        const item = document.createElement('div');
+        item.className = 'list-item list-item-building';
+        item.innerHTML = `
+          <div class="list-item-header">
+            <div style="flex: 1; min-width: 0; overflow: hidden;">
+              <div class="list-item-title" style="word-wrap: break-word; word-break: break-word; overflow-wrap: break-word; hyphens: auto; line-height: 1.3;">${building.razao_social_predio}</div>
+              <div class="list-item-subtitle">${building.cnpj_predio}</div>
+            </div>
+          </div>
+          <div class="list-item-info">
+            <div class="list-item-info-row">
+              <span class="list-item-info-label">Telefone:</span>
+              <span class="list-item-info-value">${building.telefone_predio || '-'}</span>
+            </div>
+            <div class="list-item-info-row">
+              <span class="list-item-info-label">Número do Prédio:</span>
+              <span class="list-item-info-value">${building.numero_predio || '-'}</span>
+            </div>
+            <div class="list-item-info-row">
+              <span class="list-item-info-label">Endereço:</span>
+              <span class="list-item-info-value" style="word-wrap: break-word; word-break: break-word; overflow-wrap: break-word; hyphens: auto; line-height: 1.4;">${building.endereco_predio || '-'}</span>
+            </div>
+            <div class="list-item-info-row">
+              <span class="list-item-info-label">Responsável:</span>
+              <span class="list-item-info-value" style="word-wrap: break-word; word-break: break-word; overflow-wrap: break-word; hyphens: auto;">${building.responsavel_predio || '-'}</span>
+            </div>
+          </div>
+          <div class="list-item-actions">
+            <button class="btn-small btn-primary" onclick="startInspectionBuilding('${key}')">
+              <i class="fas fa-clipboard-check"></i> Nova Inspeção
+            </button>
+            <button
+              class="btn-small btn-danger"
+              style="background-color:#D4C29A; border-color:#D4C29A; color:#000;"
+              onclick="deleteBuilding('${key}')">
+              <i class="fas fa-trash"></i> Excluir
+            </button>
+          </div>
+        `;
+        buildingsContainer.appendChild(item);
+      }
+
+      // Controles de paginação de prédios
+      if (totalBuildingPages > 1) {
+        const paginationControls = document.createElement('div');
+        paginationControls.style.cssText = `
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 15px;
+          margin: 25px 0;
+          padding: 20px;
+          background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
+          border-radius: 12px;
+          box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+          flex-wrap: wrap;
+        `;
+
+        paginationControls.innerHTML = `
+          <button 
+            onclick="changeBuildingPage(${currentBuildingPage - 1})"
+            ${currentBuildingPage === 1 ? 'disabled' : ''}
+            style="
+              padding: 10px 20px;
+              background: ${currentBuildingPage === 1 ? '#444' : 'linear-gradient(135deg, #2ecc71 0%, #27ae60 100%)'};
+              color: ${currentBuildingPage === 1 ? '#888' : '#0d0d0d'};
+              border: none;
+              border-radius: 8px;
+              cursor: ${currentBuildingPage === 1 ? 'not-allowed' : 'pointer'};
+              font-weight: bold;
+              box-shadow: ${currentBuildingPage === 1 ? 'none' : '0 3px 10px rgba(46, 204, 113, 0.35)'};
+              transition: all 0.3s;
+            ">
+            <i class="fas fa-chevron-left"></i> Anterior
+          </button>
+          
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <span style="color: #2ecc71; font-weight: bold; font-size: 14px;">Página</span>
+            <input 
+              type="number"
+              id="buildingPageInput"
+              min="1"
+              max="${totalBuildingPages}"
+              value="${currentBuildingPage}"
+              onkeypress="if(event.key === 'Enter') { const val = parseInt(this.value); if(val >= 1 && val <= ${totalBuildingPages}) changeBuildingPage(val); }"
+              style="
+                width: 70px;
+                padding: 8px 12px;
+                background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
+                color: #2ecc71;
+                border: 2px solid #2ecc71;
+                border-radius: 8px;
+                text-align: center;
+                font-weight: bold;
+                font-size: 14px;
+                outline: none;
+                box-shadow: 0 3px 10px rgba(46, 204, 113, 0.2);
+              ">
+            <span style="color: #2ecc71; font-weight: bold; font-size: 14px;">de ${totalBuildingPages}</span>
+            <button 
+              onclick="const val = parseInt(document.getElementById('buildingPageInput').value); if(val >= 1 && val <= ${totalBuildingPages}) changeBuildingPage(val);"
+              style="
+                padding: 8px 16px;
+                background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+                color: #0d0d0d;
+                border: none;
+                border-radius: 8px;
+                cursor: pointer;
+                font-weight: bold;
+                font-size: 14px;
+                box-shadow: 0 3px 10px rgba(46, 204, 113, 0.35);
+                transition: all 0.3s;
+              ">
+              <i class="fas fa-arrow-right"></i>
+            </button>
+          </div>
+          
+          <button 
+            onclick="changeBuildingPage(${currentBuildingPage + 1})"
+            ${currentBuildingPage === totalBuildingPages ? 'disabled' : ''}
+            style="
+              padding: 10px 20px;
+              background: ${currentBuildingPage === totalBuildingPages ? '#444' : 'linear-gradient(135deg, #2ecc71 0%, #27ae60 100%)'};
+              color: ${currentBuildingPage === totalBuildingPages ? '#888' : '#0d0d0d'};
+              border: none;
+              border-radius: 8px;
+              cursor: ${currentBuildingPage === totalBuildingPages ? 'not-allowed' : 'pointer'};
+              font-weight: bold;
+              box-shadow: ${currentBuildingPage === totalBuildingPages ? 'none' : '0 3px 10px rgba(46, 204, 113, 0.35)'};
+              transition: all 0.3s;
+            ">
+            Próxima <i class="fas fa-chevron-right"></i>
+          </button>
+        `;
+        buildingsContainer.appendChild(paginationControls);
+      }
     }
+    
+    list.appendChild(buildingsContainer);
   }
+}
+
+// Funções de toggle (colapsar/expandir)
+function toggleCompanies() {
+  companiesExpanded = !companiesExpanded;
+  loadCompanies();
+}
+
+function toggleBuildings() {
+  buildingsExpanded = !buildingsExpanded;
+  loadCompanies();
+}
+
+// Funções de mudança de página
+function changeCompanyPage(newPage) {
+  currentCompanyPage = newPage;
+  loadCompanies();
+  // Scroll suave para o topo da seção de empresas
+  const container = document.getElementById('companiesContainer');
+  if (container) {
+    container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+}
+
+function changeBuildingPage(newPage) {
+  currentBuildingPage = newPage;
+  loadCompanies();
+  // Scroll suave para o topo da seção de prédios
+  const container = document.getElementById('buildingsContainer');
+  if (container) {
+    container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+}
+
+// Função auxiliar para criar e mostrar o modal de confirmação personalizado
+function confirmModal(titulo, mensagem, callback) {
+  // Remove modal anterior se existir
+  const existingModal = document.getElementById('customConfirmModal');
+  if (existingModal) existingModal.remove();
+
+  const modalHtml = `
+        <div id="customConfirmModal" style="display: flex; align-items: center; justify-content: center; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); backdrop-filter: blur(4px);">
+            <div style="background: #1a1a1a; border: 1px solid #D4C29A; padding: 30px; border-radius: 12px; width: 90%; max-width: 400px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.5);">
+                <div style="color: #D4C29A; font-size: 40px; margin-bottom: 15px;">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <h3 style="color: #D4C29A; margin-bottom: 15px; font-family: 'Playfair Display', serif;">${titulo}</h3>
+                <p style="color: #ccc; margin-bottom: 25px; line-height: 1.5;">${mensagem}</p>
+                <div style="display: flex; gap: 12px; justify-content: center;">
+                    <button id="btnCancel" style="padding: 12px 20px; background: #333; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; flex: 1;">Cancelar</button>
+                    <button id="btnConfirm" style="padding: 12px 20px; background: #e74c3c; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; flex: 1;">Excluir</button>
+                </div>
+            </div>
+        </div>
+    `;
+
+  document.body.insertAdjacentHTML('beforeend', modalHtml);
+
+  const modal = document.getElementById('customConfirmModal');
+
+  document.getElementById('btnCancel').onclick = () => {
+    modal.remove();
+  };
+
+  document.getElementById('btnConfirm').onclick = async () => {
+    const btn = document.getElementById('btnConfirm');
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Excluindo...';
+    btn.style.pointerEvents = 'none';
+
+    await callback();
+    modal.remove();
+  };
+}
+
+// Função para deletar Empresa (deleta a empresa e seus prédios)
+async function deleteCompany(id) {
+  confirmModal(
+    'Excluir Empresa',
+    'Isso excluirá permanentemente a empresa e TODOS os prédios vinculados a ela. Deseja continuar?',
+    async () => {
+      try {
+        // 1. Remove a empresa
+        await database.ref('companies/' + id).remove();
+
+        // 2. Busca e remove prédios vinculados
+        const buildingsSnapshot = await database.ref('buildings').once('value');
+        const buildings = buildingsSnapshot.val();
+
+        if (buildings) {
+          const updates = {};
+          Object.entries(buildings).forEach(([bid, bData]) => {
+            // Verifica se o prédio pertence a esta empresa (ajuste o nome do campo se necessário)
+            if (bData.companyId === id || bData.empresaId === id) {
+              updates[`/buildings/${bid}`] = null;
+            }
+          });
+          await database.ref().update(updates);
+        }
+
+        showToast('Empresa e dependências excluídas!');
+
+        // Se não estiver usando .on('value'), recarregue a lista:
+        if (typeof loadCompanies === 'function') loadCompanies();
+        if (typeof loadDashboard === 'function') loadDashboard();
+
+      } catch (error) {
+        showToast('Erro técnico ao excluir empresa');
+      }
+    }
+  );
+}
+
+// Função para deletar apenas o Prédio
+async function deleteBuilding(id) {
+  confirmModal(
+    'Excluir Prédio',
+    'Deseja realmente remover este prédio do sistema?',
+    async () => {
+      try {
+        await database.ref('buildings/' + id).remove();
+        showToast('Prédio excluído com sucesso!');
+
+        if (typeof loadCompanies === 'function') loadCompanies();
+        if (typeof loadDashboard === 'function') loadDashboard();
+      } catch (error) {
+        showToast('Erro ao excluir prédio');
+      }
+    }
+  );
 }
 // Função auxiliar para criar e mostrar o modal de confirmação personalizado
 function confirmModal(titulo, mensagem, callback) {
@@ -2091,6 +2466,10 @@ document.getElementById('saveInspectionBtn').addEventListener('click', async () 
   }
 });
 
+// Variável de paginação para inspeções
+let currentInspectionPage = 1;
+const inspectionsPerPage = 7;
+
 async function loadInspections() {
   const snapshot = await database.ref('inspections').once('value');
   const inspections = snapshot.val() || {};
@@ -2120,7 +2499,13 @@ async function loadInspections() {
     return;
   }
 
-  filtered.forEach(insp => {
+  // Paginação
+  const totalInspectionPages = Math.ceil(filtered.length / inspectionsPerPage);
+  const startIndex = (currentInspectionPage - 1) * inspectionsPerPage;
+  const endIndex = startIndex + inspectionsPerPage;
+  const paginatedInspections = filtered.slice(startIndex, endIndex);
+
+  paginatedInspections.forEach(insp => {
     const statusBadge = insp.completed
       ? '<span class="badge badge-completed">Concluída</span>'
       : '<span class="badge badge-pending">Pendente</span>';
@@ -2212,7 +2597,116 @@ async function loadInspections() {
 
     list.appendChild(item);
   });
+
+  // Controles de paginação
+  if (totalInspectionPages > 1) {
+    const paginationControls = document.createElement('div');
+    paginationControls.style.cssText = `
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 15px;
+      margin: 25px 0;
+      padding: 20px;
+      background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+      flex-wrap: wrap;
+    `;
+
+    paginationControls.innerHTML = `
+      <button 
+        onclick="changeInspectionPage(${currentInspectionPage - 1})"
+        ${currentInspectionPage === 1 ? 'disabled' : ''}
+        style="
+          padding: 10px 20px;
+          background: ${currentInspectionPage === 1 ? '#444' : '#D4C29A'};
+          color: ${currentInspectionPage === 1 ? '#888' : '#0d0d0d'};
+          border: none;
+          border-radius: 8px;
+          cursor: ${currentInspectionPage === 1 ? 'not-allowed' : 'pointer'};
+          font-weight: bold;
+          box-shadow: ${currentInspectionPage === 1 ? 'none' : '0 2px 6px rgba(0, 0, 0, 0.2)'};
+          transition: all 0.3s;
+        ">
+        <i class="fas fa-chevron-left"></i> Anterior
+      </button>
+      
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <span style="color: #D4C29A; font-weight: bold; font-size: 14px;">Página</span>
+        <input 
+          type="number"
+          id="inspectionPageInput"
+          min="1"
+          max="${totalInspectionPages}"
+          value="${currentInspectionPage}"
+          onkeypress="if(event.key === 'Enter') { const val = parseInt(this.value); if(val >= 1 && val <= ${totalInspectionPages}) changeInspectionPage(val); }"
+          style="
+            width: 70px;
+            padding: 8px 12px;
+            background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
+            color: #D4C29A;
+            border: 2px solid #D4C29A;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 14px;
+            outline: none;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+          ">
+        <span style="color: #D4C29A; font-weight: bold; font-size: 14px;">de ${totalInspectionPages}</span>
+        <button 
+          onclick="const val = parseInt(document.getElementById('inspectionPageInput').value); if(val >= 1 && val <= ${totalInspectionPages}) changeInspectionPage(val);"
+          style="
+            padding: 8px 16px;
+            background: #D4C29A;
+            color: #0d0d0d;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 14px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s;
+          ">
+          <i class="fas fa-arrow-right"></i>
+        </button>
+      </div>
+      
+      <button 
+        onclick="changeInspectionPage(${currentInspectionPage + 1})"
+        ${currentInspectionPage === totalInspectionPages ? 'disabled' : ''}
+        style="
+          padding: 10px 20px;
+          background: ${currentInspectionPage === totalInspectionPages ? '#444' : '#D4C29A'};
+          color: ${currentInspectionPage === totalInspectionPages ? '#888' : '#0d0d0d'};
+          border: none;
+          border-radius: 8px;
+          cursor: ${currentInspectionPage === totalInspectionPages ? 'not-allowed' : 'pointer'};
+          font-weight: bold;
+          box-shadow: ${currentInspectionPage === totalInspectionPages ? 'none' : '0 2px 6px rgba(0, 0, 0, 0.2)'};
+          transition: all 0.3s;
+        ">
+        Próxima <i class="fas fa-chevron-right"></i>
+      </button>
+    `;
+    
+    list.appendChild(paginationControls);
+  }
 }
+
+// Função de mudança de página de inspeções
+function changeInspectionPage(newPage) {
+  currentInspectionPage = newPage;
+  loadInspections();
+  // Scroll suave para o topo da lista
+  const container = document.getElementById('inspectionsList');
+  if (container) {
+    container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+}
+
+
 
 
 
@@ -7967,6 +8461,5 @@ function setupCalendarEventListeners() {
 
   document.getElementById('exportMonthPDFBtn').addEventListener('click', exportarMesPDF);
 }
-
 
 
