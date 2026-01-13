@@ -241,15 +241,19 @@ document.querySelectorAll('.nav-item-desktop').forEach(item => {
 });
 
 function navigateToSection(section) {
+  
   document.querySelectorAll('.content-section').forEach(sec => sec.classList.remove('active'));
 
   const el = document.getElementById(section + 'Section');
-  if (el) el.classList.add('active');
+  if (el) {
+    el.classList.add('active');
+  }
 
   if (section === 'overview') loadDashboard();
   else if (section === 'companies') loadCompanies();
   else if (section === 'inspections') loadInspections();
-  else if (section === 'orders') loadOrders(); // ✅ NOVA ABA
+  else if (section === 'orders') loadOrders();
+  else if (section === 'calendar') initCalendar();
   else if (section === 'config') loadConfig();
 }
 
@@ -257,72 +261,300 @@ function navigateToSection(section) {
 // Load Dashboard
 async function loadDashboard() {
   const companiesSnapshot = await database.ref('companies').once('value');
+  const buildingsSnapshot = await database.ref('buildings').once('value');
   const inspectionsSnapshot = await database.ref('inspections').once('value');
 
   const companies = companiesSnapshot.val() || {};
+  const buildings = buildingsSnapshot.val() || {};
   const inspections = inspectionsSnapshot.val() || {};
 
   const totalCompanies = Object.keys(companies).length;
+  const totalBuildings = Object.keys(buildings).length;
   const totalInspections = Object.keys(inspections).length;
   const pendingInspections = Object.values(inspections).filter(i => !i.completed).length;
 
-  document.getElementById('totalCompanies').textContent = totalCompanies;
+  document.getElementById('totalCompanies').textContent = totalCompanies + totalBuildings;
   document.getElementById('totalInspections').textContent = totalInspections;
   document.getElementById('pendingInspections').textContent = pendingInspections;
 }
 
-// Load Companies
-async function loadCompanies() {
-  const snapshot = await database.ref('companies').once('value');
-  const companies = snapshot.val() || {};
 
+/* ==========================================================
+   FUNÇÃO PRINCIPAL PARA CARREGAR EMPRESAS E PRÉDIOS
+========================================================== */
+async function loadCompanies() {
   const list = document.getElementById('companiesList');
+
+  const [companiesSnapshot, buildingsSnapshot] = await Promise.all([
+    database.ref('companies').once('value'),
+    database.ref('buildings').once('value')
+  ]);
+
+  const companies = companiesSnapshot.val() || {};
+  const buildings = buildingsSnapshot.val() || {};
+
+  // Limpa a lista para reconstruir toda vez
   list.innerHTML = '';
 
-  if (Object.keys(companies).length === 0) {
+  const totalItems =
+    Object.keys(companies).length + Object.keys(buildings).length;
+
+  if (totalItems === 0) {
     list.innerHTML = `
-            <div class="empty-state">
-              <i class="fas fa-building"></i>
-              <p>Nenhuma empresa cadastrada</p>
-            </div>
-          `;
+      <div class="empty-state">
+        <i class="fas fa-building"></i>
+        <p>Nenhuma empresa ou prédio cadastrado</p>
+      </div>
+    `;
     return;
   }
 
-  for (let key in companies) {
-    const company = companies[key];
-    const item = document.createElement('div');
-    item.className = 'list-item';
-    item.innerHTML = `
-            <div class="list-item-header">
-              <div>
-                <div class="list-item-title">${company.razao_social}</div>
-                <div class="list-item-subtitle">${company.cnpj}</div>
-              </div>
-            </div>
-            <div class="list-item-info">
-              <div class="list-item-info-row">
-                <span class="list-item-info-label">Telefone:</span>
-                <span class="list-item-info-value">${company.telefone || '-'}</span>
-              </div>
-              <div class="list-item-info-row">
-                <span class="list-item-info-label">Responsável:</span>
-                <span class="list-item-info-value">${company.responsavel || '-'}</span>
-              </div>
-                      <div class="list-item-info-row">
-                <span class="list-item-info-label">Endereço:</span>
-                <span class="list-item-info-value">${company.endereco || '-'}</span>
-              </div>
-            </div>
-            <div class="list-item-actions">
-              <button class="btn-small btn-primary" onclick="startInspection('${key}')">
-                <i class="fas fa-clipboard-check"></i> Nova Inspeção
-              </button>
-            </div>
-          `;
-    list.appendChild(item);
+  // (continua o código de renderização que você já tem)
+
+
+  // ================= EMPRESAS =================
+  if (Object.keys(companies).length > 0) {
+    const empresasSeparator = document.createElement('div');
+    empresasSeparator.style.cssText = `
+      display: flex;
+      align-items: center;
+      margin: 30px 0;
+      position: relative;
+    `;
+
+    empresasSeparator.innerHTML = `
+      <div style="flex: 1; height: 2px; background: linear-gradient(to right, transparent, #D4C29A); box-shadow: 0 0 6px rgba(212, 194, 154, 0.35);"></div>
+      <div style="position: relative; background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%); border-radius: 40px; padding: 14px 36px; margin: 0 20px; box-shadow: 0 6px 24px rgba(0, 0, 0, 0.55), inset 0 2px 4px rgba(255, 255, 255, 0.08), 0 0 0 1px rgba(212, 194, 154, 0.25); display: flex; align-items: center; gap: 12px; overflow: hidden;">
+        <div style="position: relative; z-index: 2; background: linear-gradient(135deg, #D4C29A 0%, #B8A47E 100%); width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 3px 10px rgba(212, 194, 154, 0.35), inset 0 2px 4px rgba(255, 255, 255, 0.25);">
+          <i class="fas fa-briefcase" style="color: #0d0d0d; font-size: 18px;"></i>
+        </div>
+        <div style="position: relative; z-index: 2;">
+          <div style="color: #D4C29A; font-size: 18px; font-weight: 900; letter-spacing: 1.2px; text-shadow: 0 2px 6px rgba(0, 0, 0, 0.45);">EMPRESAS</div>
+        </div>
+      </div>
+      <div style="flex: 1; height: 2px; background: linear-gradient(to left, transparent, #D4C29A); box-shadow: 0 0 6px rgba(212, 194, 154, 0.35);"></div>
+    `;
+    list.appendChild(empresasSeparator);
+
+    for (let key in companies) {
+      const company = companies[key];
+      const item = document.createElement('div');
+      item.className = 'list-item';
+      item.innerHTML = `
+        <div class="list-item-header">
+          <div>
+            <div class="list-item-title">${company.razao_social}</div>
+            <div class="list-item-subtitle">${company.cnpj}</div>
+          </div>
+        </div>
+        <div class="list-item-info">
+          <div class="list-item-info-row">
+            <span class="list-item-info-label">Telefone:</span>
+            <span class="list-item-info-value">${company.telefone || '-'}</span>
+          </div>
+          <div class="list-item-info-row">
+            <span class="list-item-info-label">Número da Empresa:</span>
+            <span class="list-item-info-value">${company.numero_empresa || '-'}</span>
+          </div>
+          <div class="list-item-info-row">
+            <span class="list-item-info-label">Responsável:</span>
+            <span class="list-item-info-value">${company.responsavel || '-'}</span>
+          </div>
+          <div class="list-item-info-row">
+            <span class="list-item-info-label">Endereço:</span>
+            <span class="list-item-info-value">${company.endereco || '-'}</span>
+          </div>
+        </div>
+        <div class="list-item-actions">
+          <button class="btn-small btn-primary" onclick="startInspection('${key}')">
+            <i class="fas fa-clipboard-check"></i> Nova Inspeção
+          </button>
+        <button
+          class="btn-small btn-danger"
+          style="background-color:#D4C29A; border-color:#D4C29A; color:#000;"
+          onclick="deleteCompany('${key}')">
+          <i class="fas fa-trash"></i> Excluir
+        </button>
+
+        </div>
+      `;
+      list.appendChild(item);
+    }
+  }
+
+  // ================= PRÉDIOS =================
+  if (Object.keys(buildings).length > 0) {
+    const prediosSeparator = document.createElement('div');
+    prediosSeparator.style.cssText = `
+      display: flex;
+      align-items: center;
+      margin: 50px 0 30px 0;
+      position: relative;
+    `;
+
+    prediosSeparator.innerHTML = `
+      <div style="flex: 1; height: 2px; background: linear-gradient(to right, transparent, #2ecc71); box-shadow: 0 0 6px rgba(46, 204, 113, 0.35);"></div>
+      <div style="position: relative; background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%); border-radius: 40px; padding: 14px 36px; margin: 0 20px; box-shadow: 0 6px 24px rgba(0, 0, 0, 0.55), inset 0 2px 4px rgba(255, 255, 255, 0.08), 0 0 0 1px rgba(46, 204, 113, 0.25); display: flex; align-items: center; gap: 12px; overflow: hidden;">
+        <div style="position: relative; z-index: 2; background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%); width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 3px 10px rgba(46, 204, 113, 0.35), inset 0 2px 4px rgba(255, 255, 255, 0.25);">
+          <i class="fas fa-building" style="color: #0d0d0d; font-size: 18px;"></i>
+        </div>
+        <div style="position: relative; z-index: 2;">
+          <div style="color: #2ecc71; font-size: 18px; font-weight: 900; letter-spacing: 1.2px; text-shadow: 0 2px 6px rgba(0, 0, 0, 0.45);">PRÉDIOS</div>
+        </div>
+      </div>
+      <div style="flex: 1; height: 2px; background: linear-gradient(to left, transparent, #2ecc71); box-shadow: 0 0 6px rgba(46, 204, 113, 0.35);"></div>
+    `;
+    list.appendChild(prediosSeparator);
+
+    for (let key in buildings) {
+      const building = buildings[key];
+      const item = document.createElement('div');
+      item.className = 'list-item list-item-building';
+      item.innerHTML = `
+        <div class="list-item-header">
+          <div>
+            <div class="list-item-title">${building.razao_social_predio}</div>
+            <div class="list-item-subtitle">${building.cnpj_predio}</div>
+          </div>
+        </div>
+        <div class="list-item-info">
+          <div class="list-item-info-row">
+            <span class="list-item-info-label">Telefone:</span>
+            <span class="list-item-info-value">${building.telefone_predio || '-'}</span>
+          </div>
+          <div class="list-item-info-row">
+            <span class="list-item-info-label">Número do Prédio:</span>
+            <span class="list-item-info-value">${building.numero_predio || '-'}</span>
+          </div>
+          <div class="list-item-info-row">
+            <span class="list-item-info-label">Endereço:</span>
+            <span class="list-item-info-value">${building.endereco_predio || '-'}</span>
+          </div>
+          <div class="list-item-info-row">
+            <span class="list-item-info-label">Responsável:</span>
+            <span class="list-item-info-value">${building.responsavel_predio || '-'}</span>
+          </div>
+        </div>
+        <div class="list-item-actions">
+          <button class="btn-small btn-primary" onclick="startInspectionBuilding('${key}')">
+            <i class="fas fa-clipboard-check"></i> Nova Inspeção
+          </button>
+          <button
+            class="btn-small btn-danger"
+            style="background-color:#D4C29A; border-color:#D4C29A; color:#000;"
+            onclick="deleteBuilding('${key}')">
+            <i class="fas fa-trash"></i> Excluir
+          </button>
+
+        </div>
+      `;
+      list.appendChild(item);
+    }
   }
 }
+// Função auxiliar para criar e mostrar o modal de confirmação personalizado
+function confirmModal(titulo, mensagem, callback) {
+  // Remove modal anterior se existir
+  const existingModal = document.getElementById('customConfirmModal');
+  if (existingModal) existingModal.remove();
+
+  const modalHtml = `
+        <div id="customConfirmModal" style="display: flex; align-items: center; justify-content: center; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); backdrop-filter: blur(4px);">
+            <div style="background: #1a1a1a; border: 1px solid #D4C29A; padding: 30px; border-radius: 12px; width: 90%; max-width: 400px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.5);">
+                <div style="color: #D4C29A; font-size: 40px; margin-bottom: 15px;">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <h3 style="color: #D4C29A; margin-bottom: 15px; font-family: 'Playfair Display', serif;">${titulo}</h3>
+                <p style="color: #ccc; margin-bottom: 25px; line-height: 1.5;">${mensagem}</p>
+                <div style="display: flex; gap: 12px; justify-content: center;">
+                    <button id="btnCancel" style="padding: 12px 20px; background: #333; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; flex: 1;">Cancelar</button>
+                    <button id="btnConfirm" style="padding: 12px 20px; background: #e74c3c; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; flex: 1;">Excluir</button>
+                </div>
+            </div>
+        </div>
+    `;
+
+  document.body.insertAdjacentHTML('beforeend', modalHtml);
+
+  const modal = document.getElementById('customConfirmModal');
+
+  document.getElementById('btnCancel').onclick = () => {
+    modal.remove();
+  };
+
+  document.getElementById('btnConfirm').onclick = async () => {
+    const btn = document.getElementById('btnConfirm');
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Excluindo...';
+    btn.style.pointerEvents = 'none';
+
+    await callback();
+    modal.remove();
+  };
+}
+
+// Função para deletar Empresa (deleta a empresa e seus prédios)
+async function deleteCompany(id) {
+  confirmModal(
+    'Excluir Empresa',
+    'Isso excluirá permanentemente a empresa e TODOS os prédios vinculados a ela. Deseja continuar?',
+    async () => {
+      try {
+        // 1. Remove a empresa
+        await database.ref('companies/' + id).remove();
+
+        // 2. Busca e remove prédios vinculados
+        const buildingsSnapshot = await database.ref('buildings').once('value');
+        const buildings = buildingsSnapshot.val();
+
+        if (buildings) {
+          const updates = {};
+          Object.entries(buildings).forEach(([bid, bData]) => {
+            // Verifica se o prédio pertence a esta empresa (ajuste o nome do campo se necessário)
+            if (bData.companyId === id || bData.empresaId === id) {
+              updates[`/buildings/${bid}`] = null;
+            }
+          });
+          await database.ref().update(updates);
+        }
+
+        showToast('Empresa e dependências excluídas!');
+
+        // Se não estiver usando .on('value'), recarregue a lista:
+        if (typeof loadCompanies === 'function') loadCompanies();
+        if (typeof loadDashboard === 'function') loadDashboard();
+
+      } catch (error) {
+        showToast('Erro técnico ao excluir empresa');
+      }
+    }
+  );
+}
+
+// Função para deletar apenas o Prédio
+async function deleteBuilding(id) {
+  confirmModal(
+    'Excluir Prédio',
+    'Deseja realmente remover este prédio do sistema?',
+    async () => {
+      try {
+        await database.ref('buildings/' + id).remove();
+        showToast('Prédio excluído com sucesso!');
+
+        if (typeof loadCompanies === 'function') loadCompanies();
+        if (typeof loadDashboard === 'function') loadDashboard();
+      } catch (error) {
+        showToast('Erro ao excluir prédio');
+      }
+    }
+  );
+}
+
+
+
+
+
+
+
 
 // Add Company
 document.getElementById('addCompanyBtn').addEventListener('click', () => {
@@ -359,14 +591,86 @@ async function startInspection(companyId) {
   openModal('inspectionFormModal');
 
   setTimeout(() => {
+    // Preenche dados da empresa
     document.querySelector('input[name="razao_social"]').value = company.razao_social;
     document.querySelector('input[name="cnpj"]').value = company.cnpj;
     document.querySelector('input[name="telefone"]').value = company.telefone || '';
-    document.querySelector('input[name="cep"]').value = company.cep || ''; // Adicionado aqui
+    document.querySelector('input[name="cep"]').value = company.cep || '';
     document.querySelector('input[name="endereco"]').value = company.endereco || '';
     document.querySelector('input[name="responsavel"]').value = company.responsavel || '';
+
+    // EXIBE o número da empresa e OCULTA o do prédio
+    const rowEmpresa = document.getElementById('rowNumeroEmpresa');
+    const rowPredio = document.getElementById('rowNumeroPredio');
+
+    if (rowEmpresa) rowEmpresa.style.display = 'flex';
+    if (rowPredio) rowPredio.style.display = 'none';
+
+    // Garante que o valor apareça no input
+    document.querySelector('input[name="numero_empresa"]').value = company.numero_empresa || '';
+    // Limpa o campo do prédio para não misturar
+    const inputPredio = document.querySelector('input[name="numero_predio"]');
+    if (inputPredio) inputPredio.value = '';
+
+    // Define o tipo explicitamente
+    window.currentInspectionType = 'empresa';
   }, 200);
 }
+
+
+
+// Add Building Form Submit
+document.getElementById('addBuildingForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+
+  const formData = new FormData(e.target);
+  const buildingData = Object.fromEntries(formData);
+
+  // Salva no Firebase
+  await database.ref('buildings').push(buildingData);
+
+  showToast('Prédio cadastrado com sucesso!');
+  closeModal('addCompanyModal');
+  e.target.reset();
+
+  // ALTERAÇÃO AQUI:
+  // Use loadCompanies() pois ela é a responsável por renderizar a lista no DOM
+  loadCompanies();
+  loadDashboard();
+});
+
+// Start Inspection for Building
+async function startInspectionBuilding(buildingId) {
+  const snapshot = await database.ref(`buildings/${buildingId}`).once('value');
+  const building = snapshot.val();
+
+  openModal('inspectionFormModal');
+
+  setTimeout(() => {
+    document.querySelector('input[name="razao_social"]').value = building.razao_social_predio;
+    document.querySelector('input[name="cnpj"]').value = building.cnpj_predio;
+    document.querySelector('input[name="telefone"]').value = building.telefone_predio || '';
+    document.querySelector('input[name="cep"]').value = building.cep_predio || '';
+    document.querySelector('input[name="endereco"]').value = building.endereco_predio || '';
+    document.querySelector('input[name="responsavel"]').value = building.responsavel_predio || '';
+
+    // OCULTA o número da empresa e EXIBE o do prédio
+    const rowEmpresa = document.getElementById('rowNumeroEmpresa');
+    const rowPredio = document.getElementById('rowNumeroPredio');
+
+    if (rowEmpresa) rowEmpresa.style.display = 'none';
+    if (rowPredio) rowPredio.style.display = 'flex';
+
+    document.querySelector('input[name="numero_predio"]').value = building.numero_predio || '';
+    // Limpa o campo da empresa
+    const inputEmpresa = document.querySelector('input[name="numero_empresa"]');
+    if (inputEmpresa) inputEmpresa.value = '';
+
+    window.currentInspectionType = 'predio';
+  }, 200);
+}
+
+
 
 // Inspection Tabs
 document.querySelectorAll('.inspection-tab').forEach(tab => {
@@ -773,60 +1077,118 @@ function generatePDFHeader(title) {
 }
 
 function generateClientSection(data) {
+  // Verifica se é prédio ou empresa
+  const isPredio = data.tipo === 'predio' || !!data.razao_social_predio;
+
+  // Define os valores com fallback
+  const razaoSocial = isPredio
+    ? (data.razao_social_predio || data.razao_social || '-')
+    : (data.razao_social || '-');
+  const cnpj = isPredio
+    ? (data.cnpj_predio || data.cnpj || '-')
+    : (data.cnpj || '-');
+  const telefone = isPredio
+    ? (data.telefone_predio || data.telefone || '-')
+    : (data.telefone || '-');
+  const cep = isPredio
+    ? (data.cep_predio || data.cep || '-')
+    : (data.cep || '-');
+  const endereco = isPredio
+    ? (data.endereco_predio || data.endereco || '-')
+    : (data.endereco || '-');
+  const responsavel = isPredio
+    ? (data.responsavel_predio || data.responsavel || '-')
+    : (data.responsavel || '-');
+  const numeroPredio = data.numero_predio || '';
+  const numeroEmpresa = data.numero_empresa || '';
+
+  const labelRazao = isPredio ? 'Nome do Prédio' : 'Razão Social';
+  const icone = isPredio ? 'fa-building' : 'fa-briefcase';
+
   return `
-     <div class="pdf-section">
-  <div class="pdf-section-title">
-    <i class="fas fa-building"></i> Dados do Cliente
-  </div>
-  <div class="pdf-field">
-    <div class="pdf-field-label">Razão Social:</div>
-    <div class="pdf-field-value">${data.razao_social || '-'}</div>
-  </div>
-  <div class="pdf-field">
-    <div class="pdf-field-label">CNPJ:</div>
-    <div class="pdf-field-value">${data.cnpj || '-'}</div>
-  </div>
-  <div class="pdf-field">
-    <div class="pdf-field-label">Telefone:</div>
-    <div class="pdf-field-value">${data.telefone || '-'}</div>
-  </div>
-  <div class="pdf-field">
-    <div class="pdf-field-label">CEP:</div>
-    <div class="pdf-field-value">${data.cep || '-'}</div>
-  </div>
-  <div class="pdf-field">
-    <div class="pdf-field-label">Endereço:</div>
-    <div class="pdf-field-value">${data.endereco || '-'}</div>
-  </div>
-  <div class="pdf-field">
-    <div class="pdf-field-label">Responsável:</div>
-    <div class="pdf-field-value">${data.responsavel || '-'}</div>
-  </div>
-</div>
-      `;
+    <div class="pdf-section">
+      <div class="pdf-section-title">
+        <i class="fas ${icone}"></i> Dados do Cliente
+      </div>
+
+      <div class="pdf-field">
+        <div class="pdf-field-label">${labelRazao}:</div>
+        <div class="pdf-field-value">${razaoSocial}</div>
+      </div>
+
+      <div class="pdf-field">
+        <div class="pdf-field-label">CNPJ:</div>
+        <div class="pdf-field-value">${cnpj}</div>
+      </div>
+
+      <div class="pdf-field">
+        <div class="pdf-field-label">Telefone:</div>
+        <div class="pdf-field-value">${telefone}</div>
+      </div>
+
+      <div class="pdf-field">
+        <div class="pdf-field-label">CEP:</div>
+        <div class="pdf-field-value">${cep}</div>
+      </div>
+
+      <div class="pdf-field">
+        <div class="pdf-field-label">Endereço:</div>
+        <div class="pdf-field-value">${endereco}</div>
+      </div>
+
+      ${isPredio && numeroPredio ? `
+        <div class="pdf-field">
+          <div class="pdf-field-label">Número do Prédio:</div>
+          <div class="pdf-field-value">${numeroPredio}</div>
+        </div>
+      ` : ''}
+
+      ${!isPredio && numeroEmpresa ? `
+        <div class="pdf-field">
+          <div class="pdf-field-label">Número da Empresa:</div>
+          <div class="pdf-field-value">${numeroEmpresa}</div>
+        </div>
+      ` : ''}
+
+      <div class="pdf-field">
+        <div class="pdf-field-label">Responsável:</div>
+        <div class="pdf-field-value">${responsavel}</div>
+      </div>
+    </div>
+  `;
 }
+
+
+
+
 
 function generateCertificateSection(data) {
   return `
-        <div class="pdf-section">
-          <div class="pdf-section-title">
-            <i class="fas fa-certificate"></i> Certificado AVCB/CLCB
-          </div>
-          <div class="pdf-field">
-            <div class="pdf-field-label">Tipo:</div>
-            <div class="pdf-field-value">${data.cert_tipo}</div>
-          </div>
-          <div class="pdf-field">
-            <div class="pdf-field-label">Número:</div>
-            <div class="pdf-field-value">${data.cert_numero || '-'}</div>
-          </div>
-          <div class="pdf-field">
-            <div class="pdf-field-label">Validade:</div>
-            <div class="pdf-field-value">${data.cert_validade ? new Date(data.cert_validade).toLocaleDateString('pt-BR') : '-'}</div>
-          </div>
-        </div>
-      `;
+    <div class="pdf-section">
+      <div class="pdf-section-title">
+        <i class="fas fa-certificate"></i> Certificado AVCB/CLCB
+      </div>
+      <div class="pdf-field">
+        <div class="pdf-field-label">Tipo:</div>
+        <div class="pdf-field-value">${data.cert_tipo || '-'}</div>
+      </div>
+      <div class="pdf-field">
+        <div class="pdf-field-label">Número:</div>
+        <div class="pdf-field-value">${data.cert_numero || '-'}</div>
+      </div>
+      <div class="pdf-field">
+        <div class="pdf-field-label">Data de Início da Validade:</div>
+        <div class="pdf-field-value">${data.cert_inicio_validade ? new Date(data.cert_inicio_validade).toLocaleDateString('pt-BR') : '-'}</div>
+      </div>
+      <div class="pdf-field">
+        <div class="pdf-field-label">Validade:</div>
+        <div class="pdf-field-value">${data.cert_validade ? new Date(data.cert_validade).toLocaleDateString('pt-BR') : '-'}</div>
+      </div>
+    </div>
+  `;
 }
+
+
 
 function generateBombasSection(data) {
   let html = `
@@ -879,10 +1241,13 @@ function generateBombasSection(data) {
 
 function generateHidrantesSection(data) {
   return `
-        <div class="pdf-section">
-          <div class="pdf-section-title">
-            <i class="fas fa-truck-droplet"></i> Rede de Hidrantes
-          </div>
+    <div class="pdf-section">
+      <div class="pdf-section-title">
+        <i class="fas fa-truck-droplet"></i> Rede de Hidrantes
+      </div>
+
+      <div class="pdf-columns">
+        <div class="pdf-column">
           <div class="pdf-field">
             <div class="pdf-field-label">Diâmetro da Tubulação:</div>
             <div class="pdf-field-value">${data.hidrantes_diametro || '-'}</div>
@@ -900,7 +1265,7 @@ function generateHidrantesSection(data) {
             <div class="pdf-field-value">${data.hidrantes_vazamentos === 'Sim' ? '<span class="checkmark">✓</span>' : '<span class="crossmark">✗</span>'}</div>
           </div>
           <div class="pdf-field">
-            <div class="pdf-field-label">Identificação Conforme:</div>
+            <div class="pdf-field-label">Identificação Conforme Norma:</div>
             <div class="pdf-field-value">${data.hidrantes_identificacao === 'Sim' ? '<span class="checkmark">✓</span>' : '<span class="crossmark">✗</span>'}</div>
           </div>
           <div class="pdf-field">
@@ -911,6 +1276,9 @@ function generateHidrantesSection(data) {
             <div class="pdf-field-label">Material do Adaptador:</div>
             <div class="pdf-field-value">${data.adaptador_material || '-'}</div>
           </div>
+        </div>
+
+        <div class="pdf-column">
           <div class="pdf-field">
             <div class="pdf-field-label">Esguicho:</div>
             <div class="pdf-field-value">${data.esguicho_tipo || '-'}</div>
@@ -940,8 +1308,35 @@ function generateHidrantesSection(data) {
             <div class="pdf-field-value">${data.mangueira_comprimento ? data.mangueira_comprimento + ' metros' : '-'}</div>
           </div>
         </div>
-      `;
+      </div>
+
+      <div class="pdf-columns">
+        <div class="pdf-column">
+          <div class="pdf-field">
+            <div class="pdf-field-label">Possui Hidrante RR:</div>
+            <div class="pdf-field-value">${data.hidrante_rr_possui || '-'}</div>
+          </div>
+          <div class="pdf-field">
+            <div class="pdf-field-label">Possui Adaptador:</div>
+            <div class="pdf-field-value">${data.hidrante_rr_adaptador || '-'}</div>
+          </div>
+        </div>
+        <div class="pdf-column">
+          <div class="pdf-field">
+            <div class="pdf-field-label">Medida do Adaptador:</div>
+            <div class="pdf-field-value">${data.hidrante_rr_medida || '-'}</div>
+          </div>
+          <div class="pdf-field">
+            <div class="pdf-field-label">Observações:</div>
+            <div class="pdf-field-value">${data.hidrante_rr_observacoes || '-'}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
 }
+
+
 
 function generateAlarmeSection(data) {
   return `
@@ -1411,6 +1806,20 @@ document.getElementById('generateReportBtn').addEventListener('click', () => {
     }
   }
 
+  // Adiciona o tipo e os campos específicos de prédio/empresa
+  data.tipo = window.ultimaEmpresaCadastrada?.tipo || 'empresa';
+
+  // Se for prédio, adiciona os campos _predio
+  if (data.tipo === 'predio' && window.ultimaEmpresaCadastrada) {
+    data.razao_social_predio = data.razao_social || window.ultimaEmpresaCadastrada.razao_social_predio;
+    data.cnpj_predio = data.cnpj || window.ultimaEmpresaCadastrada.cnpj_predio;
+    data.telefone_predio = data.telefone || window.ultimaEmpresaCadastrada.telefone_predio;
+    data.responsavel_predio = data.responsavel || window.ultimaEmpresaCadastrada.responsavel_predio;
+    data.cep_predio = data.cep || window.ultimaEmpresaCadastrada.cep_predio;
+    data.endereco_predio = data.endereco || window.ultimaEmpresaCadastrada.endereco_predio;
+    data.numero_predio = data.numero_predio || window.ultimaEmpresaCadastrada.numero_predio;
+  }
+
   currentInspectionData = data;
 
   // Build PDF selection options
@@ -1455,6 +1864,8 @@ document.getElementById('generateReportBtn').addEventListener('click', () => {
   openModal('pdfSelectionModal');
 });
 
+
+
 // Generate Selected PDF
 function generateSelectedPDF(type) {
   const data = currentInspectionData;
@@ -1493,6 +1904,7 @@ function generateSelectedPDF(type) {
 }
 
 // Finish Inspection
+// Finish Inspection
 document.getElementById('finishInspectionBtn').addEventListener('click', async () => {
   const button = document.getElementById('finishInspectionBtn');
   button.disabled = true;
@@ -1511,13 +1923,27 @@ document.getElementById('finishInspectionBtn').addEventListener('click', async (
       }
     }
 
+    // Prepara os dados da inspeção
     const inspectionData = {
       ...data,
       tecnico_id: currentUser.id,
       tecnico_nome: currentUser.nome,
       data: new Date().toISOString(),
-      completed: true
+      completed: true,
+      tipo: window.ultimaEmpresaCadastrada?.tipo || 'empresa'
     };
+
+    // Se for prédio, salva os campos com sufixo _predio
+    if (window.ultimaEmpresaCadastrada?.tipo === 'predio') {
+      // Copia os dados do formulário para os campos _predio
+      inspectionData.razao_social_predio = data.razao_social || window.ultimaEmpresaCadastrada.razao_social_predio;
+      inspectionData.cnpj_predio = data.cnpj || window.ultimaEmpresaCadastrada.cnpj_predio;
+      inspectionData.telefone_predio = data.telefone || window.ultimaEmpresaCadastrada.telefone_predio;
+      inspectionData.responsavel_predio = data.responsavel || window.ultimaEmpresaCadastrada.responsavel_predio;
+      inspectionData.cep_predio = data.cep || window.ultimaEmpresaCadastrada.cep_predio;
+      inspectionData.endereco_predio = data.endereco || window.ultimaEmpresaCadastrada.endereco_predio;
+      inspectionData.numero_predio = data.numero_predio || window.ultimaEmpresaCadastrada.numero_predio;
+    }
 
     await database.ref('inspections').push(inspectionData);
 
@@ -1526,6 +1952,9 @@ document.getElementById('finishInspectionBtn').addEventListener('click', async (
     closeModal('inspectionFormModal');
     form.reset();
     document.querySelectorAll('.conditional-section').forEach(sec => sec.classList.remove('visible'));
+
+    // Limpa os dados temporários
+    window.ultimaEmpresaCadastrada = null;
 
     setTimeout(() => {
       navigateToSection('inspections');
@@ -1546,6 +1975,11 @@ document.getElementById('finishInspectionBtn').addEventListener('click', async (
     button.innerHTML = '<i class="fas fa-check-circle"></i> Finalizar Inspeção';
   }
 });
+
+
+
+
+
 
 // Back to Form
 document.getElementById('backToFormBtn').addEventListener('click', () => {
@@ -1588,7 +2022,12 @@ document.getElementById('downloadPdfBtn').addEventListener('click', async () => 
       pdf.addImage(imgData, 'JPEG', 0, 0, imgWidth, imgHeight);
     }
 
-    const fileName = `Inspecao_${currentInspectionData.razao_social}_${new Date().toISOString().split('T')[0]}.pdf`;
+    // Usa o nome correto dependendo se é empresa ou prédio
+    const nomeCliente = currentInspectionData.tipo === 'predio'
+      ? (currentInspectionData.razao_social_predio || currentInspectionData.razao_social || 'Cliente')
+      : (currentInspectionData.razao_social || 'Cliente');
+
+    const fileName = `Inspecao_${nomeCliente.replace(/[^a-zA-Z0-9]/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`;
     pdf.save(fileName);
 
     showToast('PDF baixado com sucesso!');
@@ -1613,8 +2052,20 @@ document.getElementById('saveInspectionBtn').addEventListener('click', async () 
       tecnico_id: currentUser.id,
       tecnico_nome: currentUser.nome,
       data: new Date().toISOString(),
-      completed: false
+      completed: false,
+      tipo: window.ultimaEmpresaCadastrada?.tipo || currentInspectionData.tipo || 'empresa'
     };
+
+    // Se for prédio, garante que os campos _predio estão salvos
+    if (inspectionData.tipo === 'predio' && window.ultimaEmpresaCadastrada) {
+      inspectionData.razao_social_predio = currentInspectionData.razao_social || window.ultimaEmpresaCadastrada.razao_social_predio;
+      inspectionData.cnpj_predio = currentInspectionData.cnpj || window.ultimaEmpresaCadastrada.cnpj_predio;
+      inspectionData.telefone_predio = currentInspectionData.telefone || window.ultimaEmpresaCadastrada.telefone_predio;
+      inspectionData.responsavel_predio = currentInspectionData.responsavel || window.ultimaEmpresaCadastrada.responsavel_predio;
+      inspectionData.cep_predio = currentInspectionData.cep || window.ultimaEmpresaCadastrada.cep_predio;
+      inspectionData.endereco_predio = currentInspectionData.endereco || window.ultimaEmpresaCadastrada.endereco_predio;
+      inspectionData.numero_predio = currentInspectionData.numero_predio || window.ultimaEmpresaCadastrada.numero_predio;
+    }
 
     await database.ref('inspections').push(inspectionData);
 
@@ -1640,11 +2091,9 @@ document.getElementById('saveInspectionBtn').addEventListener('click', async () 
   }
 });
 
-// Load Inspections
 async function loadInspections() {
   const snapshot = await database.ref('inspections').once('value');
   const inspections = snapshot.val() || {};
-
   const list = document.getElementById('inspectionsList');
   list.innerHTML = '';
 
@@ -1683,13 +2132,34 @@ async function loadInspections() {
     if (insp.has_extintores) sistemas.push('Extintores');
     if (insp.has_sinalizacao) sistemas.push('Sinalização');
 
+    // Define o nome correto baseado no tipo
+    const isPredio = insp.tipo === 'predio';
+    const nomeCliente = isPredio
+      ? (insp.razao_social_predio || insp.razao_social || 'N/A')
+      : (insp.razao_social || 'N/A');
+    const cnpjCliente = isPredio
+      ? (insp.cnpj_predio || insp.cnpj || '-')
+      : (insp.cnpj || '-');
+    const enderecoCliente = isPredio
+      ? (insp.endereco_predio || insp.endereco || '-')
+      : (insp.endereco || '-');
+    const numeroCliente = isPredio
+      ? (insp.numero_predio || '-')
+      : (insp.numero_empresa || '-');
+    const telefoneCliente = isPredio
+      ? (insp.telefone_predio || insp.telefone || '-')
+      : (insp.telefone || '-');
+
     const item = document.createElement('div');
     item.className = 'list-item';
 
     item.innerHTML = `
       <div class="list-item-header">
         <div>
-          <div class="list-item-title">${insp.razao_social || 'N/A'}</div>
+          <div class="list-item-title">
+            ${isPredio ? '<i class="fas fa-building"></i>' : '<i class="fas fa-briefcase"></i>'} 
+            ${nomeCliente}
+          </div>
           <div class="list-item-subtitle">${new Date(insp.data).toLocaleDateString('pt-BR')}</div>
         </div>
         ${statusBadge}
@@ -1698,12 +2168,22 @@ async function loadInspections() {
       <div class="list-item-info">
         <div class="list-item-info-row">
           <span class="list-item-info-label">CNPJ:</span>
-          <span class="list-item-info-value">${insp.cnpj || '-'}</span>
+          <span class="list-item-info-value">${cnpjCliente}</span>
+        </div>
+
+        <div class="list-item-info-row">
+          <span class="list-item-info-label">Telefone:</span>
+          <span class="list-item-info-value">${telefoneCliente}</span>
+        </div>
+
+        <div class="list-item-info-row">
+          <span class="list-item-info-label">${isPredio ? 'Número do Prédio:' : 'Número da Empresa:'}</span>
+          <span class="list-item-info-value">${numeroCliente}</span>
         </div>
 
         <div class="list-item-info-row">
           <span class="list-item-info-label">Endereço:</span>
-          <span class="list-item-info-value">${insp.endereco || '-'}</span>
+          <span class="list-item-info-value">${enderecoCliente}</span>
         </div>
 
         <div class="list-item-info-row">
@@ -1733,6 +2213,12 @@ async function loadInspections() {
     list.appendChild(item);
   });
 }
+
+
+
+
+
+
 
 // Filter Inspections
 document.querySelectorAll('.filter-btn').forEach(btn => {
@@ -1780,7 +2266,11 @@ async function viewInspection(inspectionId) {
   const snapshot = await database.ref(`inspections/${inspectionId}`).once('value');
   const inspection = snapshot.val();
 
-  currentInspectionData = inspection;
+  // Garante que todos os dados estão presentes, incluindo tipo e campos _predio
+  currentInspectionData = {
+    ...inspection,
+    tipo: inspection.tipo || 'empresa'
+  };
 
   // Show PDF selection
   const grid = document.getElementById('pdfSelectionGrid');
@@ -1822,6 +2312,8 @@ async function viewInspection(inspectionId) {
 
   openModal('pdfSelectionModal');
 }
+
+
 
 // Show PDF Options for Inspection
 async function showPDFOptionsForInspection(inspectionId) {
@@ -1949,9 +2441,10 @@ document.getElementById('archiveMonthBtn')?.addEventListener('click', async () =
     const month = now.getMonth() + 1;
     const year = now.getFullYear();
 
-    const [inspectionsSnap, companiesSnap, ordersSnap] = await Promise.all([
+    const [inspectionsSnap, companiesSnap, ordersSnap, buildingsSnap] = await Promise.all([
       database.ref('inspections').once('value'),
       database.ref('companies').once('value'),
+      database.ref('buildings').once('value'),
       database.ref('orders').once('value')
     ]);
 
@@ -1964,6 +2457,7 @@ document.getElementById('archiveMonthBtn')?.addEventListener('click', async () =
       inspections: inspectionsSnap.val() || {},
       companies: companiesSnap.val() || {},
       orders: ordersSnap.val() || {}, // As ordens já eram salvas aqui
+      buildings: buildingsSnap.val() || {},
       logo: currentLogoUrl // Adicionado para garantir que a logo vá no backup
     };
 
@@ -1980,10 +2474,11 @@ document.getElementById('archiveMonthBtn')?.addEventListener('click', async () =
     await Promise.all([
       database.ref('inspections').set(null),
       database.ref('companies').set(null),
+      database.ref('buildings').set(null),
       database.ref('orders').set(null)
     ]);
 
-    showToast('Backup criado com sucesso! Dados arquivados ✅');
+    showToast('Backup criado com sucesso! Dados arquivados ');
     loadDashboard(); // Recarrega a tela para sumir o que foi zerado
   } catch (err) {
     console.error('Erro ao arquivar:', err);
@@ -2052,7 +2547,7 @@ document.getElementById('restoreFile').addEventListener('change', async (e) => {
         await database.ref().update(updates);
 
         showToast(`Sucesso! ${ordersCount} ordens de serviço restauradas.`);
-        
+
         // Atualizar interface
         loadDashboard();
         loadCompanies();
@@ -2086,6 +2581,8 @@ window.addEventListener('resize', () => {
     document.getElementById('sidebarDesktop').style.display = 'none';
   }
 });
+// ===== ORDENS DE SERVIÇO - Código Unificado e Corrigido =====
+
 // ===== ORDENS DE SERVIÇO - Código Unificado e Corrigido =====
 
 let allOrders = []; // cache local
@@ -2279,46 +2776,163 @@ function renderFilteredOrders() {
     const statusPagamento = os.payment_status || os.statusPagamento || 'Não Pago';
 
     // Extrai número da OS do ID (exemplo: "os-123" -> "123")
-    const numeroOS = os.osNumber || os.numero || (os.id ? os.id.replace(/\D/g, '') : (index + 1));
+    const ano = new Date().getFullYear();
+    const numeroOS = ` ${index + 1} - ${ano}`;
+
+    // Adiciona divisor com número da OS
+    const separator = document.createElement('div');
+    separator.style.cssText = `
+  display: flex;
+  align-items: center;
+  margin: 50px 0;
+  position: relative;
+`;
+
+    separator.innerHTML = `
+ <!-- Linha esquerda -->
+<div style="
+  flex: 1;
+  height: 2px;
+  background: linear-gradient(to right, transparent, #D4C29A);
+  box-shadow: 0 0 6px rgba(212, 194, 154, 0.35);
+"></div>
+
+<!-- Badge central -->
+<div style="
+  position: relative;
+  background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
+  border-radius: 40px;
+  padding: 14px 36px;
+  margin: 0 20px;
+  box-shadow: 
+    0 6px 24px rgba(0, 0, 0, 0.55),
+    inset 0 2px 4px rgba(255, 255, 255, 0.08),
+    0 0 0 1px rgba(212, 194, 154, 0.25);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  overflow: hidden;
+">
+
+  <!-- Ícone -->
+  <div style="
+    position: relative;
+    z-index: 2;
+    background: linear-gradient(135deg, #D4C29A 0%, #B8A47E 100%);
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 
+      0 3px 10px rgba(212, 194, 154, 0.35),
+      inset 0 2px 4px rgba(255, 255, 255, 0.25);
+  ">
+    <i class="fas fa-file-invoice" style="
+      color: #0d0d0d;
+      font-size: 18px;
+    "></i>
+  </div>
+
+  <!-- Texto -->
+  <div style="position: relative; z-index: 2;">
+    <div style="
+      color: #D4C29A;
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1.6px;
+      opacity: 0.7;
+      margin-bottom: 1px;
+    ">Ordem de Serviço</div>
+
+    <div style="
+      color: #fff;
+      font-size: 20px;
+      font-weight: 900;
+      letter-spacing: 0.8px;
+      text-shadow: 0 2px 6px rgba(0, 0, 0, 0.45);
+    ">#${numeroOS}</div>
+  </div>
+
+  <!-- Decoração -->
+  <div style="
+    position: absolute;
+    right: 18px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 32px;
+    height: 32px;
+    border: 2px solid rgba(212, 194, 154, 0.18);
+    border-radius: 50%;
+    z-index: 1;
+  "></div>
+
+  <div style="
+    position: absolute;
+    right: 26px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 18px;
+    height: 18px;
+    border: 2px solid rgba(212, 194, 154, 0.12);
+    border-radius: 50%;
+    z-index: 1;
+  "></div>
+</div>
+
+<!-- Linha direita -->
+<div style="
+  flex: 1;
+  height: 2px;
+  background: linear-gradient(to left, transparent, #D4C29A);
+  box-shadow: 0 0 6px rgba(212, 194, 154, 0.35);
+"></div>
+
+`;
+
+    list.appendChild(separator);
+
 
     let produtosListaHTML = '';
     if (produtos.length > 0) {
       produtosListaHTML = produtos.map(p => `
-        <div style="
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          padding: 8px 12px;
-          background: #1a1a1a;
-          border: 1px solid #333;
-          margin-bottom: 6px;
-          border-radius: 6px;
-          transition: all 0.3s;
-        ">
-          <span style="
-            color: #fff;
-            flex: 1;
-            margin-right: 10px;
-            font-size: 13px;
-            font-weight: 500;
-          ">
-            <i class="fas fa-box" style="margin-right: 8px; color: #D4C29A; font-size: 11px;"></i>
-            ${escapeHtml(p.name || 'Produto')}
-          </span>
-          <span style="
-            color: #D4C29A;
-            font-weight: 700;
-            background: #0d0d0d;
-            padding: 4px 10px;
-            border-radius: 5px;
-            white-space: nowrap;
-            font-size: 12px;
-            border: 1px solid #D4C29A;
-          ">
-            ${p.qty}x
-          </span>
-        </div>
-      `).join('');
+    <div style="
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 12px;
+      background: #1a1a1a;
+      border: 1px solid #333;
+      margin-bottom: 6px;
+      border-radius: 6px;
+      transition: all 0.3s;
+    ">
+      <span style="
+        color: #fff;
+        flex: 1;
+        margin-right: 10px;
+        font-size: 13px;
+        font-weight: 500;
+      ">
+        <i class="fas fa-box" style="margin-right: 8px; color: #D4C29A; font-size: 11px;"></i>
+        ${escapeHtml(p.name || 'Produto')}
+      </span>
+      <span style="
+        color: #D4C29A;
+        font-weight: 700;
+        background: #0d0d0d;
+        padding: 4px 10px;
+        border-radius: 5px;
+        white-space: nowrap;
+        font-size: 12px;
+        border: 1px solid #D4C29A;
+      ">
+        ${p.qty}x
+      </span>
+    </div>
+  `).join('');
     }
 
     const div = document.createElement('div');
@@ -2429,334 +3043,352 @@ function renderFilteredOrders() {
       </div>
     </div>
 
-   <div style="
-      background: #1a1a1a;
-      border: 1px solid #333;
-      border-radius: 6px;
-      padding: 10px;
-      margin-bottom: 12px;
+    <!-- SEÇÃO DE DETALHES RECOLHÍVEL -->
+    <div id="os-details-${os.id}" class="os-details-collapsed" style="
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease;
     ">
-  <div style="
-        font-size: 10px;
-        color: #888;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        margin-bottom: 6px;
-        display: flex;
-        align-items: center;
-        gap: 5px;
-      ">
-    <i class="fas fa-map-marker-alt" style="color: #D4C29A;"></i>
-    Endereço e CEP
-  </div>
-  
-  <div style="
-        font-size: 13px;
-        color: #fff;
-        font-weight: 500;
-        margin-bottom: 4px;
-      ">
-    ${escapeHtml(os.endereco || '-')}
-  </div>
-
-  <div style="
-        font-size: 12px; 
-        color: #aaa; /* Um cinza levemente mais claro para diferenciar do endereço */
-        font-weight: 400;
-      ">
-    CEP: ${escapeHtml(os.cep || '-')}
-  </div>
-</div>
-
-    <div style="
-      background: #1a1a1a;
-      border: 1px solid #333;
-      border-radius: 6px;
-      padding: 10px;
-      margin-bottom: 12px;
-    ">
-      <!-- Status de Pagamento -->
-      <div style="
-        font-size: 10px;
-        color: #888;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        margin-bottom: 5px;
-        display: flex;
-        align-items: center;
-        gap: 5px;
-      ">
-        <i class="fas fa-circle-check" style="color: ${statusPagamento === 'Pago' ? '#28a745' : '#dc3545'};"></i>
-        Status de Pagamento
-      </div>
-      <div style="
-        font-size: 13px;
-        color: ${statusPagamento === 'Pago' ? '#28a745' : '#dc3545'};
-        font-weight: 700;
-        margin-bottom: 10px;
-        display: flex;
-        align-items: center;
-        gap: 6px;
-      ">
-        <i class="fas fa-${statusPagamento === 'Pago' ? 'check-circle' : 'times-circle'}"></i>
-        ${escapeHtml(statusPagamento)}
-      </div>
-
-      <!-- Forma de Pagamento -->
-      <div style="
-        font-size: 10px;
-        color: #888;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        margin-bottom: 5px;
-        padding-top: 10px;
-        border-top: 1px solid #333;
-        display: flex;
-        align-items: center;
-        gap: 5px;
-      ">
-        <i class="fas fa-credit-card" style="color: #D4C29A;"></i>
-        Forma de Pagamento
-      </div>
-      <div style="
-        font-size: 13px;
-        color: #fff;
-        font-weight: 600;
-      ">
-        ${escapeHtml(formaPagamento)}
-      </div>
-    </div>
-
-    <div style="
-      background: linear-gradient(135deg, #1a1a1a 0%, #0d0d0d 100%);
-      border: 2px solid #D4C29A;
-      border-radius: 8px;
-      padding: 12px 16px;
-      margin: 12px 0;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      box-shadow: 0 4px 12px rgba(212, 194, 154, 0.15);
-    ">
-      <span style="
-        color: #D4C29A;
-        font-size: 11px;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-      ">
-        <i class="fas fa-dollar-sign" style="margin-right: 6px;"></i>
-        Valor Total
-      </span>
-      <span style="
-        color: #D4C29A;
-        font-size: 20px;
-        font-weight: 800;
-        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-      ">
-        ${precoFmt}
-      </span>
-    </div>
-
-    ${produtosListaHTML ? `
-      <div style="margin-top: 12px; margin-bottom: 12px;">
+      <div style="padding-top: 14px;">
+        
         <div style="
-          color: #D4C29A;
-          font-size: 11px;
-          font-weight: 700;
-          margin-bottom: 10px;
-          text-transform: uppercase;
-          letter-spacing: 0.5px;
-          padding-bottom: 6px;
-          border-bottom: 2px solid #D4C29A;
+          background: #1a1a1a;
+          border: 1px solid #333;
+          border-radius: 6px;
+          padding: 10px;
+          margin-bottom: 12px;
         ">
-          <i class="fas fa-boxes" style="margin-right: 6px; font-size: 10px;"></i>
-          Produtos Utilizados (${qtdProdutos} un.)
+          <div style="
+            font-size: 10px;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+          ">
+            <i class="fas fa-map-marker-alt" style="color: #D4C29A;"></i>
+            Endereço e CEP
+          </div>
+          
+          <div style="
+            font-size: 13px;
+            color: #fff;
+            font-weight: 500;
+            margin-bottom: 4px;
+          ">
+            ${escapeHtml(os.endereco || '-')}
+          </div>
+
+          <div style="
+            font-size: 12px; 
+            color: #aaa;
+            font-weight: 400;
+          ">
+            CEP: ${escapeHtml(os.cep || '-')}
+          </div>
         </div>
-        <div style="max-height: 200px; overflow-y: auto;">
-          ${produtosListaHTML}
-        </div>
-      </div>
-    ` : `
-      <div style="
-        margin: 12px 0;
-        padding: 12px;
-        background: #1a1a1a;
-        border: 2px dashed #333;
-        border-radius: 6px;
-        color: #888;
-        font-size: 12px;
-        text-align: center;
-      ">
-        <i class="fas fa-inbox" style="margin-right: 6px; font-size: 14px; color: #D4C29A;"></i>
-        Nenhum produto cadastrado
-      </div>
-    `}
 
-    <div style="margin-top: 10px;">
-      <span style="
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        background: linear-gradient(135deg, #1a1a1a 0%, #0d0d0d 100%);
-        border: 1px solid #16a34a;
-        border-radius: 6px;
-        padding: 8px 12px;
-        font-size: 12px;
-        color: #16a34a;
-        font-weight: 700;
-      ">
-        <i class="fas fa-chart-line"></i>
-        ${Number(os.profitPercent || 0)}% lucro
-      </span>
-    </div>
-
-  </div>
-
- <div style="
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  padding: 12px;
-  background: #000;
-  border-top: 2px solid #D4C29A;
-">
-  <!-- Ver - Azul -->
-  <button class="btn-small" onclick="viewOrder('${os.id}')" style="
-    flex: 1 1 calc(50% - 4px); 
-    font-size: 12px; 
-    padding: 10px 12px;
-    border-radius: 8px;
-    font-weight: 600;
-    background: #1a1a1a;
-    color: #3b82f6;
-    border: 2px solid #3b82f6;
-    cursor: pointer;
-    transition: all 0.3s;
-  ">
-    <i class="fas fa-eye"></i> <span>Ver</span>
-  </button>
-  
-  <!-- Pagamento - Verde -->
-  <button class="btn-small" onclick="abrirModalPagamento('${os.id}')" style="
-    flex: 1 1 calc(50% - 4px); 
-    font-size: 12px; 
-    padding: 10px 12px;
-    border-radius: 8px;
-    font-weight: 600;
-    background: #1a1a1a;
-    color: #10b981;
-    border: 2px solid #10b981;
-    cursor: pointer;
-    transition: all 0.3s;
-  ">
-    <i class="fas fa-credit-card"></i> <span>Pagamento</span>
-  </button>
-  
-  <!-- PDF - Rosa/Vermelho -->
-  <button class="btn-small" onclick="gerarPDFOrdem('${os.id}')" style="
-    flex: 1 1 calc(50% - 4px); 
-    font-size: 12px; 
-    padding: 10px 12px;
-    border-radius: 8px;
-    font-weight: 600;
-    background: #1a1a1a;
-    color: #f43f5e;
-    border: 2px solid #f43f5e;
-    cursor: pointer;
-    transition: all 0.3s;
-  ">
-    <i class="fas fa-file-pdf"></i> <span>PDF</span>
-  </button>
-  
-  <!-- Editar - Dourado -->
-  <button class="btn-small" onclick="editarOS('${os.id}')" style="
-    flex: 1 1 calc(50% - 4px); 
-    font-size: 12px; 
-    padding: 10px 12px;
-    border-radius: 8px;
-    font-weight: 600;
-    background: #1a1a1a;
-    color: #D4C29A;
-    border: 2px solid #D4C29A;
-    cursor: pointer;
-    transition: all 0.3s;
-  ">
-    <i class="fas fa-edit"></i> <span>Editar</span>
-  </button>
-  
-  ${finalizarBtn}
-  
-  <!-- Excluir - Vermelho -->
-  <button class="btn-small" onclick="excluirOS('${os.id}')" style="
-    flex: 1 1 calc(50% - 4px); 
-    font-size: 12px; 
-    padding: 10px 12px;
-    border-radius: 8px;
-    font-weight: 600;
-    background: #1a1a1a;
-    color: #dc2626;
-    border: 2px solid #dc2626;
-    cursor: pointer;
-    transition: all 0.3s;
-  ">
-    <i class="fas fa-trash"></i> <span>Excluir</span>
-  </button>
-</div>
-`;
-
-    list.appendChild(div);
-
-    // Adiciona divisor com número da OS (exceto após o último card)
-    if (index < filtered.length - 1) {
-      const separator = document.createElement('div');
-      separator.style.cssText = `
-        display: flex;
-        align-items: center;
-        margin: 28px 0;
-        position: relative;
-      `;
-
-      separator.innerHTML = `
         <div style="
-          flex: 1;
-          height: 2px;
-          background: linear-gradient(to right, transparent, #D4C29A, transparent);
-          box-shadow: 0 0 8px rgba(212, 194, 154, 0.5);
-        "></div>
+          background: #1a1a1a;
+          border: 1px solid #333;
+          border-radius: 6px;
+          padding: 10px;
+          margin-bottom: 12px;
+        ">
+          <div style="
+            font-size: 10px;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+          ">
+            <i class="fas fa-circle-check" style="color: ${statusPagamento === 'Pago' ? '#28a745' : '#dc3545'};"></i>
+            Status de Pagamento
+          </div>
+          <div style="
+            font-size: 13px;
+            color: ${statusPagamento === 'Pago' ? '#28a745' : '#dc3545'};
+            font-weight: 700;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+          ">
+            <i class="fas fa-${statusPagamento === 'Pago' ? 'check-circle' : 'times-circle'}"></i>
+            ${escapeHtml(statusPagamento)}
+          </div>
+
+          <div style="
+            font-size: 10px;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 5px;
+            padding-top: 10px;
+            border-top: 1px solid #333;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+          ">
+            <i class="fas fa-credit-card" style="color: #D4C29A;"></i>
+            Forma de Pagamento
+          </div>
+          <div style="
+            font-size: 13px;
+            color: #fff;
+            font-weight: 600;
+          ">
+            ${escapeHtml(formaPagamento)}
+          </div>
+        </div>
+
         <div style="
           background: linear-gradient(135deg, #1a1a1a 0%, #0d0d0d 100%);
           border: 2px solid #D4C29A;
-          border-radius: 20px;
-          padding: 8px 20px;
-          margin: 0 16px;
-          box-shadow: 0 4px 12px rgba(212, 194, 154, 0.3);
+          border-radius: 8px;
+          padding: 12px 16px;
+          margin: 12px 0;
           display: flex;
+          justify-content: space-between;
           align-items: center;
-          gap: 8px;
+          box-shadow: 0 4px 12px rgba(212, 194, 154, 0.15);
         ">
-          <i class="fas fa-file-alt" style="color: #D4C29A; font-size: 12px;"></i>
           <span style="
             color: #D4C29A;
-            font-size: 13px;
+            font-size: 11px;
             font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 0.8px;
-          ">OS #${numeroOS}</span>
+            letter-spacing: 0.5px;
+          ">
+            <i class="fas fa-dollar-sign" style="margin-right: 6px;"></i>
+            Valor Total
+          </span>
+          <span style="
+            color: #D4C29A;
+            font-size: 20px;
+            font-weight: 800;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+          ">
+            ${precoFmt}
+          </span>
         </div>
-        <div style="
-          flex: 1;
-          height: 2px;
-          background: linear-gradient(to right, #D4C29A, transparent);
-          box-shadow: 0 0 8px rgba(212, 194, 154, 0.5);
-        "></div>
-      `;
 
-      list.appendChild(separator);
-    }
-  });
+        ${produtosListaHTML ? `
+          <div style="margin-top: 12px; margin-bottom: 12px;">
+            <div style="
+              color: #D4C29A;
+              font-size: 11px;
+              font-weight: 700;
+              margin-bottom: 10px;
+              text-transform: uppercase;
+              letter-spacing: 0.5px;
+              padding-bottom: 6px;
+              border-bottom: 2px solid #D4C29A;
+            ">
+              <i class="fas fa-boxes" style="margin-right: 6px; font-size: 10px;"></i>
+              Produtos Utilizados (${qtdProdutos} un.)
+            </div>
+            <div style="max-height: 200px; overflow-y: auto;">
+              ${produtosListaHTML}
+            </div>
+          </div>
+        ` : `
+          <div style="
+            margin: 12px 0;
+            padding: 12px;
+            background: #1a1a1a;
+            border: 2px dashed #333;
+            border-radius: 6px;
+            color: #888;
+            font-size: 12px;
+            text-align: center;
+          ">
+            <i class="fas fa-inbox" style="margin-right: 6px; font-size: 14px; color: #D4C29A;"></i>
+            Nenhum produto cadastrado
+          </div>
+        `}
+
+        <div style="margin-top: 10px;">
+          <span style="
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: linear-gradient(135deg, #1a1a1a 0%, #0d0d0d 100%);
+            border: 1px solid #16a34a;
+            border-radius: 6px;
+            padding: 8px 12px;
+            font-size: 12px;
+            color: #16a34a;
+            font-weight: 700;
+          ">
+            <i class="fas fa-chart-line"></i>
+            ${Number(os.profitPercent || 0)}% lucro
+          </span>
+        </div>
+
+      </div>
+    </div>
+    <!-- FIM DA SEÇÃO RECOLHÍVEL -->
+
+    <!-- BOTÃO TOGGLE DETALHES -->
+    <button class="btn-toggle-details" onclick="toggleOSDetails('${os.id}')" style="
+      margin-top: 12px;
+      width: 100%;
+      background: #2a2a2a;
+      border: 2px solid #D4C29A;
+      color: #D4C29A;
+      padding: 10px;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-weight: 600;
+      font-size: 13px;
+      transition: all 0.3s;
+    " onmouseover="this.style.background='#3a3a3a'" onmouseout="this.style.background='#2a2a2a'">
+      <span>Ver Detalhes</span>
+      <i class="fas fa-chevron-down" id="toggle-icon-${os.id}" style="
+        font-size: 12px;
+        transition: transform 0.3s;
+      "></i>
+    </button>
+
+  </div>
+
+  <div style="
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 12px;
+    background: #000;
+    border-top: 2px solid #D4C29A;
+  ">
+    <button class="btn-small" onclick="viewOrder('${os.id}')" style="
+      flex: 1 1 calc(50% - 4px); 
+      font-size: 12px; 
+      padding: 10px 12px;
+      border-radius: 8px;
+      font-weight: 600;
+      background: #1a1a1a;
+      color: #3b82f6;
+      border: 2px solid #3b82f6;
+      cursor: pointer;
+      transition: all 0.3s;
+    " onmouseover="this.style.background='#3b82f6';this.style.color='#fff'" onmouseout="this.style.background='#1a1a1a';this.style.color='#3b82f6'">
+      <i class="fas fa-eye"></i> <span>Ver</span>
+    </button>
+    
+    <button class="btn-small" onclick="abrirModalPagamento('${os.id}')" style="
+      flex: 1 1 calc(50% - 4px); 
+      font-size: 12px; 
+      padding: 10px 12px;
+      border-radius: 8px;
+      font-weight: 600;
+      background: #1a1a1a;
+      color: #10b981;
+      border: 2px solid #10b981;
+      cursor: pointer;
+      transition: all 0.3s;
+    " onmouseover="this.style.background='#10b981';this.style.color='#fff'" onmouseout="this.style.background='#1a1a1a';this.style.color='#10b981'">
+      <i class="fas fa-credit-card"></i> <span>Pagamento</span>
+    </button>
+    
+    <button class="btn-small" onclick="gerarPDFOrdem('${os.id}')" style="
+      flex: 1 1 calc(50% - 4px); 
+      font-size: 12px; 
+      padding: 10px 12px;
+      border-radius: 8px;
+      font-weight: 600;
+      background: #1a1a1a;
+      color: #f43f5e;
+      border: 2px solid #f43f5e;
+      cursor: pointer;
+      transition: all 0.3s;
+    " onmouseover="this.style.background='#f43f5e';this.style.color='#fff'" onmouseout="this.style.background='#1a1a1a';this.style.color='#f43f5e'">
+      <i class="fas fa-file-pdf"></i> <span>PDF</span>
+    </button>
+    
+    <button class="btn-small" onclick="editarOS('${os.id}')" style="
+      flex: 1 1 calc(50% - 4px); 
+      font-size: 12px; 
+      padding: 10px 12px;
+      border-radius: 8px;
+      font-weight: 600;
+      background: #1a1a1a;
+      color: #D4C29A;
+      border: 2px solid #D4C29A;
+      cursor: pointer;
+      transition: all 0.3s;
+    " onmouseover="this.style.background='#D4C29A';this.style.color='#0d0d0d'" onmouseout="this.style.background='#1a1a1a';this.style.color='#D4C29A'">
+      <i class="fas fa-edit"></i> <span>Editar</span>
+    </button>
+    
+    ${finalizarBtn}
+    
+    <button class="btn-small" onclick="excluirOS('${os.id}')" style="
+      flex: 1 1 calc(50% - 4px); 
+      font-size: 12px; 
+      padding: 10px 12px;
+      border-radius: 8px;
+      font-weight: 600;
+      background: #1a1a1a;
+      color: #dc2626;
+      border: 2px solid #dc2626;
+      cursor: pointer;
+      transition: all 0.3s;
+    " onmouseover="this.style.background='#dc2626';this.style.color='#fff'" onmouseout="this.style.background='#1a1a1a';this.style.color='#dc2626'">
+      <i class="fas fa-trash"></i> <span>Excluir</span>
+    </button>
+  </div>
+`;
+
+
+    list.appendChild(div);
+
+  }
+  );
 }
 
+
+
+// Cache para melhor performance
+const toggleCache = new Map();
+
+// FUNÇÃO GLOBAL DO TOGGLE
+window.toggleOSDetails = function (osId) {
+  const detailsDiv = document.getElementById(`os-details-${osId}`);
+  const icon = document.getElementById(`toggle-icon-${osId}`);
+
+  if (!detailsDiv || !icon) return;
+
+  const isCollapsed = detailsDiv.classList.contains('os-details-collapsed');
+
+  if (isCollapsed) {
+    // Abrir detalhes
+    if (!toggleCache.has(osId)) {
+      toggleCache.set(osId, detailsDiv.scrollHeight);
+    }
+    detailsDiv.style.maxHeight = toggleCache.get(osId) + 'px';
+    detailsDiv.classList.remove('os-details-collapsed');
+    icon.style.transform = 'rotate(180deg)';
+  } else {
+    // Fechar detalhes
+    detailsDiv.style.maxHeight = '0';
+    detailsDiv.classList.add('os-details-collapsed');
+    icon.style.transform = 'rotate(0deg)';
+  }
+}
+
+window.clearToggleCache = function () {
+  toggleCache.clear();
+}
 
 
 // ============================= 
@@ -3059,13 +3691,9 @@ async function salvarFormaPagamento(orderId) {
 }
 
 
-
 // ============================= 
 // FUNÇÃO GERAR PDF COM JSPDF
 // ============================= 
-
-
-
 
 async function gerarPDFOrdem(orderId) {
 
@@ -3235,7 +3863,7 @@ async function gerarPDFOrdem(orderId) {
     } else {
       doc.text('____________________', 153, yPos + 19);
     }
-   // Email - campo para preencher
+    // Email - campo para preencher
     doc.setFont('helvetica', 'bold');
     doc.text('E-mail:', 130, yPos + 25);
     doc.setFont('helvetica', 'normal');
@@ -3250,9 +3878,9 @@ async function gerarPDFOrdem(orderId) {
     doc.setFont('helvetica', 'bold');
     doc.text('Endereço:', 20, yPos + 25);
     doc.setFont('helvetica', 'normal');
-    
+
     const enderecoText = ordem.endereco || '-';
-    const enderecoLines = doc.splitTextToSize(enderecoText, 85); 
+    const enderecoLines = doc.splitTextToSize(enderecoText, 85);
     doc.text(enderecoLines, 42, yPos + 25);
 
     // Calcula espaço extra se o endereço quebrar linha (cada linha extra soma aprox. 3.5mm)
@@ -3510,7 +4138,7 @@ async function gerarPDFOrdem(orderId) {
 
     doc.setDrawColor(220, 220, 220);
     doc.setLineWidth(0.3);
-    doc.roundedRect(15, yPos, 180, 30, 2, 2);
+    doc.roundedRect(15, yPos, 180, 38, 2, 2);
 
     doc.setFillColor(245, 245, 245);
     doc.roundedRect(15, yPos, 180, 7, 2, 2, 'F');
@@ -3523,21 +4151,37 @@ async function gerarPDFOrdem(orderId) {
     // Campo Técnico
     doc.setDrawColor(150, 150, 150);
     doc.setLineWidth(0.4);
-    doc.line(25, yPos + 21, 95, yPos + 21);
+    doc.line(25, yPos + 18, 95, yPos + 18);
 
     doc.setTextColor(60, 60, 60);
     doc.setFontSize(8.5);
     doc.setFont('helvetica', 'bold');
-    doc.text('Técnico Responsável', 60, yPos + 25, { align: 'center' });
+    doc.text('Técnico Responsável', 60, yPos + 22, { align: 'center' });
+
+    // Dados do Técnico
+    doc.setFontSize(7);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(90, 90, 90);
+    doc.text(`Nome: ${ordem.tecnico || '_____________________'}`, 25, yPos + 27);
+    doc.text('Tel: (15) 99137-1232', 25, yPos + 31);
+    doc.text('Email: extinmaiss@outlook.com', 25, yPos + 35);
 
     // Campo Cliente
     doc.setDrawColor(150, 150, 150);
-    doc.line(115, yPos + 21, 185, yPos + 21);
+    doc.line(115, yPos + 18, 185, yPos + 18);
 
     doc.setTextColor(60, 60, 60);
     doc.setFontSize(8.5);
     doc.setFont('helvetica', 'bold');
-    doc.text('Cliente', 150, yPos + 25, { align: 'center' });
+    doc.text('Cliente', 150, yPos + 22, { align: 'center' });
+
+    // Dados do Cliente
+    doc.setFontSize(7);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(90, 90, 90);
+    doc.text(`Nome: ${ordem.cliente || '_____________________'}`, 115, yPos + 27);
+    doc.text(`CPF/CNPJ: ${ordem.cnpj || '_____________________'}`, 115, yPos + 31);
+    doc.text(`End: ${ordem.endereco ? ordem.endereco.substring(0, 35) : '_____________________'}`, 115, yPos + 35);
 
     // =============================
     // RODAPÉ
@@ -3580,7 +4224,6 @@ async function gerarPDFOrdem(orderId) {
   }
 }
 
-
 // ============================= 
 // FUNÇÃO EDITAR OS
 // ============================= 
@@ -3619,6 +4262,7 @@ async function editarOS(orderId) {
     showToast('Erro ao carregar OS', 'error');
   }
 }
+
 async function salvarEdicaoOS() {
   if (!editingOSId) return;
 
@@ -3650,10 +4294,10 @@ async function salvarEdicaoOS() {
     showToast('Erro ao salvar edição', 'error');
   }
 }
+
 function closeEditOSModal() {
   document.getElementById('editOSModal').style.display = 'none';
 }
-
 
 // ============================= 
 // FUNÇÃO EXCLUIR OS
@@ -3806,6 +4450,9 @@ if (!document.getElementById('modalAnimations')) {
 
 
 // Finalizar OS
+
+
+
 async function finalizarOS(orderId) {
   if (!confirm('Deseja finalizar esta Ordem de Serviço?')) return;
   try {
@@ -3821,6 +4468,7 @@ async function finalizarOS(orderId) {
   }
 }
 
+
 // Criar nova OS (handler seguro)
 document.getElementById('orderForm')?.addEventListener('submit', async (e) => {
   e.preventDefault();
@@ -3828,7 +4476,40 @@ document.getElementById('orderForm')?.addEventListener('submit', async (e) => {
   const form = e.target;
 
   try {
-    const raw = Object.fromEntries(new FormData(form).entries());
+    // Pegar o tipo do cliente (empresa ou prédio)
+    const clienteTipo = document.getElementById('clienteTipoHidden').value;
+    const clienteNome = document.getElementById('clienteNomeHidden').value;
+    const clienteSelect = document.getElementById('clienteSelect');
+
+    // Pegar CNPJ (sempre visível)
+    const cnpj = document.getElementById('cnpjInput').value;
+
+    // Pegar dados específicos dependendo do tipo
+    let telefone, email, responsavel, cep, endereco, numeroPredio, numeroEmpresa;
+
+    if (clienteTipo === 'predio') {
+      // Dados do prédio
+      telefone = document.getElementById('telefonePredioInput')?.value || '';
+      email = document.getElementById('emailPredioInput')?.value || '';
+      responsavel = document.getElementById('responsavelPredioInput')?.value || '';
+      cep = document.getElementById('cepPredioInput')?.value || '';
+      endereco = document.getElementById('enderecoPredioInput')?.value || '';
+      numeroPredio = document.getElementById('numeroPredioInput')?.value || '';
+      numeroEmpresa = '';
+    } else {
+      // Dados da empresa
+      telefone = document.getElementById('telefoneEmpresaInput')?.value || '';
+      email = document.getElementById('emailEmpresaInput')?.value || '';
+      responsavel = document.getElementById('responsavelEmpresaInput')?.value || '';
+      cep = document.getElementById('cepEmpresaInput')?.value || '';
+      endereco = document.getElementById('enderecoEmpresaInput')?.value || '';
+      numeroEmpresa = document.getElementById('numeroEmpresaInput')?.value || '';
+      numeroPredio = '';
+    }
+
+    const servico = document.getElementById('servico').value;
+    const tecnico = document.getElementById('tecnicoInput').value;
+    const status = form.querySelector('[name="status"]').value;
 
     /* ============================= */
     /* CALCULAR PRODUTOS + LUCRO */
@@ -3849,27 +4530,35 @@ document.getElementById('orderForm')?.addEventListener('submit', async (e) => {
     /* MONTAR OBJETO DA OS */
     /* ============================= */
 
-   const data = {
-      cliente: raw.cliente || '',
-      cnpj: raw.cnpj || '',
-      endereco: raw.endereco || '',
-      cep: raw.cep || '', // 🔥 ADICIONE ESTA LINHA PARA SALVAR O CEP
-      servico: raw.servico || '',
-      tecnico: currentUser?.nome || 'Técnico',
+    const data = {
+      cliente: clienteNome,
+      clienteId: clienteSelect.value,
+      clienteTipo: clienteTipo,
+      cnpj: cnpj,
+      telefone: telefone,
+      email: email,
+      responsavel: responsavel,
+      cep: cep,
+      endereco: endereco,
+      numeroPredio: numeroPredio,
+      numeroEmpresa: numeroEmpresa,
+      servico: servico,
+      tecnico: tecnico,
 
-      // 🔥 PREÇO FINAL DA OS
-      preco: totalFinal,       // compatibilidade
-      total: totalFinal,       // novo padrão
+      // PREÇO FINAL DA OS
+      preco: totalFinal,
+      total: totalFinal,
 
-      // 🔥 PRODUTOS
+      // PRODUTOS
       products: osSelectedProducts,
       subtotal: subtotal,
       profitPercent: profitPercent,
       profitValue: profitValue,
 
-      status: raw.status || 'Pendente',
+      status: status,
       data: new Date().toISOString()
     };
+
 
     /* ============================= */
     /* SALVAR NO FIREBASE */
@@ -3885,6 +4574,12 @@ document.getElementById('orderForm')?.addEventListener('submit', async (e) => {
     osSelectedProducts = [];
     renderOSProducts();
 
+    // Esconder campos de empresa e prédio
+    const camposEmpresa = document.getElementById('camposEmpresa');
+    const camposPredio = document.getElementById('camposPredio');
+    if (camposEmpresa) camposEmpresa.style.display = 'none';
+    if (camposPredio) camposPredio.style.display = 'none';
+
     closeModal('orderModal');
     showToast('Ordem de Serviço criada!');
     loadOrders();
@@ -3894,6 +4589,11 @@ document.getElementById('orderForm')?.addEventListener('submit', async (e) => {
     showToast('Erro ao criar OS', 'error');
   }
 });
+
+
+
+
+
 
 
 // Busca em tempo real (se existir campo)
@@ -3927,6 +4627,7 @@ window.addEventListener('load', () => {
     loadOrders();
   }, 100);
 });
+
 async function viewOrder(orderId) {
   try {
     const snapshot = await database.ref(`orders/${orderId}`).once('value');
@@ -4062,20 +4763,38 @@ function openModal(id) {
 
   if (id === 'orderModal') {
     setTimeout(preencherTecnicoOS, 100);
+    loadClientsForOS(); // Carregar empresas para o select
   }
 }
+// ---------- Helper: preenche campos da nova inspeção -----------
 // ---------- Helper: preenche campos da nova inspeção -----------
 function preencherDadosInspecaoFromObj(obj) {
   if (!obj) return;
 
-  // campos com id (se você já aplicou os ids)
+  const isPredio = obj.tipo === 'predio';
+
+  // Mapeia os dados independente da origem (empresa ou prédio)
+  const dadosNormalizados = {
+    razao_social: isPredio ? (obj.razao_social_predio || obj.razao_social || '') : (obj.razao_social || ''),
+    cnpj: isPredio ? (obj.cnpj_predio || obj.cnpj || '') : (obj.cnpj || ''),
+    telefone: isPredio ? (obj.telefone_predio || obj.telefone || '') : (obj.telefone || ''),
+    responsavel: isPredio ? (obj.responsavel_predio || obj.responsavel || '') : (obj.responsavel || ''),
+    cep: isPredio ? (obj.cep_predio || obj.cep || '') : (obj.cep || ''),
+    endereco: isPredio ? (obj.endereco_predio || obj.endereco || '') : (obj.endereco || ''),
+    numero_predio: isPredio ? (obj.numero_predio || '') : (obj.numero_predio || ''),
+    numero_empresa: !isPredio ? (obj.numero_empresa || '') : ''
+  };
+
+  // Preenche os campos do formulário com os dados normalizados
   const mapById = {
-    'inspecaoRazao': obj.razao_social || obj.razao || '',
-    'inspecaoCnpj': obj.cnpj || '',
-    'inspecaoTelefone': obj.telefone || '',
-    'inspecaoResponsavel': obj.responsavel || '',
-    'inspecaoCep': obj.cep || '', // Adicionado aqui
-    'inspecaoEndereco': obj.endereco || ''
+    'inspecaoRazao': dadosNormalizados.razao_social,
+    'inspecaoCnpj': dadosNormalizados.cnpj,
+    'inspecaoTelefone': dadosNormalizados.telefone,
+    'inspecaoResponsavel': dadosNormalizados.responsavel,
+    'inspecaoCep': dadosNormalizados.cep,
+    'inspecaoEndereco': dadosNormalizados.endereco,
+    'inspecaoNumeroPredio': dadosNormalizados.numero_predio,
+    'inspecaoNumeroEmpresa': dadosNormalizados.numero_empresa
   };
 
   Object.entries(mapById).forEach(([id, val]) => {
@@ -4083,17 +4802,9 @@ function preencherDadosInspecaoFromObj(obj) {
     if (el) el.value = val;
   });
 
-  // também preenche pelos name (caso você não tenha colocado ids)
+  // Também preenche pelos name
   try {
-    const nameMap = {
-      'razao_social': obj.razao_social || obj.razao || '',
-      'cnpj': obj.cnpj || '',
-      'telefone': obj.telefone || '',
-      'responsavel': obj.responsavel || '',
-      'endereco': obj.endereco || ''
-    };
-
-    Object.entries(nameMap).forEach(([name, val]) => {
+    Object.entries(dadosNormalizados).forEach(([name, val]) => {
       const el = document.querySelector(`#inspectionForm [name="${name}"]`);
       if (el) el.value = val;
     });
@@ -4102,9 +4813,33 @@ function preencherDadosInspecaoFromObj(obj) {
   }
 }
 
+
+
+
+// Adicione esta função para alternar entre empresa e prédio
+function ajustarFormularioTipo(tipo) {
+  const labelRazaoNome = document.getElementById('labelRazaoNome');
+  const rowNumeroPredio = document.getElementById('rowNumeroPredio');
+  const rowNumeroEmpresa = document.getElementById('rowNumeroEmpresa');
+
+  if (tipo === 'predio') {
+    if (labelRazaoNome) labelRazaoNome.textContent = 'Nome do Prédio';
+    if (rowNumeroPredio) rowNumeroPredio.style.display = 'flex';
+    if (rowNumeroEmpresa) rowNumeroEmpresa.style.display = 'none';
+  } else {
+    if (labelRazaoNome) labelRazaoNome.textContent = 'Razão Social';
+    if (rowNumeroPredio) rowNumeroPredio.style.display = 'none';
+    if (rowNumeroEmpresa) rowNumeroEmpresa.style.display = 'flex';
+  }
+}
+
 // Função que tenta preencher com pequenas tentativas (mais robusto em aparelhos lentos)
 function preencherDadosInspecao(obj) {
   if (!obj) return;
+
+  // Ajusta o formulário baseado no tipo
+  ajustarFormularioTipo(obj.tipo || 'empresa');
+
   // tenta algumas vezes, em intervalos curtos, até preencher
   let attempts = 0;
   const maxAttempts = 6;
@@ -4120,51 +4855,16 @@ function preencherDadosInspecao(obj) {
     }
 
     if (attempts >= maxAttempts) clearInterval(iv);
-  }, 100); // 100ms * 6 = 600ms total de tentativas
+  }, 100);
 }
 
-// ---------- Substitui/estende o listener de cadastro de empresa ----------
-const addCompanyForm = document.getElementById('addCompanyForm');
 
-if (addCompanyForm) {
-  addCompanyForm.addEventListener('submit', (e) => {
-    e.preventDefault();
 
-    const form = e.target;
-    const raw = Object.fromEntries(new FormData(form).entries());
 
-    // Apenas salva localmente (não envia para o Firebase)
-const companyData = {
-      razao_social: raw.razao_social || '',
-      cnpj: raw.cnpj || '',
-      telefone: raw.telefone || '',
-      responsavel: raw.responsavel || '',
-      cep: raw.cep || '', // 🔥 Adicione esta linha aqui
-      endereco: raw.endereco || '',
-    };
 
-    // guarda para usar na inspeção
-    window.ultimaEmpresaCadastrada = companyData;
 
-    // feedback visual
-    showToast('Dados carregados para a inspeção!');
-
-    // fecha modal do cadastro
-    closeModal('addCompanyModal');
-
-    // limpa form
-    form.reset();
-
-    // abre modal da nova inspeção
-    openModal('inspectionFormModal');
-
-    // preenche automaticamente no modal da inspeção
-    setTimeout(() => {
-      preencherDadosInspecao(companyData);
-    }, 100);
-  });
-}
-function preencherDadosInspecao(data) {
+// ---------- Função alternativa de preenchimento ----------
+function preencherDadosInspecaoAlt(data) {
   if (!data) return;
 
   const set = (name, value) => {
@@ -4172,16 +4872,16 @@ function preencherDadosInspecao(data) {
     if (el) el.value = value || '';
   };
 
-set('razao_social', data.razao_social);
-  set('cnpj', data.cnpj);
-  set('telefone', data.telefone);
-  set('responsavel', data.responsavel);
-  set('cep', data.cep); // 🔥 Adicionado aqui
-  set('endereco', data.endereco);
+  set('razao_social', data.razao_social || data.razao_social_predio || '');
+  set('cnpj', data.cnpj || data.cnpj_predio || '');
+  set('telefone', data.telefone || data.telefone_predio || '');
+  set('responsavel', data.responsavel || data.responsavel_predio || '');
+  set('cep', data.cep || data.cep_predio || '');
+  set('endereco', data.endereco || data.endereco_predio || '');
+  set('numero_predio', data.numero_predio || '');
 }
 
-
-// ---------- Se você usa startInspection(companyId) (lista -> iniciar inspeção) ----------
+// ---------- startInspection para empresa (lista -> iniciar inspeção) ----------
 async function startInspection(companyId) {
   try {
     const snapshot = await database.ref(`companies/${companyId}`).once('value');
@@ -4189,7 +4889,7 @@ async function startInspection(companyId) {
     if (!company) return showToast('Empresa não encontrada', 'error');
 
     // guarda para reutilizar
-    window.ultimaEmpresaCadastrada = { id: companyId, ...company };
+    window.ultimaEmpresaCadastrada = { id: companyId, tipo: 'empresa', ...company };
 
     // abre modal
     openModal('inspectionFormModal');
@@ -4202,17 +4902,83 @@ async function startInspection(companyId) {
   }
 }
 
-// ---------- Se você abrir o modal manualmente, também preenche se última empresa existir ----------
-const originalOpenModal = window.openModal || function (id) { document.getElementById(id).classList.add('active'); };
-window.openModal = function (id) {
-  // chama original (preserva comportamento antigo)
-  originalOpenModal(id);
 
-  if (id === 'inspectionFormModal' && window.ultimaEmpresaCadastrada) {
-    // espera o modal ficar visível e preenche
+// ---------- startInspectionBuilding para prédio (lista -> iniciar inspeção) ----------
+async function startInspectionBuilding(buildingId) {
+  try {
+    const snapshot = await database.ref(`buildings/${buildingId}`).once('value');
+    const building = snapshot.val();
+    if (!building) return showToast('Prédio não encontrado', 'error');
+
+    // IMPORTANTE: Garantir que o objeto tenha o 'tipo' e os dados corretos
+    window.ultimaEmpresaCadastrada = {
+      ...building,
+      id: buildingId,
+      tipo: 'predio' // Isso identifica que é um prédio para o PDF
+    };
+
+    openModal('inspectionFormModal');
+
+    // Delay para garantir que o DOM do modal carregou
     setTimeout(() => preencherDadosInspecao(window.ultimaEmpresaCadastrada), 120);
+  } catch (err) {
+    console.error('startInspectionBuilding error:', err);
+    showToast('Erro ao iniciar inspeção do prédio', 'error');
   }
-};
+}
+
+// ---------- Se você abrir o modal manualmente, também preenche se última empresa/prédio existir ----------
+if (!window.openModalOriginal) {
+  window.openModalOriginal = window.openModal || function (id) {
+    const modal = document.getElementById(id);
+    if (modal) modal.classList.add('active');
+  };
+
+  window.openModal = function (id) {
+    // chama original (preserva comportamento antigo)
+    window.openModalOriginal(id);
+
+    if (id === 'inspectionFormModal') {
+      if (window.ultimaEmpresaCadastrada) {
+        // ajusta o formulário baseado no tipo
+        ajustarFormularioTipo(window.ultimaEmpresaCadastrada.tipo || 'empresa');
+        // espera o modal ficar visível e preenche
+        setTimeout(() => preencherDadosInspecao(window.ultimaEmpresaCadastrada), 120);
+      } else {
+        // se não tiver dados prévios, assume empresa como padrão
+        ajustarFormularioTipo('empresa');
+      }
+    }
+  };
+}
+
+
+// ---------- Se você abrir o modal manualmente, também preenche se última empresa/prédio existir ----------
+if (!window.openModalOriginal) {
+  window.openModalOriginal = window.openModal || function (id) {
+    const modal = document.getElementById(id);
+    if (modal) modal.classList.add('active');
+  };
+
+  window.openModal = function (id) {
+    // chama original (preserva comportamento antigo)
+    window.openModalOriginal(id);
+
+    if (id === 'inspectionFormModal') {
+      if (window.ultimaEmpresaCadastrada) {
+        // ajusta o formulário baseado no tipo
+        ajustarFormularioTipo(window.ultimaEmpresaCadastrada.tipo || 'empresa');
+        // espera o modal ficar visível e preenche
+        setTimeout(() => preencherDadosInspecao(window.ultimaEmpresaCadastrada), 120);
+      } else {
+        // se não tiver dados prévios, assume empresa como padrão
+        ajustarFormularioTipo('empresa');
+      }
+    }
+  };
+}
+
+
 // ==========================
 // 🔒 CONTROLE GLOBAL INPUTS NUMBER
 // ==========================
@@ -4818,18 +5584,15 @@ function criarModalValidade() {
 // BUSCAR E AGRUPAR ALERTAS
 // ========================================
 async function buscarAlertasVencimento() {
-  // Referência para o nó de inspeções
   const inspectionsRef = firebase.database().ref('inspections');
 
-  // .on('value') mantém uma conexão aberta. 
-  // Sempre que algo mudar no Firebase, ele executa o código abaixo instantaneamente.
   inspectionsRef.on('value', (snapshot) => {
     try {
       const inspections = snapshot.val();
 
       if (!inspections) {
         todosAlertas = [];
-        alertasFiltrados = []; // Limpa os filtrados também
+        alertasFiltrados = [];
         atualizarContadores();
         renderizarAlertas();
         return;
@@ -4854,8 +5617,10 @@ async function buscarAlertasVencimento() {
 
         const itensVencidos = [];
 
+        // Verifica todos os campos da inspeção
         Object.keys(inspecao).forEach(campo => {
-          if (campo.includes('validade') && inspecao[campo]) {
+          // Busca apenas campos que terminam com "validade"
+          if (campo.endsWith('validade') && !campo.includes('inicio') && inspecao[campo]) {
             const dataValidade = inspecao[campo];
             const diasRestantes = calcularDiasRestantes(dataValidade);
 
@@ -4863,7 +5628,7 @@ async function buscarAlertasVencimento() {
               const status = determinarStatus(diasRestantes);
 
               if (status !== 'ok') {
-                let tipo = formatarTipoCampo(campo, inspecao); // Função auxiliar para limpar o código
+                const tipo = formatarTipoCampo(campo, inspecao);
 
                 itensVencidos.push({
                   id: `${id}-${campo}`,
@@ -4884,6 +5649,68 @@ async function buscarAlertasVencimento() {
             }
           }
         });
+
+        // Verifica extintores individuais (extintores_validade_1, extintores_validade_2, etc.)
+        Object.keys(inspecao).forEach(campo => {
+          if (campo.startsWith('extintores_validade_') && inspecao[campo]) {
+            const dataValidade = inspecao[campo];
+            const diasRestantes = calcularDiasRestantes(dataValidade);
+
+            if (diasRestantes !== null) {
+              const status = determinarStatus(diasRestantes);
+
+              if (status !== 'ok') {
+                const tipo = formatarTipoCampo(campo, inspecao);
+
+                itensVencidos.push({
+                  id: `${id}-${campo}`,
+                  tipo: tipo,
+                  validade: dataValidade,
+                  diasRestantes: diasRestantes,
+                  status: status,
+                  campo: campo,
+                  inspectionId: id
+                });
+
+                if (status === 'vencido') {
+                  empresasMap[razaoSocial].totalVencidos++;
+                } else if (status === 'proximo') {
+                  empresasMap[razaoSocial].totalProximos++;
+                }
+              }
+            }
+          }
+        });
+
+        // Verifica o campo geral de validade dos extintores (extintores_validade)
+        if (inspecao.extintores_validade) {
+          const dataValidade = inspecao.extintores_validade;
+          const diasRestantes = calcularDiasRestantes(dataValidade);
+
+          if (diasRestantes !== null) {
+            const status = determinarStatus(diasRestantes);
+
+            if (status !== 'ok') {
+              const tipo = formatarTipoCampo('extintores_validade', inspecao);
+
+              itensVencidos.push({
+                id: `${id}-extintores_validade`,
+                tipo: tipo,
+                validade: dataValidade,
+                diasRestantes: diasRestantes,
+                status: status,
+                campo: 'extintores_validade',
+                inspectionId: id
+              });
+
+              if (status === 'vencido') {
+                empresasMap[razaoSocial].totalVencidos++;
+              } else if (status === 'proximo') {
+                empresasMap[razaoSocial].totalProximos++;
+              }
+            }
+          }
+        }
 
         if (itensVencidos.length > 0) {
           empresasMap[razaoSocial].inspecoes.push({
@@ -4911,7 +5738,6 @@ async function buscarAlertasVencimento() {
 
       atualizarContadores();
       renderizarAlertas();
-      console.log("Alertas atualizados em tempo real.");
 
     } catch (error) {
       console.error('Erro ao processar alertas:', error);
@@ -4921,6 +5747,10 @@ async function buscarAlertasVencimento() {
     showToast('Erro ao sincronizar alertas', 'error');
   });
 }
+
+
+
+
 
 // Função auxiliar para manter o código principal limpo
 function formatarTipoCampo(campo, inspecao) {
@@ -5110,7 +5940,6 @@ function filterAlerts(tipo) {
 // ========================================
 // RENDERIZAR ALERTAS (MOBILE FIRST)
 // ========================================
-
 function renderizarAlertas() {
   const container = document.getElementById('alertsList');
   const paginationContainer = document.getElementById('paginationContainer');
@@ -5138,7 +5967,6 @@ function renderizarAlertas() {
   const fim = Math.min(inicio + itensPorPagina, totalItens);
   const empresasPaginadas = alertasFiltrados.slice(inicio, fim);
 
-  // BOTÃO GERAL - COMBINANDO COM O TEMA DOURADO/DARK
   const btnPDFGeral = `
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; width: 100%; background: #1a1a1a; padding: 15px; border-radius: 12px; border: 1px solid #333;">
       <div style="color: #efefef; font-size: 0.9rem;">
@@ -5185,7 +6013,6 @@ function renderizarAlertas() {
           </div>
           
           <div class="empresa-badges" style="display: flex; align-items: center; gap: 12px;">
-            
             <button onclick="event.stopPropagation(); gerarPDFVencimentos('${empresaNomeEscaped}')" 
               title="Baixar PDF desta empresa" 
               style="
@@ -5216,8 +6043,8 @@ function renderizarAlertas() {
         ${isEmpresaExpanded ? `
           <div class="empresa-inspecoes">
             ${empresa.inspecoes.map(inspecao => {
-              const isInspecaoExpanded = inspecoesExpandidas.has(inspecao.inspectionId);
-              return `
+      const isInspecaoExpanded = inspecoesExpandidas.has(inspecao.inspectionId);
+      return `
                 <div class="inspecao-item">
                   <div class="inspecao-header" onclick="event.stopPropagation(); toggleInspecao('${inspecao.inspectionId}')">
                     <div class="inspecao-info">
@@ -5232,9 +6059,9 @@ function renderizarAlertas() {
                   ${isInspecaoExpanded ? `
                     <div class="itens-list">
                       ${inspecao.itens.map(item => {
-                        const tipoEscaped = item.tipo.replace(/'/g, "\\'");
-                        const campoEscaped = item.campo ? item.campo.replace(/'/g, "\\'") : '';
-                        return `
+        const tipoEscaped = item.tipo.replace(/'/g, "\\'");
+        const campoEscaped = item.campo ? item.campo.replace(/'/g, "\\'") : '';
+        return `
                         <div class="item-card ${item.status}">
                           <div class="item-header">
                             <div class="item-icon"><i class="fas fa-${item.status === 'vencido' ? 'times-circle' : 'exclamation-circle'}"></i></div>
@@ -5269,12 +6096,13 @@ function renderizarAlertas() {
                             </button>
                           </div>
                         </div>
-                      `;}).join('')}
+                      `;
+      }).join('')}
                     </div>
                   ` : ''}
                 </div>
               `;
-            }).join('')}
+    }).join('')}
           </div>
         ` : ''}
       </div>
@@ -5289,13 +6117,12 @@ function renderizarAlertas() {
   }
 }
 
-
 // ===================================
 // FUNÇÃO PRINCIPAL PARA GERAR PDF
 // ===================================
 async function gerarPDFVencimentos(empresaAlvo = null) {
   try {
-    const dadosParaImprimir = empresaAlvo 
+    const dadosParaImprimir = empresaAlvo
       ? alertasFiltrados.filter(e => e.empresa === empresaAlvo)
       : alertasFiltrados;
 
@@ -5308,40 +6135,49 @@ async function gerarPDFVencimentos(empresaAlvo = null) {
     const tipoRelatorio = isIndividual ? 'Individual' : 'Geral';
     const totalEmpresas = dadosParaImprimir.length;
 
-    // Mensagem inicial
     showToast(`Iniciando geração de ${totalEmpresas} PDF${totalEmpresas > 1 ? 's' : ''}...`, 'info');
 
-    // =============================
-    // PROCESSAR CADA EMPRESA
-    // =============================
     for (const [empresaIdx, empresa] of dadosParaImprimir.entries()) {
-      
-      // Mensagem de progresso
       showToast(`Gerando PDF ${empresaIdx + 1} de ${totalEmpresas}: ${empresa.empresa}`, 'info');
 
-      // Buscar dados completos da empresa
       let dadosEmpresaCompletos = null;
       try {
         const dbRef = firebase.database().ref('companies');
         const snapshot = await dbRef.once('value');
-        
+        const prediosRef = firebase.database().ref('buildings');
+        const snapshotPredios = await prediosRef.once('value');
+
         if (snapshot.exists()) {
           const companies = snapshot.val();
-          
           for (const [id, empresaData] of Object.entries(companies)) {
-            if (empresaData.razao_social === empresa.empresa || 
-                empresaData.razao_social?.toLowerCase() === empresa.empresa?.toLowerCase() ||
-                empresa.cnpj === empresaData.cnpj) {
+            if (
+              empresaData.razao_social === empresa.empresa ||
+              empresaData.razao_social?.toLowerCase() === empresa.empresa?.toLowerCase() ||
+              empresa.cnpj === empresaData.cnpj
+            ) {
               dadosEmpresaCompletos = empresaData;
               break;
             }
           }
         }
+
+        if (!dadosEmpresaCompletos && snapshotPredios.exists()) {
+          const predios = snapshotPredios.val();
+          for (const [id, predioData] of Object.entries(predios)) {
+            if (
+              predioData.razao_social_predio === empresa.empresa ||
+              predioData.razao_social_predio?.toLowerCase() === empresa.empresa?.toLowerCase() ||
+              empresa.cnpj === predioData.cnpj_predio
+            ) {
+              dadosEmpresaCompletos = predioData;
+              break;
+            }
+          }
+        }
       } catch (error) {
-        console.error('Erro ao buscar dados da empresa:', error);
+        console.error('Erro ao buscar dados da empresa/prédio:', error);
       }
 
-      // Coletar todos os vencimentos da empresa
       const todosVencimentos = [];
       empresa.inspecoes.forEach(inspecao => {
         inspecao.itens.forEach(item => {
@@ -5353,14 +6189,12 @@ async function gerarPDFVencimentos(empresaAlvo = null) {
         });
       });
 
-      // Calcular estatísticas gerais da empresa
       const totalItensEmpresa = todosVencimentos.length;
       const vencidosEmpresa = todosVencimentos.filter(i => i.status === 'vencido').length;
       const aVencerEmpresa = totalItensEmpresa - vencidosEmpresa;
       const percentualVencidos = totalItensEmpresa > 0 ? ((vencidosEmpresa / totalItensEmpresa) * 100).toFixed(1) : 0;
       const percentualAVencer = totalItensEmpresa > 0 ? ((aVencerEmpresa / totalItensEmpresa) * 100).toFixed(1) : 0;
 
-      // Inicializar jsPDF para esta empresa
       const { jsPDF } = window.jspdf;
       const pdf = new jsPDF({
         orientation: 'portrait',
@@ -5369,23 +6203,16 @@ async function gerarPDFVencimentos(empresaAlvo = null) {
         compress: true
       });
 
-      // =============================
-      // GERAR UMA PÁGINA PARA CADA VENCIMENTO
-      // =============================
       for (const [vencimentoIndex, vencimento] of todosVencimentos.entries()) {
-        
-        // Mensagem de progresso do vencimento
         if (todosVencimentos.length > 5) {
           showToast(`Processando vencimento ${vencimentoIndex + 1} de ${todosVencimentos.length}...`, 'info');
         }
 
-        // Adicionar quebra de página entre vencimentos (exceto primeiro)
         if (vencimentoIndex > 0) {
           pdf.addPage();
         }
 
-        // Renderizar página do vencimento
-        const paginaHTML = montarPaginaVencimentoHTML({
+        const paginaHTML = gerarPaginaVencimentoHTML({
           tipoRelatorio,
           empresa,
           dadosEmpresaCompletos,
@@ -5402,22 +6229,19 @@ async function gerarPDFVencimentos(empresaAlvo = null) {
         await renderizarPaginaNoPDF(pdf, paginaHTML);
       }
 
-      // Salvar PDF da empresa
       const nomeEmpresaLimpo = empresa.empresa.replace(/[^a-zA-Z0-9]/g, '_');
       const dataAtual = new Date().toLocaleDateString('pt-BR').replace(/\//g, '-');
-      const nomeArquivo = isIndividual 
+      const nomeArquivo = isIndividual
         ? `Vencimento_${nomeEmpresaLimpo}_${dataAtual}.pdf`
         : `Relatorio_Geral_${nomeEmpresaLimpo}_${dataAtual}.pdf`;
-      
+
       showToast(`Baixando: ${empresa.empresa}...`, 'info');
       pdf.save(nomeArquivo);
 
-      // Aguardar entre downloads
       await new Promise(resolve => setTimeout(resolve, 800));
     }
 
-    // Mensagem de conclusão
-    showToast(`✅ ${totalEmpresas} PDF${totalEmpresas > 1 ? 's' : ''} gerado${totalEmpresas > 1 ? 's' : ''} com sucesso!`, 'success');
+    showToast(` ${totalEmpresas} PDF${totalEmpresas > 1 ? 's' : ''} gerado${totalEmpresas > 1 ? 's' : ''} com sucesso!`, 'success');
 
   } catch (error) {
     console.error('Erro ao gerar PDFs:', error);
@@ -5428,7 +6252,7 @@ async function gerarPDFVencimentos(empresaAlvo = null) {
 // ===================================
 // FUNÇÃO PARA MONTAR HTML DA PÁGINA DO VENCIMENTO
 // ===================================
-function montarPaginaVencimentoHTML(opcoes) {
+function gerarPaginaVencimentoHTML(opcoes) {
   const {
     tipoRelatorio,
     empresa,
@@ -5457,39 +6281,22 @@ function montarPaginaVencimentoHTML(opcoes) {
       <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
       <link rel="stylesheet" href="pdf-vencimentos-styles.css">
       <style>
-        /* Estilos dinâmicos baseados no status */
-        .vencimento-card {
-          border-color: ${statusColor} !important;
-        }
-        .vencimento-header {
-          background: ${statusColor} !important;
-        }
-        .info-box {
-          border-left-color: ${statusColor} !important;
-        }
-        .info-box-value.destaque {
-          color: ${statusColor} !important;
-        }
-        .info-box-value.status-color {
-          color: ${statusColor} !important;
-        }
+        .vencimento-card { border-color: ${statusColor} !important; }
+        .vencimento-header { background: ${statusColor} !important; }
+        .info-box { border-left-color: ${statusColor} !important; }
+        .info-box-value.destaque { color: ${statusColor} !important; }
+        .info-box-value.status-color { color: ${statusColor} !important; }
       </style>
     </head>
     <body>
       <div class="pdf-page">
-        <!-- HEADER -->
         <div class="pdf-header">
           <div class="header-top">
             <div class="logo-section">
-              <div class="logo-box">
-                <div class="logo-text">EXTINMAIS</div>
-              </div>
+              <div class="logo-box"><div class="logo-text">EXTINMAIS</div></div>
             </div>
             <div class="header-title">
-              <h1>
-                <i class="fas fa-file-alt"></i> 
-                RELATÓRIO DE VENCIMENTO
-              </h1>
+              <h1><i class="fas fa-file-alt"></i> RELATÓRIO DE VENCIMENTO</h1>
               <div class="tipo-relatorio-badge">
                 <i class="fas ${tipoRelatorio === 'Individual' ? 'fa-user' : 'fa-users'}"></i>
                 RELATÓRIO ${tipoRelatorio.toUpperCase()}
@@ -5499,175 +6306,71 @@ function montarPaginaVencimentoHTML(opcoes) {
           <div class="header-divider"></div>
           <div class="header-info">
             <div class="header-info-left">
-              <div class="header-info-item">
-                <i class="fas fa-id-card"></i>
-                <span>CNPJ: 52.026.476/0001-03</span>
-              </div>
-              <div class="header-info-item">
-                <i class="fas fa-phone"></i>
-                <span>(15) 99137-1232</span>
-              </div>
-              <div class="header-info-item">
-                <i class="fas fa-envelope"></i>
-                <span>extinmaiss@outlook.com</span>
-              </div>
+              <div class="header-info-item"><i class="fas fa-id-card"></i><span>CNPJ: 52.026.476/0001-03</span></div>
+              <div class="header-info-item"><i class="fas fa-phone"></i><span>(15) 99137-1232</span></div>
+              <div class="header-info-item"><i class="fas fa-envelope"></i><span>extinmaiss@outlook.com</span></div>
             </div>
-            <div class="header-info-item">
-              <i class="far fa-clock"></i>
-              <span>${formatarDataHora()}</span>
-            </div>
+            <div class="header-info-item"><i class="far fa-clock"></i><span>${formatarDataHora()}</span></div>
           </div>
         </div>
 
-        <!-- BODY -->
         <div class="pdf-body">
-          <!-- Identificação da Empresa -->
           <div class="empresa-identificacao">
             <div class="empresa-identificacao-header">
-              <div class="empresa-icon">
-                <i class="fas fa-building"></i>
-              </div>
+              <div class="empresa-icon"><i class="fas fa-building"></i></div>
               <div class="empresa-dados">
                 <div class="empresa-nome">${empresa.empresa.toUpperCase()}</div>
-                <div class="empresa-cnpj">
-                  <i class="fas fa-id-card"></i>
-                  ${empresa.cnpj}
-                </div>
+                <div class="empresa-cnpj"><i class="fas fa-id-card"></i>${empresa.cnpj}</div>
               </div>
             </div>
-            
             ${dadosEmpresaCompletos ? `
               <div class="empresa-detalhes">
-                <div class="empresa-detalhe-item">
-                  <span class="detalhe-label">
-                    <i class="fas fa-phone"></i> Telefone
-                  </span>
-                  <span class="detalhe-value">${dadosEmpresaCompletos.telefone || '-'}</span>
-                </div>
-                <div class="empresa-detalhe-item">
-                  <span class="detalhe-label">
-                    <i class="fas fa-user-tie"></i> Responsável
-                  </span>
-                  <span class="detalhe-value">${dadosEmpresaCompletos.responsavel || '-'}</span>
-                </div>
-                <div class="empresa-detalhe-item">
-                  <span class="detalhe-label">
-                    <i class="fas fa-map-marker-alt"></i> CEP
-                  </span>
-                  <span class="detalhe-value">${dadosEmpresaCompletos.cep || '-'}</span>
-                </div>
-                <div class="empresa-detalhe-item">
-                  <span class="detalhe-label">
-                    <i class="fas fa-location-arrow"></i> Endereço
-                  </span>
-                  <span class="detalhe-value">${dadosEmpresaCompletos.endereco || '-'}</span>
-                </div>
-              </div>
-            ` : ''}
+                <div class="empresa-detalhe-item"><span class="detalhe-label"><i class="fas fa-phone"></i> Telefone</span><span class="detalhe-value">${dadosEmpresaCompletos.telefone || dadosEmpresaCompletos.telefone_predio || '-'}</span></div>
+                <div class="empresa-detalhe-item"><span class="detalhe-label"><i class="fas fa-user-tie"></i> Responsável</span><span class="detalhe-value">${dadosEmpresaCompletos.responsavel || dadosEmpresaCompletos.responsavel_predio || '-'}</span></div>
+                <div class="empresa-detalhe-item"><span class="detalhe-label"><i class="fas fa-map-marker-alt"></i> CEP</span><span class="detalhe-value">${dadosEmpresaCompletos.cep || dadosEmpresaCompletos.cep_predio || '-'}</span></div>
+                <div class="empresa-detalhe-item"><span class="detalhe-label"><i class="fas fa-location-arrow"></i> Endereço</span><span class="detalhe-value">${dadosEmpresaCompletos.endereco || dadosEmpresaCompletos.endereco_predio || '-'}</span></div>
+              </div>` : ''}
           </div>
 
-          <!-- Card do Vencimento -->
           <div class="vencimento-card">
             <div class="vencimento-header">
               <div class="vencimento-header-left">
-                <div class="vencimento-titulo">
-                  <i class="fas fa-bell"></i>
-                  VENCIMENTO
-                  <span class="vencimento-numero">${vencimentoIndex + 1} de ${totalVencimentos}</span>
-                </div>
-                <div class="vencimento-tipo-item">
-                  <i class="fas fa-box"></i>
-                  ${vencimento.tipo}
-                </div>
+                <div class="vencimento-titulo"><i class="fas fa-bell"></i> VENCIMENTO <span class="vencimento-numero">${vencimentoIndex + 1} de ${totalVencimentos}</span></div>
+                <div class="vencimento-tipo-item"><i class="fas fa-box"></i>${vencimento.tipo}</div>
               </div>
-              <div class="vencimento-status-badge">
-                <i class="fas ${statusIcon}"></i>
-                ${statusTexto}
-              </div>
+              <div class="vencimento-status-badge"><i class="fas ${statusIcon}"></i>${statusTexto}</div>
             </div>
 
             <div class="vencimento-body">
               <div class="vencimento-info-grid">
-                <div class="info-box">
-                  <div class="info-box-label">
-                    <i class="far fa-calendar-alt"></i>
-                    Data de Validade
-                  </div>
-                  <div class="info-box-value">${formatarData(vencimento.validade)}</div>
-                </div>
-
-                <div class="info-box">
-                  <div class="info-box-label">
-                    <i class="fas fa-hourglass-half"></i>
-                    Dias ${vencimento.status === 'vencido' ? 'Vencidos' : 'Restantes'}
-                  </div>
-                  <div class="info-box-value destaque">${Math.abs(vencimento.diasRestantes)}</div>
-                </div>
-
-                <div class="info-box">
-                  <div class="info-box-label">
-                    <i class="fas fa-info-circle"></i>
-                    Status
-                  </div>
-                  <div class="info-box-value status-color">${statusTexto}</div>
-                </div>
+                <div class="info-box"><div class="info-box-label"><i class="far fa-calendar-alt"></i>Data de Validade</div><div class="info-box-value">${formatarData(vencimento.validade)}</div></div>
+                <div class="info-box"><div class="info-box-label"><i class="fas fa-hourglass-half"></i>Dias ${vencimento.status === 'vencido' ? 'Vencidos' : 'Restantes'}</div><div class="info-box-value destaque">${Math.abs(vencimento.diasRestantes)}</div></div>
+                <div class="info-box"><div class="info-box-label"><i class="fas fa-info-circle"></i>Status</div><div class="info-box-value status-color">${statusTexto}</div></div>
               </div>
-
               <div class="detalhes-adicionais">
-                <div class="detalhes-adicionais-titulo">
-                  <i class="fas fa-clipboard-list"></i>
-                  Detalhes da Inspeção
-                </div>
-                <div class="detalhes-linha">
-                  <span class="detalhes-label">Tipo de Inspeção:</span>
-                  <span class="detalhes-valor">${vencimento.inspecaoTipo || '-'}</span>
-                </div>
-                <div class="detalhes-linha">
-                  <span class="detalhes-label">Data da Inspeção:</span>
-                  <span class="detalhes-valor">${formatarData(vencimento.inspecaoData) || '-'}</span>
-                </div>
-                <div class="detalhes-linha">
-                  <span class="detalhes-label">Item:</span>
-                  <span class="detalhes-valor">${vencimento.tipo}</span>
+                <div class="detalhes-adicionais-titulo"><i class="fas fa-clipboard-list"></i>Detalhes da Inspeção</div>
+                <div class="detalhes-linha"><span class="detalhes-label">Data da Inspeção:</span><span class="detalhes-valor">${formatarData(vencimento.inspecaoData) || '-'}</span></div>
+                <div class="detalhes-texto">
+                  ${vencimento.inspecaoData ? `<p>Esta inspeção foi realizada em <strong>${formatarData(vencimento.inspecaoData)}</strong>, garantindo a verificação dos itens de segurança e conformidade exigidos.</p>` : `<p>Não há registro de data de inspeção para este item.</p>`}
                 </div>
               </div>
             </div>
           </div>
 
-          <!-- Resumo Estatístico da Empresa -->
           <div class="resumo-estatistico">
-            <div class="resumo-titulo">
-              <i class="fas fa-chart-pie"></i>
-              RESUMO GERAL DA EMPRESA
-            </div>
+            <div class="resumo-titulo"><i class="fas fa-chart-pie"></i>RESUMO GERAL DA EMPRESA</div>
             <div class="resumo-grid">
-              <div class="resumo-item">
-                <div class="resumo-item-label">Total de Vencimentos</div>
-                <div class="resumo-item-valor total">${totalItensEmpresa}</div>
-              </div>
-              <div class="resumo-item">
-                <div class="resumo-item-label">Vencidos</div>
-                <div class="resumo-item-valor vencidos">${vencidosEmpresa}</div>
-              </div>
-              <div class="resumo-item">
-                <div class="resumo-item-label">A Vencer</div>
-                <div class="resumo-item-valor avencer">${aVencerEmpresa}</div>
-              </div>
+              <div class="resumo-item"><div class="resumo-item-label">Total de Vencimentos</div><div class="resumo-item-valor total">${totalItensEmpresa}</div></div>
+              <div class="resumo-item"><div class="resumo-item-label">Vencidos</div><div class="resumo-item-valor vencidos">${vencidosEmpresa}</div></div>
+              <div class="resumo-item"><div class="resumo-item-label">A Vencer</div><div class="resumo-item-valor avencer">${aVencerEmpresa}</div></div>
             </div>
           </div>
         </div>
 
-        <!-- FOOTER -->
         <div class="pdf-footer">
-          <div class="footer-brand">
-            <i class="fas fa-fire-extinguisher"></i> EXTINMAIS
-          </div>
-          <div class="footer-info">
-            CNPJ: 52.026.476/0001-03 | Tel: (15) 99137-1232 | extinmaiss@outlook.com
-          </div>
-          <div class="footer-timestamp">
-            Documento gerado em ${formatarDataHora()}
-          </div>
+          <div class="footer-brand"><i class="fas fa-fire-extinguisher"></i> EXTINMAIS</div>
+          <div class="footer-info">CNPJ: 52.026.476/0001-03 | Tel: (15) 99137-1232 | extinmaiss@outlook.com</div>
+          <div class="footer-timestamp">Documento gerado em ${formatarDataHora()}</div>
         </div>
       </div>
     </body>
@@ -5739,10 +6442,8 @@ function formatarData(data) {
 
 function formatarDataHora() {
   const agora = new Date();
-  return `${agora.toLocaleDateString('pt-BR')} às ${agora.toLocaleTimeString('pt-BR', {hour: '2-digit', minute: '2-digit'})}`;
+  return `${agora.toLocaleDateString('pt-BR')} às ${agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
 }
-
-
 
 
 
@@ -5988,3 +6689,1238 @@ function toggleAlertsList() {
     el.id = `cep-${index + 1}`;
   });
 })();
+
+
+let allCompanies = [];
+
+// Carregar empresas e prédios do Firebase
+async function loadClientsForOS() {
+  try {
+    // Carregar empresas
+    const companiesSnapshot = await database.ref('companies').once('value');
+    const companies = companiesSnapshot.val() || {};
+
+    // Carregar prédios
+    const buildingsSnapshot = await database.ref('buildings').once('value');
+    const buildings = buildingsSnapshot.val() || {};
+
+    allCompanies = [];
+
+    // Adicionar empresas
+    if (companies) {
+      Object.keys(companies).forEach(key => {
+        allCompanies.push({
+          id: key,
+          tipo: 'empresa',
+          ...companies[key]
+        });
+      });
+    }
+
+    // Adicionar prédios
+    if (buildings) {
+      Object.keys(buildings).forEach(key => {
+        allCompanies.push({
+          id: key,
+          tipo: 'predio',
+          ...buildings[key]
+        });
+      });
+    }
+
+    // Preencher o select de clientes
+    populateClientSelect();
+
+
+  } catch (err) {
+    console.error('Erro ao carregar clientes:', err);
+  }
+}
+
+// Preencher o dropdown de clientes
+function populateClientSelect() {
+  const select = document.getElementById('clienteSelect');
+
+  if (!select) {
+    console.error('Select clienteSelect não encontrado!');
+    return;
+  }
+
+  // Limpar opções existentes (exceto a primeira)
+  select.innerHTML = '<option value="">Selecione um cliente</option>';
+
+  // Adicionar empresas e prédios
+  allCompanies.forEach(client => {
+    const isPredio = client.tipo === 'predio';
+
+    const option = document.createElement('option');
+    option.value = client.id;
+
+    // Nome do cliente
+    const nomeCliente = isPredio
+      ? (client.razao_social_predio || 'Sem nome')
+      : (client.razao_social || 'Sem nome');
+
+    // Texto com prefixo
+    const prefixo = isPredio ? '[PREDIO]' : '[EMPRESA]';
+    option.textContent = `${prefixo} ${nomeCliente}`;
+
+    // Salva os dados no dataset
+    option.dataset.tipo = client.tipo || 'empresa';
+    option.dataset.nome = nomeCliente;
+    option.dataset.cnpj = isPredio ? (client.cnpj_predio || '') : (client.cnpj || '');
+    option.dataset.cep = isPredio ? (client.cep_predio || '') : (client.cep || '');
+    option.dataset.endereco = isPredio ? (client.endereco_predio || '') : (client.endereco || '');
+    option.dataset.telefone = isPredio ? (client.telefone_predio || '') : (client.telefone || '');
+    option.dataset.email = isPredio ? (client.email_predio || '') : (client.email || '');
+    option.dataset.responsavel = isPredio ? (client.responsavel_predio || '') : (client.responsavel || '');
+    option.dataset.numeroPredio = isPredio ? (client.numero_predio || '') : '';
+    option.dataset.numeroEmpresa = !isPredio ? (client.numero_empresa || '') : '';
+
+    select.appendChild(option);
+  });
+
+}
+
+
+
+
+// Preencher campos automaticamente quando selecionar um cliente
+document.addEventListener('DOMContentLoaded', function () {
+  const clienteSelect = document.getElementById('clienteSelect');
+
+  if (clienteSelect) {
+    clienteSelect.addEventListener('change', function () {
+      const selectedOption = this.options[this.selectedIndex];
+
+      // Esconder ambos os grupos de campos primeiro
+      const camposEmpresa = document.getElementById('camposEmpresa');
+      const camposPredio = document.getElementById('camposPredio');
+
+      if (camposEmpresa) camposEmpresa.style.display = 'none';
+      if (camposPredio) camposPredio.style.display = 'none';
+
+      if (selectedOption.value) {
+        const tipo = selectedOption.dataset.tipo;
+
+        // Preencher campos comuns
+        document.getElementById('cnpjInput').value = selectedOption.dataset.cnpj || '';
+        document.getElementById('clienteNomeHidden').value = selectedOption.dataset.nome || '';
+        document.getElementById('clienteTipoHidden').value = tipo || 'empresa';
+
+        // Mostrar e preencher campos específicos
+        if (tipo === 'predio') {
+          // Mostrar campos de prédio
+          if (camposPredio) {
+            camposPredio.style.display = 'block';
+
+            document.getElementById('telefonePredioInput').value = selectedOption.dataset.telefone || '';
+            document.getElementById('emailPredioInput').value = selectedOption.dataset.email || '';
+            document.getElementById('responsavelPredioInput').value = selectedOption.dataset.responsavel || '';
+            document.getElementById('cepPredioInput').value = selectedOption.dataset.cep || '';
+            document.getElementById('enderecoPredioInput').value = selectedOption.dataset.endereco || '';
+            document.getElementById('numeroPredioInput').value = selectedOption.dataset.numeroPredio || '';
+          }
+        } else {
+          // Mostrar campos de empresa
+          if (camposEmpresa) {
+            camposEmpresa.style.display = 'block';
+
+            document.getElementById('telefoneEmpresaInput').value = selectedOption.dataset.telefone || '';
+            document.getElementById('emailEmpresaInput').value = selectedOption.dataset.email || '';
+            document.getElementById('responsavelEmpresaInput').value = selectedOption.dataset.responsavel || '';
+            document.getElementById('cepEmpresaInput').value = selectedOption.dataset.cep || '';
+            document.getElementById('enderecoEmpresaInput').value = selectedOption.dataset.endereco || '';
+            document.getElementById('numeroEmpresaInput').value = selectedOption.dataset.numeroEmpresa || '';
+          }
+        }
+      } else {
+        // Limpar campos se nenhum cliente foi selecionado
+        document.getElementById('cnpjInput').value = '';
+        document.getElementById('clienteNomeHidden').value = '';
+        document.getElementById('clienteTipoHidden').value = '';
+      }
+    });
+  }
+});
+
+
+
+
+// JavaScript para troca de sub-abas dentro do modal
+function switchSubTab(tabName) {
+  // Remove active de todos os botões
+  const allSubTabs = document.querySelectorAll('.sub-tab');
+  allSubTabs.forEach(tab => {
+    tab.classList.remove('active');
+  });
+
+  // Remove active de todos os conteúdos
+  const allContents = document.querySelectorAll('.sub-tab-content');
+  allContents.forEach(content => {
+    content.classList.remove('active');
+  });
+
+  // Adiciona active no botão clicado
+  event.target.classList.add('active');
+
+  // Adiciona active no conteúdo correspondente
+  if (tabName === 'empresa') {
+    document.getElementById('empresaContent').classList.add('active');
+  } else if (tabName === 'predio') {
+    document.getElementById('predioContent').classList.add('active');
+  }
+}
+
+// CSS necessário - Tema Dourado Escuro
+const subTabStyles = `
+  .sub-tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    border-bottom: 2px solid #D4C29A;
+  }
+
+  .sub-tab {
+    padding: 10px 20px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    color: #888;
+    border-bottom: 3px solid transparent;
+    transition: all 0.3s ease;
+  }
+
+  .sub-tab:hover {
+    color: #D4C29A;
+  }
+
+  .sub-tab.active {
+    color: #D4C29A;
+    border-bottom-color: #B32117;
+  }
+
+  .sub-tab-content {
+    display: none;
+  }
+
+  .sub-tab-content.active {
+    display: block;
+  }
+`;
+
+// Adicionar os estilos ao documento
+if (!document.getElementById('subTabStyles')) {
+  const styleSheet = document.createElement("style");
+  styleSheet.id = 'subTabStyles';
+  styleSheet.textContent = subTabStyles;
+  document.head.appendChild(styleSheet);
+}
+// ========================================
+// CALENDÁRIO DE INSPEÇÕES - JAVASCRIPT COMPLETO
+// ========================================
+
+// Variáveis Globais
+let currentCalendarDate = new Date();
+let calendarInspections = [];
+let selectedDateForSchedule = null;
+
+// ========================================
+// INICIALIZAÇÃO
+// ========================================
+
+async function initCalendar() {
+  await carregarInspecoesAgendadas();
+  renderCalendar();
+  setupCalendarEventListeners();
+}
+
+// ========================================
+// CARREGAR DADOS
+// ========================================
+
+async function carregarInspecoesAgendadas() {
+  try {
+    const snapshot = await database.ref('scheduled_inspections').once('value');
+    const data = snapshot.val();
+    
+    calendarInspections = [];
+    
+    if (data) {
+      Object.keys(data).forEach(key => {
+        calendarInspections.push({
+          id: key,
+          ...data[key]
+        });
+      });
+    }
+    
+  } catch (error) {
+    console.error('Erro ao carregar inspeções:', error);
+    showToast('Erro ao carregar inspeções agendadas', 'error');
+  }
+}
+
+// ========================================
+// RENDERIZAÇÃO DO CALENDÁRIO
+// ========================================
+
+function renderCalendar() {
+  const year = currentCalendarDate.getFullYear();
+  const month = currentCalendarDate.getMonth();
+  
+  // Atualizar título
+  const monthNames = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+    'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+  document.getElementById('currentMonthTitle').textContent = `${monthNames[month]} ${year}`;
+  
+  // Limpar grid
+  const grid = document.getElementById('calendarGrid');
+  grid.innerHTML = '';
+  
+  // Adicionar cabeçalhos dos dias da semana
+  const dayHeaders = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+  dayHeaders.forEach(day => {
+    const header = document.createElement('div');
+    header.className = 'calendar-day-header';
+    header.textContent = day;
+    grid.appendChild(header);
+  });
+  
+  // Primeiro dia do mês
+  const firstDay = new Date(year, month, 1).getDay();
+  
+  // Último dia do mês
+  const lastDate = new Date(year, month + 1, 0).getDate();
+  
+  // Último dia do mês anterior
+  const prevLastDate = new Date(year, month, 0).getDate();
+  
+  // Hoje
+  const today = new Date();
+  const isCurrentMonth = today.getMonth() === month && today.getFullYear() === year;
+  const todayDate = today.getDate();
+  
+  // Dias do mês anterior
+  for (let i = firstDay - 1; i >= 0; i--) {
+    const dayDiv = createDayElement(prevLastDate - i, month - 1, year, true);
+    grid.appendChild(dayDiv);
+  }
+  
+  // Dias do mês atual
+  for (let day = 1; day <= lastDate; day++) {
+    const isToday = isCurrentMonth && day === todayDate;
+    const dayDiv = createDayElement(day, month, year, false, isToday);
+    grid.appendChild(dayDiv);
+  }
+  
+  // Dias do próximo mês
+  const remainingCells = 42 - (firstDay + lastDate);
+  for (let day = 1; day <= remainingCells; day++) {
+    const dayDiv = createDayElement(day, month + 1, year, true);
+    grid.appendChild(dayDiv);
+  }
+  
+}
+
+function createDayElement(day, month, year, isOtherMonth = false, isToday = false) {
+  const dayDiv = document.createElement('div');
+  dayDiv.className = 'calendar-day';
+  
+  if (isOtherMonth) {
+    dayDiv.classList.add('other-month');
+  }
+  
+  if (isToday) {
+    dayDiv.classList.add('today');
+  }
+  
+  // Data completa
+  const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+  
+  // Filtrar inspeções deste dia
+  const dayInspections = calendarInspections.filter(insp => insp.date === dateStr);
+  
+  if (dayInspections.length > 0) {
+    dayDiv.classList.add('has-inspections');
+  }
+  
+  // Número do dia
+  const dayNumber = document.createElement('div');
+  dayNumber.className = 'calendar-day-number';
+  dayNumber.textContent = day;
+  dayDiv.appendChild(dayNumber);
+  
+  // Container de inspeções
+  const inspectionsContainer = document.createElement('div');
+  inspectionsContainer.className = 'calendar-inspections';
+  
+  dayInspections.forEach(inspection => {
+    const tag = document.createElement('div');
+    tag.className = 'calendar-inspection-tag';
+    tag.innerHTML = `
+      <span class="calendar-inspection-time">${inspection.time}</span>
+      <span>${inspection.clientName}</span>
+    `;
+    tag.onclick = (e) => {
+      e.stopPropagation();
+      abrirDetalhesInspecao(inspection);
+    };
+    inspectionsContainer.appendChild(tag);
+  });
+  
+  dayDiv.appendChild(inspectionsContainer);
+  
+  // Botão de adicionar inspeção
+  if (!isOtherMonth) {
+    const addBtn = document.createElement('button');
+    addBtn.className = 'calendar-add-btn';
+    addBtn.innerHTML = '<i class="fas fa-plus"></i> <span>Agendar</span>';
+    addBtn.onclick = (e) => {
+      e.stopPropagation();
+      abrirModalAgendamentoComData(dateStr);
+    };
+    dayDiv.appendChild(addBtn);
+  }
+  
+  // Click no dia (visualizar)
+  dayDiv.onclick = () => {
+    if (!isOtherMonth) {
+      mostrarInspecoesDoDia(dateStr, day, month, year);
+    }
+  };
+  
+  return dayDiv;
+}
+
+// ========================================
+// EXIBIR INSPEÇÕES DO DIA
+// ========================================
+
+function mostrarInspecoesDoDia(dateStr, day, month, year) {
+  const dayInspections = calendarInspections.filter(insp => insp.date === dateStr);
+  
+  const monthNames = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+    'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+  
+  document.getElementById('selectedDayTitle').innerHTML = `
+    <i class="fas fa-calendar-day"></i> 
+    Inspeções de ${day} de ${monthNames[month]} de ${year}
+  `;
+  
+  const content = document.getElementById('dayInspectionsContent');
+  
+  if (dayInspections.length === 0) {
+    content.innerHTML = `
+      <div style="text-align: center; padding: 40px; color: #999;">
+        <i class="fas fa-calendar-times" style="font-size: 3rem; margin-bottom: 15px; color: #D4C29A;"></i>
+        <p style="margin-bottom: 20px;">Nenhuma inspeção agendada para este dia</p>
+        <button class="btn" onclick="abrirModalAgendamentoComData('${dateStr}')">
+          <i class="fas fa-plus"></i> Agendar Inspeção
+        </button>
+      </div>
+    `;
+  } else {
+    content.innerHTML = dayInspections.map(inspection => `
+      <div class="day-inspection-card">
+        <div class="day-inspection-header">
+          <div class="day-inspection-client">
+            <div class="day-inspection-client-name">${inspection.clientName}</div>
+            <div class="day-inspection-client-type">${inspection.clientType === 'predio' ? 'PRÉDIO' : 'EMPRESA'}</div>
+          </div>
+          <div class="day-inspection-actions">
+            <button class="btn-action-small" onclick='abrirDetalhesInspecao(${JSON.stringify(inspection).replace(/'/g, "&#39;")})'>
+              <i class="fas fa-eye"></i> Ver
+            </button>
+            <button class="btn-action-small btn-pdf" onclick='baixarPDFInspecao(${JSON.stringify(inspection).replace(/'/g, "&#39;")})'>
+              <i class="fas fa-file-pdf"></i> PDF
+            </button>
+            <button class="btn-action-small btn-delete" onclick="deletarInspecao('${inspection.id}')">
+              <i class="fas fa-trash"></i> Excluir
+            </button>
+          </div>
+        </div>
+        <div class="day-inspection-info">
+          <div class="day-inspection-info-item">
+            <i class="fas fa-clock"></i>
+            <span>${inspection.time}</span>
+          </div>
+          <div class="day-inspection-info-item">
+            <i class="fas fa-map-marker-alt"></i>
+            <span>${inspection.address || 'Endereço não informado'}</span>
+          </div>
+          ${inspection.notes ? `
+          <div class="day-inspection-info-item" style="grid-column: 1 / -1;">
+            <i class="fas fa-sticky-note"></i>
+            <span>${inspection.notes}</span>
+          </div>
+          ` : ''}
+        </div>
+      </div>
+    `).join('');
+  }
+  
+  document.getElementById('dayInspectionsList').style.display = 'block';
+  
+  // Scroll suave até a lista
+  setTimeout(() => {
+    document.getElementById('dayInspectionsList').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }, 100);
+}
+
+// ========================================
+// MODAL DE DETALHES
+// ========================================
+
+function abrirDetalhesInspecao(inspection) {
+  const content = document.getElementById('inspectionDetailContent');
+  
+  content.innerHTML = `
+    <div style="display: flex; flex-direction: column; gap: 20px;">
+      <div style="background: #2a2a2a; padding: 20px; border-radius: 10px; border: 2px solid #D4C29A;">
+        <h3 style="color: #D4C29A; margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
+          <i class="fas fa-building"></i> Informações do Cliente
+        </h3>
+        <div style="display: grid; gap: 12px;">
+          <div>
+            <strong style="color: #D4C29A;">Nome:</strong>
+            <span style="color: #fff; margin-left: 10px;">${inspection.clientName}</span>
+          </div>
+          <div>
+            <strong style="color: #D4C29A;">Tipo:</strong>
+            <span style="color: #fff; margin-left: 10px;">${inspection.clientType === 'predio' ? 'PRÉDIO' : 'EMPRESA'}</span>
+          </div>
+          <div>
+            <strong style="color: #D4C29A;">CNPJ:</strong>
+            <span style="color: #fff; margin-left: 10px;">${inspection.cnpj || 'Não informado'}</span>
+          </div>
+          <div>
+            <strong style="color: #D4C29A;">Endereço:</strong>
+            <span style="color: #fff; margin-left: 10px;">${inspection.address || 'Não informado'}</span>
+          </div>
+        </div>
+      </div>
+      
+      <div style="background: #2a2a2a; padding: 20px; border-radius: 10px; border: 2px solid #D4C29A;">
+        <h3 style="color: #D4C29A; margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
+          <i class="fas fa-calendar-check"></i> Dados da Inspeção
+        </h3>
+        <div style="display: grid; gap: 12px;">
+          <div>
+            <strong style="color: #D4C29A;">Data:</strong>
+            <span style="color: #fff; margin-left: 10px;">${formatarDataBR(inspection.date)}</span>
+          </div>
+          <div>
+            <strong style="color: #D4C29A;">Horário:</strong>
+            <span style="color: #fff; margin-left: 10px;">${inspection.time}</span>
+          </div>
+          ${inspection.notes ? `
+          <div>
+            <strong style="color: #D4C29A;">Observações:</strong>
+            <div style="color: #fff; margin-top: 8px; padding: 10px; background: #1a1a1a; border-radius: 6px;">
+              ${inspection.notes}
+            </div>
+          </div>
+          ` : ''}
+        </div>
+      </div>
+      
+      <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+        <button class="btn btn-info" onclick='baixarPDFInspecao(${JSON.stringify(inspection).replace(/'/g, "&#39;")})' style="flex: 1; min-width: 150px;">
+          <i class="fas fa-file-pdf"></i> Baixar PDF
+        </button>
+        <button class="btn" onclick="fecharModalDetalhes()" style="flex: 1; min-width: 150px; background: #6b7280;">
+          <i class="fas fa-times"></i> Fechar
+        </button>
+        <button class="btn" onclick="deletarInspecao('${inspection.id}')" style="flex: 1; min-width: 150px; background: #B32117;">
+          <i class="fas fa-trash"></i> Excluir
+        </button>
+      </div>
+    </div>
+  `;
+  
+  document.getElementById('inspectionDetailModal').style.display = 'block';
+}
+
+function fecharModalDetalhes() {
+  document.getElementById('inspectionDetailModal').style.display = 'none';
+}
+
+// ========================================
+// MODAL DE AGENDAMENTO
+// ========================================
+
+async function abrirModalAgendamento() {
+  selectedDateForSchedule = null;
+  await loadClientsForSchedule();
+  
+  document.getElementById('scheduleForm').reset();
+  document.getElementById('scheduleClientId').value = '';
+  document.getElementById('scheduleClientName').value = '';
+  document.getElementById('scheduleClientType').value = '';
+  
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('scheduleDate').setAttribute('min', today);
+  document.getElementById('scheduleDate').value = '';
+  
+  document.getElementById('scheduleModal').style.display = 'block';
+}
+
+async function abrirModalAgendamentoComData(dateStr) {
+  selectedDateForSchedule = dateStr;
+  await loadClientsForSchedule();
+  
+  document.getElementById('scheduleForm').reset();
+  document.getElementById('scheduleClientId').value = '';
+  document.getElementById('scheduleClientName').value = '';
+  document.getElementById('scheduleClientType').value = '';
+  
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('scheduleDate').setAttribute('min', today);
+  document.getElementById('scheduleDate').value = dateStr;
+  
+  document.getElementById('scheduleModal').style.display = 'block';
+}
+
+function fecharModalAgendamento() {
+  document.getElementById('scheduleModal').style.display = 'none';
+  selectedDateForSchedule = null;
+}
+
+async function loadClientsForSchedule() {
+  try {
+    const companiesSnapshot = await database.ref('companies').once('value');
+    const buildingsSnapshot = await database.ref('buildings').once('value');
+    
+    const companies = companiesSnapshot.val() || {};
+    const buildings = buildingsSnapshot.val() || {};
+    
+    const select = document.getElementById('scheduleClientSelect');
+    select.innerHTML = '<option value="">Selecione um cliente</option>';
+    
+    // Adicionar empresas
+    Object.keys(companies).forEach(key => {
+      const company = companies[key];
+      const option = document.createElement('option');
+      option.value = key;
+      option.textContent = `[EMPRESA] ${company.razao_social || 'Sem nome'}`;
+      option.dataset.nome = company.razao_social || '';
+      option.dataset.tipo = 'empresa';
+      option.dataset.cnpj = company.cnpj || '';
+      option.dataset.endereco = `${company.endereco || ''}, ${company.numero_empresa || ''}`.trim();
+      select.appendChild(option);
+    });
+    
+    // Adicionar prédios
+    Object.keys(buildings).forEach(key => {
+      const building = buildings[key];
+      const option = document.createElement('option');
+      option.value = key;
+      option.textContent = `[PRÉDIO] ${building.razao_social_predio || 'Sem nome'}`;
+      option.dataset.nome = building.razao_social_predio || '';
+      option.dataset.tipo = 'predio';
+      option.dataset.cnpj = building.cnpj_predio || '';
+      option.dataset.endereco = `${building.endereco_predio || ''}, ${building.numero_predio || ''}`.trim();
+      select.appendChild(option);
+    });
+    
+  } catch (error) {
+    console.error('Erro ao carregar clientes:', error);
+    showToast('Erro ao carregar lista de clientes', 'error');
+  }
+}
+
+async function salvarAgendamento(e) {
+  e.preventDefault();
+  
+  const scheduleData = {
+    clientId: document.getElementById('scheduleClientId').value,
+    clientName: document.getElementById('scheduleClientName').value,
+    clientType: document.getElementById('scheduleClientType').value,
+    date: document.getElementById('scheduleDate').value,
+    time: document.getElementById('scheduleTime').value,
+    address: document.getElementById('scheduleAddress').value,
+    cnpj: document.getElementById('scheduleCNPJ').value,
+    notes: document.getElementById('scheduleNotes').value,
+    createdAt: new Date().toISOString(),
+    createdBy: currentUser?.nome || 'Sistema'
+  };
+  
+  try {
+    await database.ref('scheduled_inspections').push(scheduleData);
+    
+    showToast('Inspeção agendada com sucesso!', 'success');
+    fecharModalAgendamento();
+    
+    await carregarInspecoesAgendadas();
+    renderCalendar();
+  } catch (error) {
+    console.error('Erro ao salvar agendamento:', error);
+    showToast('Erro ao agendar inspeção', 'error');
+  }
+}
+
+// ========================================
+// DELETAR INSPEÇÃO
+// ========================================
+
+async function deletarInspecao(inspectionId) {
+  if (!confirm('Tem certeza que deseja excluir esta inspeção?')) {
+    return;
+  }
+  
+  try {
+    await database.ref(`scheduled_inspections/${inspectionId}`).remove();
+    showToast('Inspeção excluída com sucesso!', 'success');
+    
+    fecharModalDetalhes();
+    document.getElementById('dayInspectionsList').style.display = 'none';
+    
+    await carregarInspecoesAgendadas();
+    renderCalendar();
+  } catch (error) {
+    console.error('Erro ao excluir inspeção:', error);
+    showToast('Erro ao excluir inspeção', 'error');
+  }
+}
+
+// ========================================
+// EXPORTAR PDF INDIVIDUAL
+// ========================================
+// ========================================
+// EXPORTAR PDF INDIVIDUAL
+// ========================================
+
+async function baixarPDFInspecao(inspection) {
+  try {
+    showToast('Gerando PDF da inspeção...', 'info');
+    
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF({
+      orientation: 'portrait',
+      unit: 'mm',
+      format: 'a4'
+    });
+    
+    const pdfHTML = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="UTF-8">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+        <style>
+          * { margin: 0; padding: 0; box-sizing: border-box; }
+          body { 
+            font-family: 'Segoe UI', Arial, sans-serif; 
+            background: white; 
+            color: #1f2937;
+            padding: 0;
+            margin: 0;
+          }
+          .pdf-page {
+            width: 100%;
+            height: 100%;
+            padding: 0;
+            margin: 0;
+          }
+          .pdf-header {
+            background: linear-gradient(135deg, #b32117 0%, #dc2626 100%);
+            color: white;
+            padding: 20px 25px;
+            margin: 0;
+          }
+          .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+          }
+          .logo-section {
+            flex-shrink: 0;
+          }
+          .logo-box {
+            padding: 0;
+          }
+          .logo-text {
+            font-size: 28px;
+            font-weight: 900;
+            color: white;
+            letter-spacing: 2px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+          }
+          .header-title {
+            flex: 1;
+            text-align: right;
+            margin-left: 20px;
+          }
+          .header-title h1 {
+            font-size: 22px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 10px;
+          }
+          .tipo-relatorio-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255,255,255,0.2);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            border: 1px solid rgba(255,255,255,0.3);
+          }
+          .header-divider {
+            height: 2px;
+            background: rgba(255,255,255,0.3);
+            margin: 15px 0;
+          }
+          .header-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 11px;
+          }
+          .header-info-left {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+          }
+          .header-info-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            opacity: 0.95;
+          }
+          .header-info-item i {
+            font-size: 12px;
+          }
+          
+          .content {
+            padding: 30px;
+          }
+          .section {
+            background: #f9fafb;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+          }
+          .section-title {
+            font-size: 18px;
+            font-weight: 800;
+            color: #b32117;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e5e7eb;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+          }
+          .info-grid {
+            display: grid;
+            gap: 12px;
+          }
+          .info-item {
+            display: flex;
+            gap: 10px;
+            font-size: 13px;
+          }
+          .info-label {
+            font-weight: 700;
+            color: #374151;
+            min-width: 100px;
+          }
+          .info-value {
+            color: #1f2937;
+          }
+          .notes-box {
+            background: white;
+            padding: 15px;
+            border-radius: 6px;
+            border: 1px solid #e5e7eb;
+            margin-top: 10px;
+            font-size: 13px;
+            line-height: 1.6;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="pdf-page">
+          <div class="pdf-header">
+            <div class="header-top">
+              <div class="logo-section">
+                <div class="logo-box">
+                  <div class="logo-text">EXTINMAIS</div>
+                </div>
+              </div>
+              <div class="header-title">
+                <h1><i class="fas fa-file-alt"></i> RELATÓRIO DE INSPEÇÃO</h1>
+                <div class="tipo-relatorio-badge">
+                  <i class="fas fa-user"></i>
+                  RELATÓRIO INDIVIDUAL
+                </div>
+              </div>
+            </div>
+            <div class="header-divider"></div>
+            <div class="header-info">
+              <div class="header-info-left">
+                <div class="header-info-item">
+                  <i class="fas fa-id-card"></i>
+                  <span>CNPJ: 52.026.476/0001-03</span>
+                </div>
+                <div class="header-info-item">
+                  <i class="fas fa-phone"></i>
+                  <span>(15) 99137-1232</span>
+                </div>
+                <div class="header-info-item">
+                  <i class="fas fa-envelope"></i>
+                  <span>extinmaiss@outlook.com</span>
+                </div>
+              </div>
+              <div class="header-info-item">
+                <i class="far fa-clock"></i>
+                <span>${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="content">
+            <div class="section">
+              <div class="section-title">
+                <i class="fas fa-building"></i>
+                Informações do Cliente
+              </div>
+              <div class="info-grid">
+                <div class="info-item">
+                  <span class="info-label">Nome:</span>
+                  <span class="info-value">${inspection.clientName}</span>
+                </div>
+                <div class="info-item">
+                  <span class="info-label">Tipo:</span>
+                  <span class="info-value">${inspection.clientType === 'predio' ? 'PRÉDIO' : 'EMPRESA'}</span>
+                </div>
+                ${inspection.cnpj ? `
+                <div class="info-item">
+                  <span class="info-label">CNPJ:</span>
+                  <span class="info-value">${inspection.cnpj}</span>
+                </div>
+                ` : ''}
+                ${inspection.address ? `
+                <div class="info-item">
+                  <span class="info-label">Endereço:</span>
+                  <span class="info-value">${inspection.address}</span>
+                </div>
+                ` : ''}
+              </div>
+            </div>
+            
+            <div class="section">
+              <div class="section-title">
+                <i class="fas fa-calendar-check"></i>
+                Dados da Inspeção
+              </div>
+              <div class="info-grid">
+                <div class="info-item">
+                  <span class="info-label">Data:</span>
+                  <span class="info-value">${formatarDataBR(inspection.date)}</span>
+                </div>
+                <div class="info-item">
+                  <span class="info-label">Horário:</span>
+                  <span class="info-value">${inspection.time}</span>
+                </div>
+                ${inspection.createdBy ? `
+                <div class="info-item">
+                  <span class="info-label">Agendado por:</span>
+                  <span class="info-value">${inspection.createdBy}</span>
+                </div>
+                ` : ''}
+              </div>
+              ${inspection.notes ? `
+                <div style="margin-top: 15px;">
+                  <div class="info-label" style="margin-bottom: 8px;">Observações:</div>
+                  <div class="notes-box">${inspection.notes}</div>
+                </div>
+              ` : ''}
+            </div>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+    
+    await renderizarPaginaNoPDF(pdf, pdfHTML);
+    
+    const fileName = `Inspecao_${inspection.clientName.replace(/[^a-z0-9]/gi, '_')}_${inspection.date}.pdf`;
+    pdf.save(fileName);
+    
+    showToast('PDF gerado com sucesso!', 'success');
+    
+  } catch (error) {
+    console.error('Erro ao gerar PDF:', error);
+    showToast('Erro ao gerar PDF', 'error');
+  }
+}
+
+// ========================================
+// EXPORTAR PDF DO MÊS
+// ========================================
+
+async function exportarMesPDF() {
+  try {
+    const year = currentCalendarDate.getFullYear();
+    const month = currentCalendarDate.getMonth();
+    const monthNames = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+      'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+    
+    const monthInspections = calendarInspections.filter(insp => {
+      const inspDate = new Date(insp.date);
+      return inspDate.getMonth() === month && inspDate.getFullYear() === year;
+    }).sort((a, b) => a.date.localeCompare(b.date) || a.time.localeCompare(b.time));
+    
+    if (monthInspections.length === 0) {
+      showToast('Nenhuma inspeção agendada neste mês', 'warning');
+      return;
+    }
+    
+    showToast('Gerando PDF do calendário...', 'info');
+    
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF({
+      orientation: 'portrait',
+      unit: 'mm',
+      format: 'a4'
+    });
+    
+    const itemsPerPage = 4;
+    const totalPages = Math.ceil(monthInspections.length / itemsPerPage);
+
+    for (let i = 0; i < totalPages; i++) {
+      if (i > 0) pdf.addPage();
+
+      const start = i * itemsPerPage;
+      const currentChunk = monthInspections.slice(start, start + itemsPerPage);
+
+      const pdfHTML = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="UTF-8">
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+          <style>
+            * { margin: 0; padding: 0; box-sizing: border-box; }
+            body { 
+              font-family: 'Segoe UI', Arial, sans-serif; 
+              background: white; 
+              color: #1f2937;
+              width: 794px; /* Largura exata para preencher o A4 sem bordas brancas */
+            }
+            .pdf-header {
+              background: linear-gradient(135deg, #b32117 0%, #dc2626 100%);
+              color: white;
+              padding: 20px 25px;
+              width: 100%;
+            }
+            .header-top {
+              display: flex;
+              justify-content: space-between;
+              align-items: flex-start;
+              margin-bottom: 15px;
+            }
+            .logo-text {
+              font-size: 28px;
+              font-weight: 900;
+              letter-spacing: 2px;
+              text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            }
+            .header-title { text-align: right; flex: 1; }
+            .header-title h1 {
+              font-size: 22px;
+              margin-bottom: 8px;
+              display: flex;
+              align-items: center;
+              justify-content: flex-end;
+              gap: 10px;
+            }
+            .tipo-relatorio-badge {
+              display: inline-flex;
+              align-items: center;
+              gap: 8px;
+              background: rgba(255,255,255,0.2);
+              padding: 6px 14px;
+              border-radius: 20px;
+              font-size: 11px;
+              font-weight: 700;
+              border: 1px solid rgba(255,255,255,0.3);
+            }
+            .header-divider {
+              height: 2px;
+              background: rgba(255,255,255,0.3);
+              margin: 15px 0;
+            }
+            .header-info {
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              font-size: 11px;
+            }
+            .header-info-left { display: flex; gap: 20px; }
+            .header-info-item { display: flex; align-items: center; gap: 6px; }
+
+            .content { padding: 25px; width: 100%; }
+            
+            .month-header {
+              background: #f9fafb;
+              border: 2px solid #b32117;
+              border-radius: 8px;
+              padding: 15px;
+              margin-bottom: 25px;
+              text-align: center;
+            }
+
+            .inspection-card {
+              background: #f9fafb;
+              border: 2px solid #e5e7eb;
+              border-radius: 8px;
+              padding: 15px;
+              margin-bottom: 15px;
+              min-height: 145px;
+            }
+            .inspection-header {
+              display: flex;
+              justify-content: space-between;
+              border-bottom: 2px solid #e5e7eb;
+              padding-bottom: 10px;
+              margin-bottom: 12px;
+            }
+            .client-name { font-size: 16px; font-weight: 800; color: #1f2937; }
+            .client-type { font-size: 11px; color: #6b7280; text-transform: uppercase; font-weight: 600; }
+
+            .inspection-info { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 12px; }
+            .info-item i { color: #b32117; margin-right: 5px; width: 14px; }
+            .info-full { grid-column: 1 / -1; }
+          </style>
+        </head>
+        <body>
+          <div class="pdf-header">
+            <div class="header-top">
+              <div class="logo-text">EXTINMAIS</div>
+              <div class="header-title">
+                <h1><i class="fas fa-file-alt"></i> CALENDÁRIO DE INSPEÇÕES</h1>
+                <div class="tipo-relatorio-badge">
+                  PÁGINA ${i + 1} DE ${totalPages}
+                </div>
+              </div>
+            </div>
+            <div class="header-divider"></div>
+            <div class="header-info">
+              <div class="header-info-left">
+                <div class="header-info-item"><i class="fas fa-id-card"></i> 52.026.476/0001-03</div>
+                <div class="header-info-item"><i class="fas fa-phone"></i> (15) 99137-1232</div>
+                <div class="header-info-item"><i class="fas fa-envelope"></i> extinmaiss@outlook.com</div>
+              </div>
+              <div class="header-info-item">
+                <i class="far fa-clock"></i> ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+              </div>
+            </div>
+          </div>
+          
+          <div class="content">
+            <div class="month-header">
+              <h2 style="color: #b32117; font-size: 20px;">${monthNames[month].toUpperCase()} ${year}</h2>
+              <p style="color: #6b7280; font-size: 14px; font-weight: 600; margin-top: 5px;">
+                <i class="fas fa-calendar-check" style="color: #b32117;"></i> Total de ${monthInspections.length} agendamentos
+              </p>
+            </div>
+            
+            ${currentChunk.map(insp => `
+              <div class="inspection-card">
+                <div class="inspection-header">
+                  <div>
+                    <div class="client-name">${insp.clientName}</div>
+                    <div class="client-type">${insp.clientType === 'predio' ? 'PRÉDIO' : 'EMPRESA'}</div>
+                  </div>
+                </div>
+                <div class="inspection-info">
+                  <div class="info-item"><i class="fas fa-calendar"></i> <strong>${formatarDataBR(insp.date)}</strong></div>
+                  <div class="info-item"><i class="fas fa-clock"></i> <strong>${insp.time}</strong></div>
+                  ${insp.address ? `<div class="info-item info-full"><i class="fas fa-map-marker-alt"></i> ${insp.address}</div>` : ''}
+                  ${insp.cnpj ? `<div class="info-item info-full"><i class="fas fa-id-card"></i> ${insp.cnpj}</div>` : ''}
+                  ${insp.notes ? `<div class="info-item info-full"><i class="fas fa-sticky-note"></i> ${insp.notes}</div>` : ''}
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </body>
+        </html>
+      `;
+      
+      await renderizarPaginaNoPDF(pdf, pdfHTML, i === 0);
+    }
+    
+    pdf.save(`Agenda_${monthNames[month]}_${year}.pdf`);
+    showToast('PDF exportado com sucesso!', 'success');
+    
+  } catch (error) {
+    console.error('Erro ao exportar PDF:', error);
+    showToast('Erro ao gerar PDF', 'error');
+  }
+}
+
+// ========================================
+// UTILITÁRIOS
+// ========================================
+
+function formatarDataBR(dateStr) {
+  const [year, month, day] = dateStr.split('-');
+  return `${day}/${month}/${year}`;
+}
+
+// ========================================
+// EVENT LISTENERS
+// ========================================
+
+function setupCalendarEventListeners() {
+
+  document.getElementById('prevMonthBtn').addEventListener('click', () => {
+    currentCalendarDate.setDate(1); // evita bug
+    currentCalendarDate.setMonth(currentCalendarDate.getMonth() - 1);
+    renderCalendar();
+  });
+
+  document.getElementById('nextMonthBtn').addEventListener('click', () => {
+    currentCalendarDate.setDate(1); // evita bug
+    currentCalendarDate.setMonth(currentCalendarDate.getMonth() + 1);
+    renderCalendar();
+  });
+
+  document.getElementById('closeDayListBtn').addEventListener('click', () => {
+    document.getElementById('dayInspectionsList').style.display = 'none';
+  });
+
+  document.getElementById('addScheduleBtn').addEventListener('click', abrirModalAgendamento);
+
+  document.getElementById('scheduleForm').addEventListener('submit', salvarAgendamento);
+
+  document.getElementById('scheduleClientSelect').addEventListener('change', function () {
+    const selectedOption = this.options[this.selectedIndex];
+
+    if (selectedOption.value) {
+      document.getElementById('scheduleClientId').value = selectedOption.value;
+      document.getElementById('scheduleClientName').value = selectedOption.dataset.nome || '';
+      document.getElementById('scheduleClientType').value = selectedOption.dataset.tipo || 'empresa';
+      document.getElementById('scheduleCNPJ').value = selectedOption.dataset.cnpj || '';
+      document.getElementById('scheduleAddress').value = selectedOption.dataset.endereco || '';
+    }
+  });
+
+  document.getElementById('exportMonthPDFBtn').addEventListener('click', exportarMesPDF);
+}
+
+
+
