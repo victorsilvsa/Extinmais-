@@ -342,8 +342,8 @@ async function loadCompanies() {
       item.className = 'list-item';
       item.innerHTML = `
         <div class="list-item-header">
-          <div>
-            <div class="list-item-title">${company.razao_social}</div>
+          <div style="flex: 1; min-width: 0; overflow: hidden;">
+            <div class="list-item-title" style="word-wrap: break-word; word-break: break-word; overflow-wrap: break-word; hyphens: auto; line-height: 1.3;">${company.razao_social}</div>
             <div class="list-item-subtitle">${company.cnpj}</div>
           </div>
         </div>
@@ -358,11 +358,11 @@ async function loadCompanies() {
           </div>
           <div class="list-item-info-row">
             <span class="list-item-info-label">Responsável:</span>
-            <span class="list-item-info-value">${company.responsavel || '-'}</span>
+            <span class="list-item-info-value" style="word-wrap: break-word; word-break: break-word; overflow-wrap: break-word; hyphens: auto;">${company.responsavel || '-'}</span>
           </div>
           <div class="list-item-info-row">
             <span class="list-item-info-label">Endereço:</span>
-            <span class="list-item-info-value">${company.endereco || '-'}</span>
+            <span class="list-item-info-value" style="word-wrap: break-word; word-break: break-word; overflow-wrap: break-word; hyphens: auto; line-height: 1.4;">${company.endereco || '-'}</span>
           </div>
         </div>
         <div class="list-item-actions">
@@ -412,8 +412,8 @@ async function loadCompanies() {
       item.className = 'list-item list-item-building';
       item.innerHTML = `
         <div class="list-item-header">
-          <div>
-            <div class="list-item-title">${building.razao_social_predio}</div>
+          <div style="flex: 1; min-width: 0; overflow: hidden;">
+            <div class="list-item-title" style="word-wrap: break-word; word-break: break-word; overflow-wrap: break-word; hyphens: auto; line-height: 1.3;">${building.razao_social_predio}</div>
             <div class="list-item-subtitle">${building.cnpj_predio}</div>
           </div>
         </div>
@@ -428,11 +428,11 @@ async function loadCompanies() {
           </div>
           <div class="list-item-info-row">
             <span class="list-item-info-label">Endereço:</span>
-            <span class="list-item-info-value">${building.endereco_predio || '-'}</span>
+            <span class="list-item-info-value" style="word-wrap: break-word; word-break: break-word; overflow-wrap: break-word; hyphens: auto; line-height: 1.4;">${building.endereco_predio || '-'}</span>
           </div>
           <div class="list-item-info-row">
             <span class="list-item-info-label">Responsável:</span>
-            <span class="list-item-info-value">${building.responsavel_predio || '-'}</span>
+            <span class="list-item-info-value" style="word-wrap: break-word; word-break: break-word; overflow-wrap: break-word; hyphens: auto;">${building.responsavel_predio || '-'}</span>
           </div>
         </div>
         <div class="list-item-actions">
@@ -2836,7 +2836,7 @@ function renderFilteredOrders() {
   </div>
 
   <!-- Texto -->
-  <div style="position: relative; z-index: 2;">
+  <div style="position: relative; z-index: 2; word-wrap: break-word; word-break: break-word; overflow-wrap: break-word; min-width: 0;">
     <div style="
       color: #D4C29A;
       font-size: 10px;
@@ -2908,6 +2908,10 @@ function renderFilteredOrders() {
       margin-bottom: 6px;
       border-radius: 6px;
       transition: all 0.3s;
+      word-wrap: break-word;
+      word-break: break-word;
+      overflow-wrap: break-word;
+      min-width: 0;
     ">
       <span style="
         color: #fff;
@@ -2915,8 +2919,13 @@ function renderFilteredOrders() {
         margin-right: 10px;
         font-size: 13px;
         font-weight: 500;
+        word-wrap: break-word;
+        word-break: break-word;
+        overflow-wrap: break-word;
+        hyphens: auto;
+        min-width: 0;
       ">
-        <i class="fas fa-box" style="margin-right: 8px; color: #D4C29A; font-size: 11px;"></i>
+        <i class="fas fa-box" style="margin-right: 8px; color: #D4C29A; font-size: 11px; flex-shrink: 0;"></i>
         ${escapeHtml(p.name || 'Produto')}
       </span>
       <span style="
@@ -2928,6 +2937,7 @@ function renderFilteredOrders() {
         white-space: nowrap;
         font-size: 12px;
         border: 1px solid #D4C29A;
+        flex-shrink: 0;
       ">
         ${p.qty}x
       </span>
@@ -2948,13 +2958,18 @@ function renderFilteredOrders() {
     background: linear-gradient(135deg, #1a1a1a 0%, #0d0d0d 100%);
     border-bottom: 2px solid #D4C29A;
   ">
-    <div style="flex: 1;">
+    <div style="flex: 1; min-width: 0; overflow: hidden;">
       <div class="list-item-title" style="
         font-size: 16px;
         margin-bottom: 6px;
         color: #D4C29A;
         font-weight: 700;
         letter-spacing: 0.3px;
+        word-wrap: break-word;
+        word-break: break-word;
+        overflow-wrap: break-word;
+        hyphens: auto;
+        line-height: 1.3;
       ">
         ${escapeHtml(os.cliente || 'Cliente não informado')}
       </div>
@@ -2965,7 +2980,7 @@ function renderFilteredOrders() {
         align-items: center;
         gap: 6px;
       ">
-        <i class="fas fa-calendar-alt" style="font-size: 10px;"></i>
+        <i class="fas fa-calendar-alt" style="font-size: 10px; flex-shrink: 0;"></i>
         ${dataStr}
       </div>
     </div>
@@ -2990,6 +3005,8 @@ function renderFilteredOrders() {
         border-radius: 6px;
         padding: 10px;
         transition: all 0.3s;
+        min-width: 0;
+        overflow: hidden;
       ">
         <div style="
           font-size: 10px;
@@ -3001,13 +3018,18 @@ function renderFilteredOrders() {
           align-items: center;
           gap: 5px;
         ">
-          <i class="fas fa-tools" style="color: #D4C29A;"></i>
+          <i class="fas fa-tools" style="color: #D4C29A; flex-shrink: 0;"></i>
           Serviço
         </div>
         <div style="
           font-size: 13px;
           color: #fff;
           font-weight: 600;
+          word-wrap: break-word;
+          word-break: break-word;
+          overflow-wrap: break-word;
+          hyphens: auto;
+          line-height: 1.3;
         ">
           ${escapeHtml(os.servico || '-')}
         </div>
@@ -3019,6 +3041,8 @@ function renderFilteredOrders() {
         border-radius: 6px;
         padding: 10px;
         transition: all 0.3s;
+        min-width: 0;
+        overflow: hidden;
       ">
         <div style="
           font-size: 10px;
@@ -3030,13 +3054,18 @@ function renderFilteredOrders() {
           align-items: center;
           gap: 5px;
         ">
-          <i class="fas fa-user-hard-hat" style="color: #D4C29A;"></i>
+          <i class="fas fa-user-hard-hat" style="color: #D4C29A; flex-shrink: 0;"></i>
           Técnico
         </div>
         <div style="
           font-size: 13px;
           color: #fff;
           font-weight: 600;
+          word-wrap: break-word;
+          word-break: break-word;
+          overflow-wrap: break-word;
+          hyphens: auto;
+          line-height: 1.3;
         ">
           ${escapeHtml(os.tecnico || '-')}
         </div>
@@ -3057,6 +3086,10 @@ function renderFilteredOrders() {
           border-radius: 6px;
           padding: 10px;
           margin-bottom: 12px;
+          word-wrap: break-word;
+          word-break: break-word;
+          overflow-wrap: break-word;
+          hyphens: auto;
         ">
           <div style="
             font-size: 10px;
@@ -3068,7 +3101,7 @@ function renderFilteredOrders() {
             align-items: center;
             gap: 5px;
           ">
-            <i class="fas fa-map-marker-alt" style="color: #D4C29A;"></i>
+            <i class="fas fa-map-marker-alt" style="color: #D4C29A; flex-shrink: 0;"></i>
             Endereço e CEP
           </div>
           
@@ -3077,6 +3110,11 @@ function renderFilteredOrders() {
             color: #fff;
             font-weight: 500;
             margin-bottom: 4px;
+            word-wrap: break-word;
+            word-break: break-word;
+            overflow-wrap: break-word;
+            hyphens: auto;
+            line-height: 1.4;
           ">
             ${escapeHtml(os.endereco || '-')}
           </div>
@@ -3107,7 +3145,7 @@ function renderFilteredOrders() {
             align-items: center;
             gap: 5px;
           ">
-            <i class="fas fa-circle-check" style="color: ${statusPagamento === 'Pago' ? '#28a745' : '#dc3545'};"></i>
+            <i class="fas fa-circle-check" style="color: ${statusPagamento === 'Pago' ? '#28a745' : '#dc3545'}; flex-shrink: 0;"></i>
             Status de Pagamento
           </div>
           <div style="
@@ -3119,7 +3157,7 @@ function renderFilteredOrders() {
             align-items: center;
             gap: 6px;
           ">
-            <i class="fas fa-${statusPagamento === 'Pago' ? 'check-circle' : 'times-circle'}"></i>
+            <i class="fas fa-${statusPagamento === 'Pago' ? 'check-circle' : 'times-circle'}" style="flex-shrink: 0;"></i>
             ${escapeHtml(statusPagamento)}
           </div>
 
@@ -3135,13 +3173,16 @@ function renderFilteredOrders() {
             align-items: center;
             gap: 5px;
           ">
-            <i class="fas fa-credit-card" style="color: #D4C29A;"></i>
+            <i class="fas fa-credit-card" style="color: #D4C29A; flex-shrink: 0;"></i>
             Forma de Pagamento
           </div>
           <div style="
             font-size: 13px;
             color: #fff;
             font-weight: 600;
+            word-wrap: break-word;
+            word-break: break-word;
+            overflow-wrap: break-word;
           ">
             ${escapeHtml(formaPagamento)}
           </div>
@@ -3352,9 +3393,10 @@ function renderFilteredOrders() {
 
     list.appendChild(div);
 
-  }
-  );
+  });
 }
+
+
 
 
 
@@ -7181,45 +7223,47 @@ function abrirDetalhesInspecao(inspection) {
     <div style="display: flex; flex-direction: column; gap: 20px;">
       <div style="background: #2a2a2a; padding: 20px; border-radius: 10px; border: 2px solid #D4C29A;">
         <h3 style="color: #D4C29A; margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
-          <i class="fas fa-building"></i> Informações do Cliente
+          <i class="fas fa-building" style="flex-shrink: 0;"></i> 
+          <span style="word-wrap: break-word; word-break: break-word; overflow-wrap: break-word;">Informações do Cliente</span>
         </h3>
         <div style="display: grid; gap: 12px;">
-          <div>
+          <div style="word-wrap: break-word; word-break: break-word; overflow-wrap: break-word; hyphens: auto;">
             <strong style="color: #D4C29A;">Nome:</strong>
-            <span style="color: #fff; margin-left: 10px;">${inspection.clientName}</span>
+            <span style="color: #fff; margin-left: 10px; display: inline-block;">${inspection.clientName}</span>
           </div>
-          <div>
+          <div style="word-wrap: break-word; word-break: break-word; overflow-wrap: break-word;">
             <strong style="color: #D4C29A;">Tipo:</strong>
             <span style="color: #fff; margin-left: 10px;">${inspection.clientType === 'predio' ? 'PRÉDIO' : 'EMPRESA'}</span>
           </div>
-          <div>
+          <div style="word-wrap: break-word; word-break: break-word; overflow-wrap: break-word;">
             <strong style="color: #D4C29A;">CNPJ:</strong>
             <span style="color: #fff; margin-left: 10px;">${inspection.cnpj || 'Não informado'}</span>
           </div>
-          <div>
+          <div style="word-wrap: break-word; word-break: break-word; overflow-wrap: break-word; hyphens: auto;">
             <strong style="color: #D4C29A;">Endereço:</strong>
-            <span style="color: #fff; margin-left: 10px;">${inspection.address || 'Não informado'}</span>
+            <span style="color: #fff; margin-left: 10px; display: inline-block;">${inspection.address || 'Não informado'}</span>
           </div>
         </div>
       </div>
       
       <div style="background: #2a2a2a; padding: 20px; border-radius: 10px; border: 2px solid #D4C29A;">
         <h3 style="color: #D4C29A; margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
-          <i class="fas fa-calendar-check"></i> Dados da Inspeção
+          <i class="fas fa-calendar-check" style="flex-shrink: 0;"></i> 
+          <span style="word-wrap: break-word; word-break: break-word; overflow-wrap: break-word;">Dados da Inspeção</span>
         </h3>
         <div style="display: grid; gap: 12px;">
-          <div>
+          <div style="word-wrap: break-word; word-break: break-word; overflow-wrap: break-word;">
             <strong style="color: #D4C29A;">Data:</strong>
             <span style="color: #fff; margin-left: 10px;">${formatarDataBR(inspection.date)}</span>
           </div>
-          <div>
+          <div style="word-wrap: break-word; word-break: break-word; overflow-wrap: break-word;">
             <strong style="color: #D4C29A;">Horário:</strong>
             <span style="color: #fff; margin-left: 10px;">${inspection.time}</span>
           </div>
           ${inspection.notes ? `
-          <div>
+          <div style="word-wrap: break-word; word-break: break-word; overflow-wrap: break-word; hyphens: auto;">
             <strong style="color: #D4C29A;">Observações:</strong>
-            <div style="color: #fff; margin-top: 8px; padding: 10px; background: #1a1a1a; border-radius: 6px;">
+            <div style="color: #fff; margin-top: 8px; padding: 10px; background: #1a1a1a; border-radius: 6px; word-wrap: break-word; word-break: break-word; overflow-wrap: break-word; hyphens: auto; white-space: pre-wrap;">
               ${inspection.notes}
             </div>
           </div>
@@ -7243,6 +7287,8 @@ function abrirDetalhesInspecao(inspection) {
   
   document.getElementById('inspectionDetailModal').style.display = 'block';
 }
+
+
 
 function fecharModalDetalhes() {
   document.getElementById('inspectionDetailModal').style.display = 'none';
