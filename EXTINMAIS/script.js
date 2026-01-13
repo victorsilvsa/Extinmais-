@@ -7499,6 +7499,7 @@ async function carregarInspecoesAgendadas() {
 // RENDERIZAÇÃO DO CALENDÁRIO
 // ========================================
 
+
 function renderCalendar() {
   const year = currentCalendarDate.getFullYear();
   const month = currentCalendarDate.getMonth();
@@ -7506,10 +7507,16 @@ function renderCalendar() {
   // Atualizar título
   const monthNames = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
     'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
-  document.getElementById('currentMonthTitle').textContent = `${monthNames[month]} ${year}`;
+  
+  const monthTitleElement = document.getElementById('currentMonthTitle');
+  if (monthTitleElement) {
+    monthTitleElement.textContent = `${monthNames[month]} ${year}`;
+  }
   
   // Limpar grid
   const grid = document.getElementById('calendarGrid');
+  if (!grid) return;
+  
   grid.innerHTML = '';
   
   // Adicionar cabeçalhos dos dias da semana
@@ -7528,7 +7535,15 @@ function renderCalendar() {
   const lastDate = new Date(year, month + 1, 0).getDate();
   
   // Último dia do mês anterior
-  const prevLastDate = new Date(year, month, 0).getDate();
+  const prevMonthDate = new Date(year, month, 0);
+  const prevLastDate = prevMonthDate.getDate();
+  const prevMonth = prevMonthDate.getMonth();
+  const prevYear = prevMonthDate.getFullYear();
+  
+  // Próximo mês
+  const nextMonthDate = new Date(year, month + 1, 1);
+  const nextMonth = nextMonthDate.getMonth();
+  const nextYear = nextMonthDate.getFullYear();
   
   // Hoje
   const today = new Date();
@@ -7537,7 +7552,7 @@ function renderCalendar() {
   
   // Dias do mês anterior
   for (let i = firstDay - 1; i >= 0; i--) {
-    const dayDiv = createDayElement(prevLastDate - i, month - 1, year, true);
+    const dayDiv = createDayElement(prevLastDate - i, prevMonth, prevYear, true);
     grid.appendChild(dayDiv);
   }
   
@@ -7551,10 +7566,9 @@ function renderCalendar() {
   // Dias do próximo mês
   const remainingCells = 42 - (firstDay + lastDate);
   for (let day = 1; day <= remainingCells; day++) {
-    const dayDiv = createDayElement(day, month + 1, year, true);
+    const dayDiv = createDayElement(day, nextMonth, nextYear, true);
     grid.appendChild(dayDiv);
   }
-  
 }
 
 function createDayElement(day, month, year, isOtherMonth = false, isToday = false) {
@@ -7569,11 +7583,11 @@ function createDayElement(day, month, year, isOtherMonth = false, isToday = fals
     dayDiv.classList.add('today');
   }
   
-  // Data completa
+  // Data completa (mês e ano já vêm ajustados)
   const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
   
-  // Filtrar inspeções deste dia
-  const dayInspections = calendarInspections.filter(insp => insp.date === dateStr);
+  // Filtrar inspeções deste dia (proteção contra array undefined)
+  const dayInspections = (calendarInspections || []).filter(insp => insp.date === dateStr);
   
   if (dayInspections.length > 0) {
     dayDiv.classList.add('has-inspections');
@@ -7593,12 +7607,14 @@ function createDayElement(day, month, year, isOtherMonth = false, isToday = fals
     const tag = document.createElement('div');
     tag.className = 'calendar-inspection-tag';
     tag.innerHTML = `
-      <span class="calendar-inspection-time">${inspection.time}</span>
-      <span>${inspection.clientName}</span>
+      <span class="calendar-inspection-time">${inspection.time || ''}</span>
+      <span>${inspection.clientName || 'Sem nome'}</span>
     `;
     tag.onclick = (e) => {
       e.stopPropagation();
-      abrirDetalhesInspecao(inspection);
+      if (typeof abrirDetalhesInspecao === 'function') {
+        abrirDetalhesInspecao(inspection);
+      }
     };
     inspectionsContainer.appendChild(tag);
   });
@@ -7612,20 +7628,24 @@ function createDayElement(day, month, year, isOtherMonth = false, isToday = fals
     addBtn.innerHTML = '<i class="fas fa-plus"></i> <span>Agendar</span>';
     addBtn.onclick = (e) => {
       e.stopPropagation();
-      abrirModalAgendamentoComData(dateStr);
+      if (typeof abrirModalAgendamentoComData === 'function') {
+        abrirModalAgendamentoComData(dateStr);
+      }
     };
     dayDiv.appendChild(addBtn);
   }
   
   // Click no dia (visualizar)
   dayDiv.onclick = () => {
-    if (!isOtherMonth) {
+    if (!isOtherMonth && typeof mostrarInspecoesDoDia === 'function') {
       mostrarInspecoesDoDia(dateStr, day, month, year);
     }
   };
   
   return dayDiv;
 }
+
+
 
 // ========================================
 // EXIBIR INSPEÇÕES DO DIA
@@ -8457,4 +8477,3 @@ function setupCalendarEventListeners() {
 
   document.getElementById('exportMonthPDFBtn').addEventListener('click', exportarMesPDF);
 }
-
