@@ -2922,143 +2922,139 @@ document.getElementById('passwordForm').addEventListener('submit', async (e) => 
   showToast('Senha alterada com sucesso!');
   e.target.reset();
 });
-// =============================
-// FUNÇÃO ARQUIVAR (Backup)
-// =============================
+/* ============================================================
+   ARQUIVAR MÊS (Apenas Inspeções e Ordens)
+   ============================================================ */
 document.getElementById('archiveMonthBtn')?.addEventListener('click', async () => {
-  const button = document.getElementById('archiveMonthBtn');
-  button.disabled = true;
-  button.innerHTML = '<span class="loading"></span> Arquivando...';
+    const button = document.getElementById('archiveMonthBtn');
+    if (!confirm('Deseja arquivar as inspeções e ordens? Isso limpará os registros atuais após o download do backup.')) return;
 
-  try {
-    const now = new Date();
-    const month = now.getMonth() + 1;
-    const year = now.getFullYear();
+    button.disabled = true;
+    button.innerHTML = '<span class="loading"></span> Arquivando...';
 
-    const [inspectionsSnap, companiesSnap, ordersSnap, buildingsSnap] = await Promise.all([
-      database.ref('inspections').once('value'),
-      database.ref('companies').once('value'),
-      database.ref('buildings').once('value'),
-      database.ref('orders').once('value')
-    ]);
+    try {
+        const now = new Date();
+        const month = now.getMonth() + 1;
+        const year = now.getFullYear();
 
-    const backup = {
-      version: '1.2',
-      exportDate: now.toISOString(),
-      month,
-      year,
-      user: { nome: currentUser?.nome || '', cnpj: currentUser?.cnpj || '' },
-      inspections: inspectionsSnap.val() || {},
-      companies: companiesSnap.val() || {},
-      orders: ordersSnap.val() || {}, // As ordens já eram salvas aqui
-      buildings: buildingsSnap.val() || {},
-      logo: currentLogoUrl // Adicionado para garantir que a logo vá no backup
-    };
+        // Buscamos apenas o que será arquivado
+        const [inspectionsSnap, ordersSnap] = await Promise.all([
+            database.ref('inspections').once('value'),
+            database.ref('orders').once('value')
+        ]);
 
-    const json = JSON.stringify(backup, null, 2);
-    const blob = new Blob([json], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `backup_${year}_${String(month).padStart(2, '0')}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
+        const backup = {
+            version: '1.3', // Versão atualizada
+            type: 'inspections_orders_only',
+            exportDate: now.toISOString(),
+            month,
+            year,
+            user: { nome: currentUser?.nome || '', cnpj: currentUser?.cnpj || '' },
+            inspections: inspectionsSnap.val() || {},
+            orders: ordersSnap.val() || {}
+        };
 
-    // ZERAR DADOS APÓS BACKUP
-    await Promise.all([
-      database.ref('inspections').set(null),
-      database.ref('companies').set(null),
-      database.ref('buildings').set(null),
-      database.ref('orders').set(null)
-    ]);
-
-    showToast('Backup criado com sucesso! Dados arquivados ');
-    loadDashboard(); // Recarrega a tela para sumir o que foi zerado
-  } catch (err) {
-    console.error('Erro ao arquivar:', err);
-    showToast('Erro ao criar backup', 'error');
-  } finally {
-    button.disabled = false;
-    button.innerHTML = '<i class="fas fa-download"></i> Arquivar';
-  }
-});
-
-// =============================
-// FUNÇÃO RESTAURAR (Restore)
-// =============================
-document.getElementById('restoreFile').addEventListener('change', async (e) => {
-  const file = e.target.files[0];
-  if (!file) return;
-
-  if (!confirm('Deseja restaurar este backup? Os dados serão adicionados ao sistema atual.')) {
-    e.target.value = '';
-    return;
-  }
-
-  try {
-    const reader = new FileReader();
-    reader.onload = async (event) => {
-      try {
-        const backup = JSON.parse(event.target.result);
-
-        if (!backup.version) {
-          showToast('Arquivo de backup inválido', 'error');
-          return;
+        // Verifica se há algo para arquivar
+        if (!inspectionsSnap.exists() && !ordersSnap.exists()) {
+            showToast('Não há inspeções ou ordens para arquivar.', 'warning');
+            return;
         }
 
-        const updates = {};
-        let ordersCount = 0;
+        const json = JSON.stringify(backup, null, 2);
+        const blob = new Blob([json], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `arquivamento_${year}_${String(month).padStart(2, '0')}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
 
-        // 1. Preparar Empresas
-        if (backup.companies) {
-          for (let key in backup.companies) updates[`companies/${key}`] = backup.companies[key];
-        }
+        // ZERAR APENAS AS TABELAS DE MOVIMENTAÇÃO
+        await Promise.all([
+            database.ref('inspections').set(null),
+            database.ref('orders').set(null)
+        ]);
 
-        // 2. Preparar Inspeções
-        if (backup.inspections) {
-          for (let key in backup.inspections) updates[`inspections/${key}`] = backup.inspections[key];
-        }
-
-        // 3. Preparar Ordens de Serviço (CORREÇÃO: Agora elas voltam!)
-        if (backup.orders) {
-          for (let key in backup.orders) {
-            updates[`orders/${key}`] = backup.orders[key];
-            ordersCount++;
-          }
-        }
-
-        // 4. Restaurar Logo
-        if (backup.logo) {
-          updates['settings/logo'] = {
-            url: backup.logo,
-            uploadDate: new Date().toISOString(),
-            uploadedBy: currentUser?.nome || 'Sistema'
-          };
-          localStorage.setItem('cachedLogoUrl', backup.logo);
-        }
-
-        // Executa todas as gravações de uma vez só no Firebase
-        await database.ref().update(updates);
-
-        showToast(`Sucesso! ${ordersCount} ordens de serviço restauradas.`);
-
-        // Atualizar interface
+        showToast('Sucesso! Inspeções e Ordens arquivadas e limpas.');
+        
+        // Atualiza as listas
         loadDashboard();
-        loadCompanies();
         loadInspections();
         if (typeof loadOrders === 'function') loadOrders();
-        if (backup.logo) updateLogoDisplay(backup.logo);
 
-      } catch (parseError) {
-        showToast('Erro ao ler arquivo JSON', 'error');
-      }
-    };
-    reader.readAsText(file);
-  } catch (error) {
-    showToast('Erro ao restaurar backup', 'error');
-  } finally {
-    e.target.value = '';
-  }
+    } catch (err) {
+        console.error('Erro ao arquivar:', err);
+        showToast('Erro ao criar arquivamento', 'error');
+    } finally {
+        button.disabled = false;
+        button.innerHTML = '<i class="fas fa-download"></i> Arquivar';
+    }
+});
+
+/* ============================================================
+   RESTAURAR (Apenas Inspeções e Ordens)
+   ============================================================ */
+document.getElementById('restoreFile').addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    if (!confirm('Deseja restaurar este backup? As inspeções e ordens contidas no arquivo serão adicionadas ao sistema.')) {
+        e.target.value = '';
+        return;
+    }
+
+    try {
+        const reader = new FileReader();
+        reader.onload = async (event) => {
+            try {
+                const backup = JSON.parse(event.target.result);
+
+                const updates = {};
+                let countInsp = 0;
+                let countOrders = 0;
+
+                // 1. Restaurar Inspeções (se houver no arquivo)
+                if (backup.inspections) {
+                    for (let key in backup.inspections) {
+                        updates[`inspections/${key}`] = backup.inspections[key];
+                        countInsp++;
+                    }
+                }
+
+                // 2. Restaurar Ordens (se houver no arquivo)
+                if (backup.orders) {
+                    for (let key in backup.orders) {
+                        updates[`orders/${key}`] = backup.orders[key];
+                        countOrders++;
+                    }
+                }
+
+                if (countInsp === 0 && countOrders === 0) {
+                    showToast('Nenhum dado encontrado no arquivo.', 'warning');
+                    return;
+                }
+
+                // Executa a restauração
+                await database.ref().update(updates);
+
+                showToast(`Restaurado: ${countInsp} Inspeções e ${countOrders} Ordens.`);
+
+                // Atualizar interface
+                loadDashboard();
+                loadInspections();
+                if (typeof loadOrders === 'function') loadOrders();
+
+            } catch (parseError) {
+                console.error('Erro no Parse:', parseError);
+                showToast('Arquivo de backup inválido ou corrompido.', 'error');
+            }
+        };
+        reader.readAsText(file);
+    } catch (error) {
+        showToast('Erro ao restaurar dados', 'error');
+    } finally {
+        e.target.value = '';
+    }
 });
 
 // Initialize
@@ -8461,5 +8457,4 @@ function setupCalendarEventListeners() {
 
   document.getElementById('exportMonthPDFBtn').addEventListener('click', exportarMesPDF);
 }
-
 
