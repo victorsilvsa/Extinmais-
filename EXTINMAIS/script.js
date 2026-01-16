@@ -4325,7 +4325,7 @@ async function gerarPDFOrdem(orderId) {
 
     // Número da OS
     doc.setTextColor(90, 90, 90);
-    doc.setFontSize(8.5);
+    doc.setFontSize(9);
     doc.setFont('helvetica', 'normal');
     doc.text(
       `N° ${ordem.id?.slice(0, 8) || '-'}`,
@@ -4334,10 +4334,31 @@ async function gerarPDFOrdem(orderId) {
       { align: 'right' }
     );
 
+    // Número do Prédio ou Empresa - pegando do BD com camelCase
+    let numeroLabel = 'Prédio/N°:';
+    let numero = ordem.numeroPredio || '-';
+    
+    if (ordem.clienteTipo === 'empresa') {
+      numeroLabel = 'Empresa/N°:';
+      numero = ordem.numeroEmpresa || '-';
+    }
+    
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
+    doc.text(
+      `${numeroLabel} ${numero}`,
+      200,
+      24,
+      { align: 'right' }
+    );
+
+    // Status
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
     doc.text(
       `Status: ${statusText}`,
       200,
-      24,
+      29,
       { align: 'right' }
     );
 
@@ -4395,6 +4416,7 @@ async function gerarPDFOrdem(orderId) {
     } else {
       doc.text('____________________', 153, yPos + 19);
     }
+
     // Email - campo para preencher
     doc.setFont('helvetica', 'bold');
     doc.text('E-mail:', 130, yPos + 25);
@@ -4427,6 +4449,7 @@ async function gerarPDFOrdem(orderId) {
     } else {
       doc.text('____________________', 33, yPos + 31 + alturaExtra);
     }
+
     // =============================
     // DETALHES DO SERVIÇO
     // =============================
@@ -4715,7 +4738,6 @@ async function gerarPDFOrdem(orderId) {
     doc.text(`CPF/CNPJ: ${ordem.cnpj || '_____________________'}`, 115, yPos + 31);
     doc.text(`End: ${ordem.endereco ? ordem.endereco.substring(0, 35) : '_____________________'}`, 115, yPos + 35);
 
-    // =============================
     // RODAPÉ
     // =============================
     const pages = doc.internal.getNumberOfPages();
@@ -4724,7 +4746,6 @@ async function gerarPDFOrdem(orderId) {
       doc.setDrawColor(220, 220, 220);
       doc.setLineWidth(0.3);
       doc.line(15, 282, 195, 282);
-
       doc.setTextColor(179, 33, 23);
       doc.setFontSize(8.5);
       doc.setFont('helvetica', 'bold');
@@ -4755,6 +4776,8 @@ async function gerarPDFOrdem(orderId) {
     showToast('Erro ao gerar PDF: ' + error.message, 'error');
   }
 }
+
+
 
 // ============================= 
 // FUNÇÃO EDITAR OS
