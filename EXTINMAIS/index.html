@@ -1232,178 +1232,145 @@
     </div>
   </div>
   <div class="modal" id="orderModal">
-    <div class="modal-content" style="
+   <div class="modal-content" style="
       max-height:90vh;
       width:100%;
       max-width:720px;
       overflow:hidden;
       display:flex;
       flex-direction:column;
-    ">
-
-      <!-- HEADER -->
-      <div class="modal-header">
-        <h3 class="modal-title">
-          <i class="fas fa-file-invoice"></i> Nova Ordem de Serviço
-        </h3>
-        <button class="close-modal" onclick="closeModal('orderModal')">
-          <i class="fas fa-times"></i>
-        </button>
-      </div>
-
-      <form id="orderForm" style="flex:1; overflow-y:auto; padding-right:6px;">
-        <!-- ===================== DADOS DA OS ===================== -->
-        <div class="form-row" style="grid-template-columns:1fr 1fr;">
-          <div class="form-group">
-            <label>Cliente</label>
-            <select id="clienteSelect" required>
-              <option value="">Selecione um cliente</option>
-            </select>
-            <input type="hidden" name="cliente" id="clienteNomeHidden">
-            <input type="hidden" name="cliente_tipo" id="clienteTipoHidden">
-          </div>
-          <div class="form-group">
-            <label>CNPJ</label>
-            <input type="text" name="cnpj" id="cnpjInput" required>
-          </div>
-        </div>
-
-        <!-- CAMPOS ESPECÍFICOS DE EMPRESA -->
-        <div id="camposEmpresa" style="display:none;">
-          <div class="form-row" style="grid-template-columns:1fr 1fr;">
-            <div class="form-group">
-              <label>Telefone</label>
-              <input type="text" name="telefone" id="telefoneEmpresaInput">
-            </div>
-            <div class="form-group">
-              <label>Email</label>
-              <input type="email" name="email" id="emailEmpresaInput">
-            </div>
-          </div>
-          <div class="form-row" style="grid-template-columns:1fr 1fr;">
-            <div class="form-group">
-              <label>Responsável</label>
-              <input type="text" name="responsavel" id="responsavelEmpresaInput">
-            </div>
-            <div class="form-group">
-              <label>CEP</label>
-              <input type="text" name="cep" id="cepEmpresaInput">
-            </div>
-          </div>
-          <div class="form-row" style="grid-template-columns:3fr 1fr;">
-            <div class="form-group">
-              <label>Endereço</label>
-              <input type="text" name="endereco" id="enderecoEmpresaInput">
-            </div>
-            <div class="form-group">
-              <label>Nº Empresa</label>
-              <input type="text" name="numero_empresa" id="numeroEmpresaInput">
-            </div>
-          </div>
-        </div>
-
-        <!-- CAMPOS ESPECÍFICOS DE PRÉDIO -->
-        <div id="camposPredio" style="display:none;">
-          <div class="form-row" style="grid-template-columns:1fr 1fr;">
-            <div class="form-group">
-              <label>Telefone do Prédio</label>
-              <input type="text" name="telefone_predio" id="telefonePredioInput">
-            </div>
-            <div class="form-group">
-              <label>Email do Prédio</label>
-              <input type="email" name="email_predio" id="emailPredioInput">
-            </div>
-          </div>
-          <div class="form-row" style="grid-template-columns:1fr 1fr;">
-            <div class="form-group">
-              <label>Responsável do Prédio</label>
-              <input type="text" name="responsavel_predio" id="responsavelPredioInput">
-            </div>
-            <div class="form-group">
-              <label>CEP do Prédio</label>
-              <input type="text" name="cep_predio" id="cepPredioInput">
-            </div>
-          </div>
-          <div class="form-row" style="grid-template-columns:3fr 1fr;">
-            <div class="form-group">
-              <label>Endereço do Prédio</label>
-              <input type="text" name="endereco_predio" id="enderecoPredioInput">
-            </div>
-            <div class="form-group">
-              <label>Nº Prédio</label>
-              <input type="text" name="numero_predio" id="numeroPredioInput">
-            </div>
-          </div>
-        </div>
-
-        <div class="form-row" style="grid-template-columns:1fr 1fr;">
-          <div class="form-group">
-            <label>Serviço</label>
-            <input type="text" name="servico" id="servico" required>
-          </div>
-          <div class="form-group">
-            <label>Técnico</label>
-            <input type="text" name="tecnico" id="tecnicoInput" required>
-          </div>
-        </div>
-
-        <div class="form-row" style="grid-template-columns:1fr;">
-          <div class="form-group">
-            <label>Status</label>
-            <select name="status" required>
-              <option value="Pendente">Pendente</option>
-              <option value="Concluída">Concluída</option>
-            </select>
-          </div>
-        </div>
-
-        <hr style="margin:20px 0; border-color:#333;">
-        <h4 style="margin-bottom:10px;"><i class="fas fa-box"></i> Produtos da Ordem</h4>
-
-        <div class="form-row" style="grid-template-columns:2fr 1fr 1fr;">
-          <div class="form-group">
-            <label>Produto</label>
-            <select id="osProductSelect">
-              <option value="">Selecione um produto</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label>Qtd</label>
-            <input type="number" id="osProductQty" value="1" min="1">
-          </div>
-          <div class="form-group" style="display:flex; align-items:flex-end;">
-            <button type="button" class="btn" id="addProductToOSBtn" style="width:100%;">
-              <i class="fas fa-plus"></i> Adicionar
-            </button>
-          </div>
-        </div>
-
-        <div id="osProductsList"
-          style="max-height:160px; overflow-y:auto; margin:15px 0; padding:8px; background:#1b1b1b; border:1px solid #333; border-radius:6px;">
-          <p style="color:#777;">Nenhum produto adicionado.</p>
-        </div>
-
-        <div class="form-row" style="grid-template-columns:1fr;">
-          <div class="form-group">
-            <label>Lucro sobre produtos (%)</label>
-            <input type="number" id="profitPercent" placeholder="Ex: 20">
-          </div>
-        </div>
-
-        <div style="background:#1f1f1f; border:1px solid #333; border-radius:8px; padding:12px; margin-bottom:20px;">
-          <p style="margin:4px 0; color:#ccc;">Subtotal Produtos: <strong id="productsSubtotal">R$ 0,00</strong></p>
-          <p style="margin:4px 0; color:#ccc;">Lucro: <strong id="productsProfitValue">R$ 0,00</strong></p>
-          <p style="margin:4px 0; color:#fff;">Total Final: <strong id="productsTotalWithProfit">R$ 0,00</strong></p>
-        </div>
-
-        <button type="submit" class="btn btn-success" style="width:100%; margin-bottom:10px;">
-          <i class="fas fa-save"></i> Salvar OS
-        </button>
-      </form>
-
-
-
+    "><!-- HEADER -->
+    <div class="modal-header">
+     <h3 class="modal-title"><i class="fas fa-file-invoice"></i> Nova Ordem de Serviço</h3><button class="close-modal" onclick="closeModal('orderModal')"> <i class="fas fa-times"></i> </button>
     </div>
+    <form id="orderForm" style="flex:1; overflow-y:auto; padding-right:6px;"><!-- ===================== DADOS DA OS ===================== -->
+     <div class="form-row" style="grid-template-columns:1fr 1fr;">
+      <div class="form-group"><label>Cliente</label> <select id="clienteSelect" required> <option value="">Selecione um cliente</option> </select> <input type="hidden" name="cliente" id="clienteNomeHidden"> <input type="hidden" name="cliente_tipo" id="clienteTipoHidden">
+      </div>
+      <div class="form-group"><label>CNPJ</label> <input type="text" name="cnpj" id="cnpjInput" required>
+      </div>
+     </div><!-- CAMPOS ESPECÍFICOS DE EMPRESA -->
+     <div id="camposEmpresa" style="display:none;">
+      <div class="form-row" style="grid-template-columns:1fr 1fr;">
+       <div class="form-group"><label>Telefone</label> <input type="text" name="telefone" id="telefoneEmpresaInput">
+       </div>
+       <div class="form-group"><label>Email</label> <input type="email" name="email" id="emailEmpresaInput">
+       </div>
+      </div>
+      <div class="form-row" style="grid-template-columns:1fr 1fr;">
+       <div class="form-group"><label>Responsável</label> <input type="text" name="responsavel" id="responsavelEmpresaInput">
+       </div>
+       <div class="form-group"><label>CEP</label> <input type="text" name="cep" id="cepEmpresaInput">
+       </div>
+      </div>
+      <div class="form-row" style="grid-template-columns:3fr 1fr;">
+       <div class="form-group"><label>Endereço</label> <input type="text" name="endereco" id="enderecoEmpresaInput">
+       </div>
+       <div class="form-group"><label>Nº Empresa</label> <input type="text" name="numero_empresa" id="numeroEmpresaInput">
+       </div>
+      </div>
+     </div><!-- CAMPOS ESPECÍFICOS DE PRÉDIO -->
+     <div id="camposPredio" style="display:none;">
+      <div class="form-row" style="grid-template-columns:1fr 1fr;">
+       <div class="form-group"><label>Telefone do Prédio</label> <input type="text" name="telefone_predio" id="telefonePredioInput">
+       </div>
+       <div class="form-group"><label>Email do Prédio</label> <input type="email" name="email_predio" id="emailPredioInput">
+       </div>
+      </div>
+      <div class="form-row" style="grid-template-columns:1fr 1fr;">
+       <div class="form-group"><label>Responsável do Prédio</label> <input type="text" name="responsavel_predio" id="responsavelPredioInput">
+       </div>
+       <div class="form-group"><label>CEP do Prédio</label> <input type="text" name="cep_predio" id="cepPredioInput">
+       </div>
+      </div>
+      <div class="form-row" style="grid-template-columns:3fr 1fr;">
+       <div class="form-group"><label>Endereço do Prédio</label> <input type="text" name="endereco_predio" id="enderecoPredioInput">
+       </div>
+       <div class="form-group"><label>Nº Prédio</label> <input type="text" name="numero_predio" id="numeroPredioInput">
+       </div>
+      </div>
+     </div>
+     <div class="form-row" style="grid-template-columns:1fr 1fr;">
+      <div class="form-group"><label>Serviço</label> <input type="text" name="servico" id="servico" required>
+      </div>
+      <div class="form-group"><label>Técnico</label> <input type="text" name="tecnico" id="tecnicoInput" required>
+      </div>
+     </div>
+     <div class="form-row" style="grid-template-columns:1fr;">
+      <div class="form-group"><label>Status</label> <select name="status" required> <option value="Pendente">Pendente</option> <option value="Concluída">Concluída</option> </select>
+      </div>
+     </div>
+     <hr style="margin:20px 0; border-color:#333;">
+     <h4 style="margin-bottom:10px; color:#10b981;"><i class="fas fa-box"></i> Produtos da Ordem</h4><!-- BOTÃO BUSCAR PRODUTO E QUANTIDADE -->
+     <div class="form-row" style="grid-template-columns:1fr 1fr;">
+      <div class="form-group"><label>Quantidade</label> <input type="number" id="osProductQty" value="1" min="1" style="
+              background:#1a1a1a;
+              border:2px solid #333;
+              color:#fff;
+              padding:10px;
+              border-radius:8px;
+              width:100%;
+              box-sizing:border-box;
+            ">
+      </div>
+      <div class="form-group" style="display:flex; align-items:flex-end;"><button type="button" class="btn btn-primary" id="addProductToOSBtn" style="
+              width:100%;
+              background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+              border:none;
+              padding:12px;
+              border-radius:8px;
+              color:#fff;
+              font-weight:600;
+              cursor:pointer;
+              transition:all 0.3s ease;
+              display:flex;
+              align-items:center;
+              justify-content:center;
+              gap:8px;
+            "> <i class="fas fa-search"></i> Buscar Produto </button>
+      </div>
+     </div><!-- LISTA DE PRODUTOS ADICIONADOS -->
+     <div id="osProductsList" style="max-height:200px; overflow-y:auto; margin:15px 0; padding:8px; background:#0d0d0d; border:2px solid #333; border-radius:10px;">
+      <div style="
+            padding: 30px 20px;
+            text-align: center;
+            color: #666;
+          "><i class="fas fa-shopping-basket" style="font-size: 2.5rem; margin-bottom: 10px; color: #10b981; opacity: 0.3;"></i>
+       <p style="margin: 0; font-size: 14px;">Nenhum produto adicionado</p>
+      </div>
+     </div><!-- LUCRO E TOTAIS -->
+     <div class="form-row" style="grid-template-columns:1fr;">
+      <div class="form-group"><label>Lucro sobre produtos (%)</label> <input type="number" id="profitPercent" placeholder="Ex: 20" style="
+              background:#1a1a1a;
+              border:2px solid #333;
+              color:#fff;
+              padding:10px;
+              border-radius:8px;
+              width:100%;
+              box-sizing:border-box;
+            ">
+      </div>
+     </div>
+     <div style="background:linear-gradient(135deg, #1f1f1f 0%, #1a1a1a 100%); border:2px solid #10b981; border-radius:12px; padding:16px; margin-bottom:20px;">
+      <p style="margin:6px 0; color:#ccc; display:flex; justify-content:space-between;"><span>Subtotal Produtos:</span> <strong id="productsSubtotal" style="color:#10b981;">R$ 0,00</strong></p>
+      <p style="margin:6px 0; color:#ccc; display:flex; justify-content:space-between;"><span>Lucro:</span> <strong id="productsProfitValue" style="color:#4ade80;">R$ 0,00</strong></p>
+      <hr style="margin:10px 0; border-color:#333;">
+      <p style="margin:6px 0; color:#fff; display:flex; justify-content:space-between; font-size:1.1rem;"><span><strong>Total Final:</strong></span> <strong id="productsTotalWithProfit" style="color:#4ade80; font-size:1.2rem;">R$ 0,00</strong></p>
+     </div><button type="submit" class="btn btn-success" style="
+          width:100%;
+          margin-bottom:10px;
+          background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+          border:none;
+          padding:14px;
+          border-radius:10px;
+          color:#fff;
+          font-weight:700;
+          font-size:1rem;
+          cursor:pointer;
+          transition:all 0.3s ease;
+        "> <i class="fas fa-save"></i> Salvar OS </button>
+    </form>
+   </div>
   </div>
 
 
