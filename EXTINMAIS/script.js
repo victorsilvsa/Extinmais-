@@ -3256,183 +3256,174 @@ function renderFilteredOrders() {
     const produtos = agruparProdutos(produtosOriginais);
     const qtdProdutos = produtos.reduce((acc, p) => acc + p.qty, 0);
 
-    let totalFinal = Number(os.total) || Number(os.preco) || 0;
-    const precoFmt = totalFinal.toLocaleString('pt-BR', {
-      style: 'currency',
-      currency: 'BRL'
-    });
-
     const formaPagamento = os.payment_method || os.formaPagamento || 'Não informado';
     const statusPagamento = os.payment_status || os.statusPagamento || 'Não Pago';
 
-    // Extrai número da OS do ID (exemplo: "os-123" -> "123")
+    // Extrai número da OS do ID
     const ano = new Date().getFullYear();
     const numeroOS = ` ${index + 1} - ${ano}`;
 
     // Adiciona divisor com número da OS
     const separator = document.createElement('div');
     separator.style.cssText = `
-  display: flex;
-  align-items: center;
-  margin: 50px 0;
-  position: relative;
-`;
+      display: flex;
+      align-items: center;
+      margin: 50px 0;
+      position: relative;
+    `;
 
     separator.innerHTML = `
- <!-- Linha esquerda -->
-<div style="
-  flex: 1;
-  height: 2px;
-  background: linear-gradient(to right, transparent, #D4C29A);
-  box-shadow: 0 0 6px rgba(212, 194, 154, 0.35);
-"></div>
+      <!-- Linha esquerda -->
+      <div style="
+        flex: 1;
+        height: 2px;
+        background: linear-gradient(to right, transparent, #D4C29A);
+        box-shadow: 0 0 6px rgba(212, 194, 154, 0.35);
+      "></div>
 
-<!-- Badge central -->
-<div style="
-  position: relative;
-  background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
-  border-radius: 40px;
-  padding: 14px 36px;
-  margin: 0 20px;
-  box-shadow: 
-    0 6px 24px rgba(0, 0, 0, 0.55),
-    inset 0 2px 4px rgba(255, 255, 255, 0.08),
-    0 0 0 1px rgba(212, 194, 154, 0.25);
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  overflow: hidden;
-">
+      <!-- Badge central -->
+      <div style="
+        position: relative;
+        background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
+        border-radius: 40px;
+        padding: 14px 36px;
+        margin: 0 20px;
+        box-shadow: 
+          0 6px 24px rgba(0, 0, 0, 0.55),
+          inset 0 2px 4px rgba(255, 255, 255, 0.08),
+          0 0 0 1px rgba(212, 194, 154, 0.25);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        overflow: hidden;
+      ">
+        <!-- Ícone -->
+        <div style="
+          position: relative;
+          z-index: 2;
+          background: linear-gradient(135deg, #D4C29A 0%, #B8A47E 100%);
+          width: 40px;
+          height: 40px;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          box-shadow: 
+            0 3px 10px rgba(212, 194, 154, 0.35),
+            inset 0 2px 4px rgba(255, 255, 255, 0.25);
+        ">
+          <i class="fas fa-file-invoice" style="
+            color: #0d0d0d;
+            font-size: 18px;
+          "></i>
+        </div>
 
-  <!-- Ícone -->
-  <div style="
-    position: relative;
-    z-index: 2;
-    background: linear-gradient(135deg, #D4C29A 0%, #B8A47E 100%);
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 
-      0 3px 10px rgba(212, 194, 154, 0.35),
-      inset 0 2px 4px rgba(255, 255, 255, 0.25);
-  ">
-    <i class="fas fa-file-invoice" style="
-      color: #0d0d0d;
-      font-size: 18px;
-    "></i>
-  </div>
+        <!-- Texto -->
+        <div style="position: relative; z-index: 2; word-wrap: break-word; word-break: break-word; overflow-wrap: break-word; min-width: 0;">
+          <div style="
+            color: #D4C29A;
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1.6px;
+            opacity: 0.7;
+            margin-bottom: 1px;
+          ">Ordem de Serviço</div>
 
-  <!-- Texto -->
-  <div style="position: relative; z-index: 2; word-wrap: break-word; word-break: break-word; overflow-wrap: break-word; min-width: 0;">
-    <div style="
-      color: #D4C29A;
-      font-size: 10px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 1.6px;
-      opacity: 0.7;
-      margin-bottom: 1px;
-    ">Ordem de Serviço</div>
+          <div style="
+            color: #fff;
+            font-size: 20px;
+            font-weight: 900;
+            letter-spacing: 0.8px;
+            text-shadow: 0 2px 6px rgba(0, 0, 0, 0.45);
+          ">#${numeroOS}</div>
+        </div>
 
-    <div style="
-      color: #fff;
-      font-size: 20px;
-      font-weight: 900;
-      letter-spacing: 0.8px;
-      text-shadow: 0 2px 6px rgba(0, 0, 0, 0.45);
-    ">#${numeroOS}</div>
-  </div>
+        <!-- Decoração -->
+        <div style="
+          position: absolute;
+          right: 18px;
+          top: 50%;
+          transform: translateY(-50%);
+          width: 32px;
+          height: 32px;
+          border: 2px solid rgba(212, 194, 154, 0.18);
+          border-radius: 50%;
+          z-index: 1;
+        "></div>
 
-  <!-- Decoração -->
-  <div style="
-    position: absolute;
-    right: 18px;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 32px;
-    height: 32px;
-    border: 2px solid rgba(212, 194, 154, 0.18);
-    border-radius: 50%;
-    z-index: 1;
-  "></div>
+        <div style="
+          position: absolute;
+          right: 26px;
+          top: 50%;
+          transform: translateY(-50%);
+          width: 18px;
+          height: 18px;
+          border: 2px solid rgba(212, 194, 154, 0.12);
+          border-radius: 50%;
+          z-index: 1;
+        "></div>
+      </div>
 
-  <div style="
-    position: absolute;
-    right: 26px;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 18px;
-    height: 18px;
-    border: 2px solid rgba(212, 194, 154, 0.12);
-    border-radius: 50%;
-    z-index: 1;
-  "></div>
-</div>
-
-<!-- Linha direita -->
-<div style="
-  flex: 1;
-  height: 2px;
-  background: linear-gradient(to left, transparent, #D4C29A);
-  box-shadow: 0 0 6px rgba(212, 194, 154, 0.35);
-"></div>
-
-`;
+      <!-- Linha direita -->
+      <div style="
+        flex: 1;
+        height: 2px;
+        background: linear-gradient(to left, transparent, #D4C29A);
+        box-shadow: 0 0 6px rgba(212, 194, 154, 0.35);
+      "></div>
+    `;
 
     list.appendChild(separator);
-
 
     let produtosListaHTML = '';
     if (produtos.length > 0) {
       produtosListaHTML = produtos.map(p => `
-    <div style="
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 8px 12px;
-      background: #1a1a1a;
-      border: 1px solid #333;
-      margin-bottom: 6px;
-      border-radius: 6px;
-      transition: all 0.3s;
-      word-wrap: break-word;
-      word-break: break-word;
-      overflow-wrap: break-word;
-      min-width: 0;
-    ">
-      <span style="
-        color: #fff;
-        flex: 1;
-        margin-right: 10px;
-        font-size: 13px;
-        font-weight: 500;
-        word-wrap: break-word;
-        word-break: break-word;
-        overflow-wrap: break-word;
-        hyphens: auto;
-        min-width: 0;
-      ">
-        <i class="fas fa-box" style="margin-right: 8px; color: #D4C29A; font-size: 11px; flex-shrink: 0;"></i>
-        ${escapeHtml(p.name || 'Produto')}
-      </span>
-      <span style="
-        color: #D4C29A;
-        font-weight: 700;
-        background: #0d0d0d;
-        padding: 4px 10px;
-        border-radius: 5px;
-        white-space: nowrap;
-        font-size: 12px;
-        border: 1px solid #D4C29A;
-        flex-shrink: 0;
-      ">
-        ${p.qty}x
-      </span>
-    </div>
-  `).join('');
+        <div style="
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 10px 14px;
+          background: #1a1a1a;
+          border: 1px solid #333;
+          margin-bottom: 8px;
+          border-radius: 8px;
+          transition: all 0.3s;
+          word-wrap: break-word;
+          word-break: break-word;
+          overflow-wrap: break-word;
+          min-width: 0;
+        ">
+          <span style="
+            color: #fff;
+            flex: 1;
+            margin-right: 10px;
+            font-size: 14px;
+            font-weight: 500;
+            word-wrap: break-word;
+            word-break: break-word;
+            overflow-wrap: break-word;
+            hyphens: auto;
+            min-width: 0;
+          ">
+            <i class="fas fa-box" style="margin-right: 8px; color: #D4C29A; font-size: 12px; flex-shrink: 0;"></i>
+            ${escapeHtml(p.name || 'Produto')}
+          </span>
+          <span style="
+            color: #D4C29A;
+            font-weight: 700;
+            background: #0d0d0d;
+            padding: 6px 12px;
+            border-radius: 6px;
+            white-space: nowrap;
+            font-size: 13px;
+            border: 1px solid #D4C29A;
+            flex-shrink: 0;
+          ">
+            ${p.qty}x
+          </span>
+        </div>
+      `).join('');
     }
 
     const div = document.createElement('div');
@@ -3443,448 +3434,547 @@ function renderFilteredOrders() {
     div.style.overflow = 'hidden';
 
     div.innerHTML = `
-  <div class="list-item-header" style="
-    padding: 12px 16px;
-    background: linear-gradient(135deg, #1a1a1a 0%, #0d0d0d 100%);
-    border-bottom: 2px solid #D4C29A;
-  ">
-    <div style="flex: 1; min-width: 0; overflow: hidden;">
-      <div class="list-item-title" style="
-        font-size: 16px;
-        margin-bottom: 6px;
-        color: #D4C29A;
-        font-weight: 700;
-        letter-spacing: 0.3px;
-        word-wrap: break-word;
-        word-break: break-word;
-        overflow-wrap: break-word;
-        hyphens: auto;
-        line-height: 1.3;
+      <div class="list-item-header" style="
+        padding: 14px 18px;
+        background: linear-gradient(135deg, #1a1a1a 0%, #0d0d0d 100%);
+        border-bottom: 2px solid #D4C29A;
       ">
-        ${escapeHtml(os.cliente || 'Cliente não informado')}
-      </div>
-      <div class="list-item-subtitle" style="
-        font-size: 12px;
-        color: #999;
-        display: flex;
-        align-items: center;
-        gap: 6px;
-      ">
-        <i class="fas fa-calendar-alt" style="font-size: 10px; flex-shrink: 0;"></i>
-        ${dataStr}
-      </div>
-    </div>
-    ${statusBadge}
-  </div>
-
-  <div class="list-item-info" style="
-    padding: 14px;
-    gap: 12px;
-    background: #0d0d0d;
-  ">
-
-    <div style="
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-      margin-bottom: 12px;
-    ">
-      <div style="
-        background: #1a1a1a;
-        border: 1px solid #333;
-        border-radius: 6px;
-        padding: 10px;
-        transition: all 0.3s;
-        min-width: 0;
-        overflow: hidden;
-      ">
-        <div style="
-          font-size: 10px;
-          color: #888;
-          text-transform: uppercase;
-          letter-spacing: 0.5px;
-          margin-bottom: 6px;
-          display: flex;
-          align-items: center;
-          gap: 5px;
-        ">
-          <i class="fas fa-tools" style="color: #D4C29A; flex-shrink: 0;"></i>
-          Serviço
-        </div>
-        <div style="
-          font-size: 13px;
-          color: #fff;
-          font-weight: 600;
-          word-wrap: break-word;
-          word-break: break-word;
-          overflow-wrap: break-word;
-          hyphens: auto;
-          line-height: 1.3;
-        ">
-          ${escapeHtml(os.servico || '-')}
-        </div>
-      </div>
-
-      <div style="
-        background: #1a1a1a;
-        border: 1px solid #333;
-        border-radius: 6px;
-        padding: 10px;
-        transition: all 0.3s;
-        min-width: 0;
-        overflow: hidden;
-      ">
-        <div style="
-          font-size: 10px;
-          color: #888;
-          text-transform: uppercase;
-          letter-spacing: 0.5px;
-          margin-bottom: 6px;
-          display: flex;
-          align-items: center;
-          gap: 5px;
-        ">
-          <i class="fas fa-user-hard-hat" style="color: #D4C29A; flex-shrink: 0;"></i>
-          Técnico
-        </div>
-        <div style="
-          font-size: 13px;
-          color: #fff;
-          font-weight: 600;
-          word-wrap: break-word;
-          word-break: break-word;
-          overflow-wrap: break-word;
-          hyphens: auto;
-          line-height: 1.3;
-        ">
-          ${escapeHtml(os.tecnico || '-')}
-        </div>
-      </div>
-    </div>
-
-    <!-- SEÇÃO DE DETALHES RECOLHÍVEL -->
-    <div id="os-details-${os.id}" class="os-details-collapsed" style="
-      max-height: 0;
-      overflow: hidden;
-      transition: max-height 0.3s ease;
-    ">
-      <div style="padding-top: 14px;">
-        
-        <div style="
-          background: #1a1a1a;
-          border: 1px solid #333;
-          border-radius: 6px;
-          padding: 10px;
-          margin-bottom: 12px;
-          word-wrap: break-word;
-          word-break: break-word;
-          overflow-wrap: break-word;
-          hyphens: auto;
-        ">
-          <div style="
-            font-size: 10px;
-            color: #888;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+        <div style="flex: 1; min-width: 0; overflow: hidden;">
+          <div class="list-item-title" style="
+            font-size: 17px;
             margin-bottom: 6px;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-          ">
-            <i class="fas fa-map-marker-alt" style="color: #D4C29A; flex-shrink: 0;"></i>
-            Endereço e CEP
-          </div>
-          
-          <div style="
-            font-size: 13px;
-            color: #fff;
-            font-weight: 500;
-            margin-bottom: 4px;
+            color: #D4C29A;
+            font-weight: 700;
+            letter-spacing: 0.3px;
             word-wrap: break-word;
             word-break: break-word;
             overflow-wrap: break-word;
             hyphens: auto;
-            line-height: 1.4;
+            line-height: 1.3;
           ">
-            ${escapeHtml(os.endereco || '-')}
+            ${escapeHtml(os.cliente || 'Cliente não informado')}
           </div>
-
-          <div style="
-            font-size: 12px; 
-            color: #aaa;
-            font-weight: 400;
-          ">
-            CEP: ${escapeHtml(os.cep || '-')}
-          </div>
-        </div>
-
-        <div style="
-          background: #1a1a1a;
-          border: 1px solid #333;
-          border-radius: 6px;
-          padding: 10px;
-          margin-bottom: 12px;
-        ">
-          <div style="
-            font-size: 10px;
-            color: #888;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 5px;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-          ">
-            <i class="fas fa-circle-check" style="color: ${statusPagamento === 'Pago' ? '#28a745' : '#dc3545'}; flex-shrink: 0;"></i>
-            Status de Pagamento
-          </div>
-          <div style="
+          <div class="list-item-subtitle" style="
             font-size: 13px;
-            color: ${statusPagamento === 'Pago' ? '#28a745' : '#dc3545'};
-            font-weight: 700;
-            margin-bottom: 10px;
+            color: #aaa;
             display: flex;
             align-items: center;
             gap: 6px;
           ">
-            <i class="fas fa-${statusPagamento === 'Pago' ? 'check-circle' : 'times-circle'}" style="flex-shrink: 0;"></i>
-            ${escapeHtml(statusPagamento)}
-          </div>
-
-          <div style="
-            font-size: 10px;
-            color: #888;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 5px;
-            padding-top: 10px;
-            border-top: 1px solid #333;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-          ">
-            <i class="fas fa-credit-card" style="color: #D4C29A; flex-shrink: 0;"></i>
-            Forma de Pagamento
-          </div>
-          <div style="
-            font-size: 13px;
-            color: #fff;
-            font-weight: 600;
-            word-wrap: break-word;
-            word-break: break-word;
-            overflow-wrap: break-word;
-          ">
-            ${escapeHtml(formaPagamento)}
+            <i class="fas fa-calendar-alt" style="font-size: 11px; flex-shrink: 0;"></i>
+            ${dataStr}
           </div>
         </div>
+        ${statusBadge}
+      </div>
+
+      <div class="list-item-info" style="
+        padding: 16px;
+        gap: 14px;
+        background: #0d0d0d;
+      ">
 
         <div style="
-          background: linear-gradient(135deg, #1a1a1a 0%, #0d0d0d 100%);
-          border: 2px solid #D4C29A;
-          border-radius: 8px;
-          padding: 12px 16px;
-          margin: 12px 0;
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          box-shadow: 0 4px 12px rgba(212, 194, 154, 0.15);
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 12px;
+          margin-bottom: 14px;
         ">
-          <span style="
-            color: #D4C29A;
-            font-size: 11px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+          <div style="
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 12px;
+            transition: all 0.3s;
+            min-width: 0;
+            overflow: hidden;
           ">
-            <i class="fas fa-dollar-sign" style="margin-right: 6px;"></i>
-            Valor Total
-          </span>
-          <span style="
-            color: #D4C29A;
-            font-size: 20px;
-            font-weight: 800;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-          ">
-            ${precoFmt}
-          </span>
-        </div>
-
-        ${produtosListaHTML ? `
-          <div style="margin-top: 12px; margin-bottom: 12px;">
             <div style="
-              color: #D4C29A;
-              font-size: 11px;
-              font-weight: 700;
-              margin-bottom: 10px;
+              font-size: 10px;
+              color: #888;
               text-transform: uppercase;
               letter-spacing: 0.5px;
-              padding-bottom: 6px;
-              border-bottom: 2px solid #D4C29A;
+              margin-bottom: 8px;
+              display: flex;
+              align-items: center;
+              gap: 5px;
             ">
-              <i class="fas fa-boxes" style="margin-right: 6px; font-size: 10px;"></i>
-              Produtos Utilizados (${qtdProdutos} un.)
+              <i class="fas fa-tools" style="color: #D4C29A; flex-shrink: 0;"></i>
+              Serviço
             </div>
-            <div style="max-height: 200px; overflow-y: auto;">
-              ${produtosListaHTML}
+            <div style="
+              font-size: 14px;
+              color: #fff;
+              font-weight: 600;
+              word-wrap: break-word;
+              word-break: break-word;
+              overflow-wrap: break-word;
+              hyphens: auto;
+              line-height: 1.3;
+            ">
+              ${escapeHtml(os.servico || '-')}
             </div>
           </div>
-        ` : `
-          <div style="
-            margin: 12px 0;
-            padding: 12px;
-            background: #1a1a1a;
-            border: 2px dashed #333;
-            border-radius: 6px;
-            color: #888;
-            font-size: 12px;
-            text-align: center;
-          ">
-            <i class="fas fa-inbox" style="margin-right: 6px; font-size: 14px; color: #D4C29A;"></i>
-            Nenhum produto cadastrado
-          </div>
-        `}
 
-        <div style="margin-top: 10px;">
-          <span style="
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            background: linear-gradient(135deg, #1a1a1a 0%, #0d0d0d 100%);
-            border: 1px solid #16a34a;
-            border-radius: 6px;
-            padding: 8px 12px;
-            font-size: 12px;
-            color: #16a34a;
-            font-weight: 700;
+          <div style="
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 12px;
+            transition: all 0.3s;
+            min-width: 0;
+            overflow: hidden;
           ">
-            <i class="fas fa-chart-line"></i>
-            ${Number(os.profitPercent || 0)}% lucro
-          </span>
+            <div style="
+              font-size: 10px;
+              color: #888;
+              text-transform: uppercase;
+              letter-spacing: 0.5px;
+              margin-bottom: 8px;
+              display: flex;
+              align-items: center;
+              gap: 5px;
+            ">
+              <i class="fas fa-user-hard-hat" style="color: #D4C29A; flex-shrink: 0;"></i>
+              Técnico
+            </div>
+            <div style="
+              font-size: 14px;
+              color: #fff;
+              font-weight: 600;
+              word-wrap: break-word;
+              word-break: break-word;
+              overflow-wrap: break-word;
+              hyphens: auto;
+              line-height: 1.3;
+            ">
+              ${escapeHtml(os.tecnico || '-')}
+            </div>
+          </div>
         </div>
 
+        <!-- SEÇÃO DE DETALHES RECOLHÍVEL -->
+        <div id="os-details-${os.id}" class="os-details-collapsed" style="
+          max-height: 0;
+          overflow: hidden;
+          transition: max-height 0.3s ease;
+        ">
+          <div style="padding-top: 14px;">
+            
+            <div style="
+              background: #1a1a1a;
+              border: 1px solid #333;
+              border-radius: 8px;
+              padding: 12px;
+              margin-bottom: 14px;
+              word-wrap: break-word;
+              word-break: break-word;
+              overflow-wrap: break-word;
+              hyphens: auto;
+            ">
+              <div style="
+                font-size: 10px;
+                color: #888;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+                margin-bottom: 8px;
+                display: flex;
+                align-items: center;
+                gap: 5px;
+              ">
+                <i class="fas fa-map-marker-alt" style="color: #D4C29A; flex-shrink: 0;"></i>
+                Endereço e CEP
+              </div>
+              
+              <div style="
+                font-size: 14px;
+                color: #fff;
+                font-weight: 500;
+                margin-bottom: 6px;
+                word-wrap: break-word;
+                word-break: break-word;
+                overflow-wrap: break-word;
+                hyphens: auto;
+                line-height: 1.4;
+              ">
+                ${escapeHtml(os.endereco || '-')}
+              </div>
+
+              <div style="
+                font-size: 13px; 
+                color: #aaa;
+                font-weight: 400;
+              ">
+                CEP: ${escapeHtml(os.cep || '-')}
+              </div>
+            </div>
+
+            <div style="
+              background: #1a1a1a;
+              border: 1px solid #333;
+              border-radius: 8px;
+              padding: 12px;
+              margin-bottom: 14px;
+            ">
+              <div style="
+                font-size: 10px;
+                color: #888;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+                margin-bottom: 6px;
+                display: flex;
+                align-items: center;
+                gap: 5px;
+              ">
+                <i class="fas fa-circle-check" style="color: ${statusPagamento === 'Pago' ? '#28a745' : '#dc3545'}; flex-shrink: 0;"></i>
+                Status de Pagamento
+              </div>
+              <div style="
+                font-size: 14px;
+                color: ${statusPagamento === 'Pago' ? '#28a745' : '#dc3545'};
+                font-weight: 700;
+                margin-bottom: 12px;
+                display: flex;
+                align-items: center;
+                gap: 6px;
+              ">
+                <i class="fas fa-${statusPagamento === 'Pago' ? 'check-circle' : 'times-circle'}" style="flex-shrink: 0;"></i>
+                ${escapeHtml(statusPagamento)}
+              </div>
+
+              <div style="
+                font-size: 10px;
+                color: #888;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+                margin-bottom: 6px;
+                padding-top: 12px;
+                border-top: 1px solid #333;
+                display: flex;
+                align-items: center;
+                gap: 5px;
+              ">
+                <i class="fas fa-credit-card" style="color: #D4C29A; flex-shrink: 0;"></i>
+                Forma de Pagamento
+              </div>
+              <div style="
+                font-size: 14px;
+                color: #fff;
+                font-weight: 600;
+                word-wrap: break-word;
+                word-break: break-word;
+                overflow-wrap: break-word;
+              ">
+                ${escapeHtml(formaPagamento)}
+              </div>
+            </div>
+
+            ${produtosListaHTML ? `
+              <div style="margin-top: 14px; margin-bottom: 14px;">
+                <div style="
+                  color: #D4C29A;
+                  font-size: 12px;
+                  font-weight: 700;
+                  margin-bottom: 12px;
+                  text-transform: uppercase;
+                  letter-spacing: 0.5px;
+                  padding-bottom: 8px;
+                  border-bottom: 2px solid #D4C29A;
+                ">
+                  <i class="fas fa-boxes" style="margin-right: 8px; font-size: 11px;"></i>
+                  Produtos Utilizados (${qtdProdutos} un.)
+                </div>
+                <div style="max-height: 220px; overflow-y: auto;">
+                  ${produtosListaHTML}
+                </div>
+              </div>
+            ` : `
+              <div style="
+                margin: 14px 0;
+                padding: 14px;
+                background: #1a1a1a;
+                border: 2px dashed #333;
+                border-radius: 8px;
+                color: #888;
+                font-size: 13px;
+                text-align: center;
+              ">
+                <i class="fas fa-inbox" style="margin-right: 8px; font-size: 16px; color: #D4C29A;"></i>
+                Nenhum produto cadastrado
+              </div>
+            `}
+
+          </div>
+        </div>
+        <!-- FIM DA SEÇÃO RECOLHÍVEL -->
+
+        <!-- BOTÃO TOGGLE DETALHES -->
+        <button class="btn-toggle-details" onclick="toggleOSDetails('${os.id}')" style="
+          margin-top: 14px;
+          width: 100%;
+          background: #2a2a2a;
+          border: 2px solid #D4C29A;
+          color: #D4C29A;
+          padding: 11px;
+          border-radius: 8px;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          font-weight: 600;
+          font-size: 14px;
+          transition: all 0.3s;
+        " onmouseover="this.style.background='#3a3a3a'" onmouseout="this.style.background='#2a2a2a'">
+          <span>Ver Detalhes</span>
+          <i class="fas fa-chevron-down" id="toggle-icon-${os.id}" style="
+            font-size: 12px;
+            transition: transform 0.3s;
+          "></i>
+        </button>
+
       </div>
-    </div>
-    <!-- FIM DA SEÇÃO RECOLHÍVEL -->
 
-    <!-- BOTÃO TOGGLE DETALHES -->
-    <button class="btn-toggle-details" onclick="toggleOSDetails('${os.id}')" style="
-      margin-top: 12px;
-      width: 100%;
-      background: #2a2a2a;
-      border: 2px solid #D4C29A;
-      color: #D4C29A;
-      padding: 10px;
-      border-radius: 8px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      font-weight: 600;
-      font-size: 13px;
-      transition: all 0.3s;
-    " onmouseover="this.style.background='#3a3a3a'" onmouseout="this.style.background='#2a2a2a'">
-      <span>Ver Detalhes</span>
-      <i class="fas fa-chevron-down" id="toggle-icon-${os.id}" style="
-        font-size: 12px;
-        transition: transform 0.3s;
-      "></i>
-    </button>
-
-  </div>
-
-  <div style="
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    padding: 12px;
-    background: #000;
-    border-top: 2px solid #D4C29A;
-  ">
-    <button class="btn-small" onclick="viewOrder('${os.id}')" style="
-      flex: 1 1 calc(50% - 4px); 
-      font-size: 12px; 
-      padding: 10px 12px;
-      border-radius: 8px;
-      font-weight: 600;
-      background: #1a1a1a;
-      color: #3b82f6;
-      border: 2px solid #3b82f6;
-      cursor: pointer;
-      transition: all 0.3s;
-    " onmouseover="this.style.background='#3b82f6';this.style.color='#fff'" onmouseout="this.style.background='#1a1a1a';this.style.color='#3b82f6'">
-      <i class="fas fa-eye"></i> <span>Ver</span>
-    </button>
-    
-    <button class="btn-small" onclick="abrirModalPagamento('${os.id}')" style="
-      flex: 1 1 calc(50% - 4px); 
-      font-size: 12px; 
-      padding: 10px 12px;
-      border-radius: 8px;
-      font-weight: 600;
-      background: #1a1a1a;
-      color: #10b981;
-      border: 2px solid #10b981;
-      cursor: pointer;
-      transition: all 0.3s;
-    " onmouseover="this.style.background='#10b981';this.style.color='#fff'" onmouseout="this.style.background='#1a1a1a';this.style.color='#10b981'">
-      <i class="fas fa-credit-card"></i> <span>Pagamento</span>
-    </button>
-    
-    <button class="btn-small" onclick="gerarPDFOrdem('${os.id}')" style="
-      flex: 1 1 calc(50% - 4px); 
-      font-size: 12px; 
-      padding: 10px 12px;
-      border-radius: 8px;
-      font-weight: 600;
-      background: #1a1a1a;
-      color: #f43f5e;
-      border: 2px solid #f43f5e;
-      cursor: pointer;
-      transition: all 0.3s;
-    " onmouseover="this.style.background='#f43f5e';this.style.color='#fff'" onmouseout="this.style.background='#1a1a1a';this.style.color='#f43f5e'">
-      <i class="fas fa-file-pdf"></i> <span>PDF</span>
-    </button>
-    
-    <button class="btn-small" onclick="editarOS('${os.id}')" style="
-      flex: 1 1 calc(50% - 4px); 
-      font-size: 12px; 
-      padding: 10px 12px;
-      border-radius: 8px;
-      font-weight: 600;
-      background: #1a1a1a;
-      color: #D4C29A;
-      border: 2px solid #D4C29A;
-      cursor: pointer;
-      transition: all 0.3s;
-    " onmouseover="this.style.background='#D4C29A';this.style.color='#0d0d0d'" onmouseout="this.style.background='#1a1a1a';this.style.color='#D4C29A'">
-      <i class="fas fa-edit"></i> <span>Editar</span>
-    </button>
-    
-    ${finalizarBtn}
-    
-    <button class="btn-small" onclick="excluirOS('${os.id}')" style="
-      flex: 1 1 calc(50% - 4px); 
-      font-size: 12px; 
-      padding: 10px 12px;
-      border-radius: 8px;
-      font-weight: 600;
-      background: #1a1a1a;
-      color: #dc2626;
-      border: 2px solid #dc2626;
-      cursor: pointer;
-      transition: all 0.3s;
-    " onmouseover="this.style.background='#dc2626';this.style.color='#fff'" onmouseout="this.style.background='#1a1a1a';this.style.color='#dc2626'">
-      <i class="fas fa-trash"></i> <span>Excluir</span>
-    </button>
-  </div>
-`;
-
+      <div style="
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        padding: 12px;
+        background: #000;
+        border-top: 2px solid #D4C29A;
+      ">
+        <button class="btn-small" onclick="viewOrder('${os.id}')" style="
+          flex: 1 1 calc(50% - 4px); 
+          font-size: 12px; 
+          padding: 10px 12px;
+          border-radius: 8px;
+          font-weight: 600;
+          background: #1a1a1a;
+          color: #3b82f6;
+          border: 2px solid #3b82f6;
+          cursor: pointer;
+          transition: all 0.3s;
+        " onmouseover="this.style.background='#3b82f6';this.style.color='#fff'" onmouseout="this.style.background='#1a1a1a';this.style.color='#3b82f6'">
+          <i class="fas fa-eye"></i> <span>Ver</span>
+        </button>
+        
+        <button class="btn-small" onclick="abrirModalPagamento('${os.id}')" style="
+          flex: 1 1 calc(50% - 4px); 
+          font-size: 12px; 
+          padding: 10px 12px;
+          border-radius: 8px;
+          font-weight: 600;
+          background: #1a1a1a;
+          color: #10b981;
+          border: 2px solid #10b981;
+          cursor: pointer;
+          transition: all 0.3s;
+        " onmouseover="this.style.background='#10b981';this.style.color='#fff'" onmouseout="this.style.background='#1a1a1a';this.style.color='#10b981'">
+          <i class="fas fa-credit-card"></i> <span>Pagamento</span>
+        </button>
+        
+        <button class="btn-small" onclick="mostrarOpcoesPDF('${os.id}')" style="
+          flex: 1 1 calc(50% - 4px); 
+          font-size: 12px; 
+          padding: 10px 12px;
+          border-radius: 8px;
+          font-weight: 600;
+          background: #1a1a1a;
+          color: #f43f5e;
+          border: 2px solid #f43f5e;
+          cursor: pointer;
+          transition: all 0.3s;
+        " onmouseover="this.style.background='#f43f5e';this.style.color='#fff'" onmouseout="this.style.background='#1a1a1a';this.style.color='#f43f5e'">
+          <i class="fas fa-file-pdf"></i> <span>PDF</span>
+        </button>
+        
+        <button class="btn-small" onclick="editarOS('${os.id}')" style="
+          flex: 1 1 calc(50% - 4px); 
+          font-size: 12px; 
+          padding: 10px 12px;
+          border-radius: 8px;
+          font-weight: 600;
+          background: #1a1a1a;
+          color: #D4C29A;
+          border: 2px solid #D4C29A;
+          cursor: pointer;
+          transition: all 0.3s;
+        " onmouseover="this.style.background='#D4C29A';this.style.color='#0d0d0d'" onmouseout="this.style.background='#1a1a1a';this.style.color='#D4C29A'">
+          <i class="fas fa-edit"></i> <span>Editar</span>
+        </button>
+        
+        ${finalizarBtn}
+        
+        <button class="btn-small" onclick="excluirOS('${os.id}')" style="
+          flex: 1 1 calc(50% - 4px); 
+          font-size: 12px; 
+          padding: 10px 12px;
+          border-radius: 8px;
+          font-weight: 600;
+          background: #1a1a1a;
+          color: #dc2626;
+          border: 2px solid #dc2626;
+          cursor: pointer;
+          transition: all 0.3s;
+        " onmouseover="this.style.background='#dc2626';this.style.color='#fff'" onmouseout="this.style.background='#1a1a1a';this.style.color='#dc2626'">
+          <i class="fas fa-trash"></i> <span>Excluir</span>
+        </button>
+      </div>
+    `;
 
     list.appendChild(div);
-
   });
 }
+
+// Função para mostrar opções de PDF
+function mostrarOpcoesPDF(osId) {
+  const modal = document.createElement('div');
+  modal.style.cssText = `
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.85);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    animation: fadeIn 0.2s ease;
+  `;
+
+  modal.innerHTML = `
+    <div style="
+      background: linear-gradient(135deg, #1a1a1a 0%, #0d0d0d 100%);
+      border-radius: 16px;
+      padding: 28px;
+      max-width: 420px;
+      width: 90%;
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.7);
+      border: 2px solid #D4C29A;
+      animation: slideUp 0.3s ease;
+    ">
+      <div style="
+        text-align: center;
+        margin-bottom: 24px;
+      ">
+        <div style="
+          background: linear-gradient(135deg, #D4C29A 0%, #B8A47E 100%);
+          width: 60px;
+          height: 60px;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          margin: 0 auto 16px;
+          box-shadow: 0 4px 12px rgba(212, 194, 154, 0.4);
+        ">
+          <i class="fas fa-file-pdf" style="
+            color: #0d0d0d;
+            font-size: 28px;
+          "></i>
+        </div>
+        
+        <h3 style="
+          color: #D4C29A;
+          font-size: 22px;
+          font-weight: 700;
+          margin-bottom: 8px;
+          letter-spacing: 0.5px;
+        ">Gerar PDF</h3>
+        
+        <p style="
+          color: #aaa;
+          font-size: 14px;
+          line-height: 1.5;
+        ">Escolha o tipo de PDF que deseja gerar</p>
+      </div>
+
+      <div style="
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        margin-bottom: 20px;
+      ">
+        <button onclick="gerarPDFOrdem('${osId}', true); document.body.removeChild(this.closest('div').parentElement)" style="
+          width: 100%;
+          padding: 16px;
+          background: linear-gradient(135deg, #10b93a 0%, #059669 100%);
+          color: #fff;
+          border: none;
+          border-radius: 10px;
+          font-size: 15px;
+          font-weight: 700;
+          cursor: pointer;
+          transition: all 0.3s;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 10px;
+          box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        " onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 6px 16px rgba(16, 185, 129, 0.4)'" onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='0 4px 12px rgba(16, 185, 129, 0.3)'">
+          <i class="fas fa-dollar-sign" style="font-size: 18px;"></i>
+          <span>PDF com Valores</span>
+        </button>
+
+        <button onclick="gerarPDFOrdem('${osId}', false); document.body.removeChild(this.closest('div').parentElement)" style="
+          width: 100%;
+          padding: 16px;
+          background: linear-gradient(135deg, #f63b3b 0%, #eb2525 100%);
+          color: #fff;
+          border: none;
+          border-radius: 10px;
+          font-size: 15px;
+          font-weight: 700;
+          cursor: pointer;
+          transition: all 0.3s;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 10px;
+          <i class="fas fa-file-alt" style="font-size: 18px;"></i>
+          <span>PDF sem Valores</span>
+        </button>
+      </div>
+
+      <button onclick="document.body.removeChild(this.closest('div').parentElement)" style="
+        width: 100%;
+        padding: 12px;
+        background: transparent;
+        color: #999;
+        border: 2px solid #333;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+      " onmouseover="this.style.borderColor='#D4C29A';this.style.color='#D4C29A'" onmouseout="this.style.borderColor='#333';this.style.color='#999'">
+        Cancelar
+      </button>
+    </div>
+
+    <style>
+      @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+      }
+      @keyframes slideUp {
+        from { 
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to { 
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+    </style>
+  `;
+
+  document.body.appendChild(modal);
+}
+
+
 
 
 
@@ -4227,7 +4317,8 @@ async function salvarFormaPagamento(orderId) {
 // FUNÇÃO GERAR PDF COM JSPDF
 // ============================= 
 
-async function gerarPDFOrdem(orderId) {
+
+async function gerarPDFOrdem(orderId, comValores = true) {
 
   const ordem = allOrders.find(o => o.id === orderId);
   if (!ordem) {
@@ -4236,7 +4327,7 @@ async function gerarPDFOrdem(orderId) {
   }
 
   try {
-    showToast('Gerando PDF...', 'info');
+    showToast(`Gerando PDF ${comValores ? 'com' : 'sem'} valores...`, 'info');
 
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF({
@@ -4542,80 +4633,85 @@ async function gerarPDFOrdem(orderId) {
     }
 
     // =============================
-    // RESUMO FINANCEIRO
+    // RESUMO FINANCEIRO (SOMENTE SE comValores = true)
     // =============================
-    yPos += 8;
+    if (comValores) {
+      yPos += 8;
 
-    doc.setDrawColor(220, 220, 220);
-    doc.setLineWidth(0.3);
-    doc.roundedRect(15, yPos, 180, 34, 2, 2);
+      doc.setDrawColor(220, 220, 220);
+      doc.setLineWidth(0.3);
+      doc.roundedRect(15, yPos, 180, 34, 2, 2);
 
-    doc.setFillColor(179, 33, 23);
-    doc.roundedRect(15, yPos, 180, 7, 2, 2, 'F');
+      doc.setFillColor(179, 33, 23);
+      doc.roundedRect(15, yPos, 180, 7, 2, 2, 'F');
 
-    doc.setTextColor(255, 255, 255);
-    doc.setFontSize(10);
-    doc.setFont('helvetica', 'bold');
-    doc.text('RESUMO FINANCEIRO', 20, yPos + 5);
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'bold');
+      doc.text('RESUMO FINANCEIRO', 20, yPos + 5);
 
-    doc.setTextColor(60, 60, 60);
-    doc.setFontSize(8.5);
+      doc.setTextColor(60, 60, 60);
+      doc.setFontSize(8.5);
 
-    // Quantidade de Produtos
-    const qtdTotal = produtos.reduce((acc, p) => acc + p.qty, 0);
-    doc.setFont('helvetica', 'bold');
-    doc.text('Total de Itens:', 20, yPos + 14);
-    doc.setFont('helvetica', 'normal');
-    doc.text(`${qtdTotal} ${qtdTotal === 1 ? 'un' : 'uns'}`, 50, yPos + 14);
+      // Quantidade de Produtos
+      const qtdTotal = produtos.reduce((acc, p) => acc + p.qty, 0);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Total de Itens:', 20, yPos + 14);
+      doc.setFont('helvetica', 'normal');
+      doc.text(`${qtdTotal} ${qtdTotal === 1 ? 'un' : 'uns'}`, 50, yPos + 14);
 
-    // Forma de Pagamento
-    doc.setFont('helvetica', 'bold');
-    doc.text('Pagamento:', 20, yPos + 19);
-    doc.setFont('helvetica', 'normal');
-    doc.text(formaPagamento, 48, yPos + 19);
+      // Forma de Pagamento
+      doc.setFont('helvetica', 'bold');
+      doc.text('Pagamento:', 20, yPos + 19);
+      doc.setFont('helvetica', 'normal');
+      doc.text(formaPagamento, 48, yPos + 19);
 
-    // Status de Pagamento
-    const statusPago = statusPagamento === 'Pago';
-    doc.setFont('helvetica', 'bold');
-    doc.text('Status:', 110, yPos + 19);
+      // Status de Pagamento
+      const statusPago = statusPagamento === 'Pago';
+      doc.setFont('helvetica', 'bold');
+      doc.text('Status:', 110, yPos + 19);
 
-    doc.setFillColor(statusPago ? 220 : 255, statusPago ? 252 : 243, statusPago ? 231 : 224);
-    doc.roundedRect(128, yPos + 16, 30, 5, 1, 1, 'F');
+      doc.setFillColor(statusPago ? 220 : 255, statusPago ? 252 : 243, statusPago ? 231 : 224);
+      doc.roundedRect(128, yPos + 16, 30, 5, 1, 1, 'F');
 
-    doc.setTextColor(statusPago ? 22 : 220, statusPago ? 163 : 53, statusPago ? 74 : 69);
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(7.5);
-    doc.text(statusPagamento.toUpperCase(), 143, yPos + 19.5, { align: 'center' });
+      doc.setTextColor(statusPago ? 22 : 220, statusPago ? 163 : 53, statusPago ? 74 : 69);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(7.5);
+      doc.text(statusPagamento.toUpperCase(), 143, yPos + 19.5, { align: 'center' });
 
-    // Linha divisória
-    doc.setDrawColor(220, 220, 220);
-    doc.setLineWidth(0.3);
-    doc.line(20, yPos + 24, 190, yPos + 24);
+      // Linha divisória
+      doc.setDrawColor(220, 220, 220);
+      doc.setLineWidth(0.3);
+      doc.line(20, yPos + 24, 190, yPos + 24);
 
-    // Valor Total Destacado
-    doc.setTextColor(80, 80, 80);
-    doc.setFontSize(9);
-    doc.setFont('helvetica', 'bold');
-    doc.text('VALOR TOTAL', 20, yPos + 29);
+      // Valor Total Destacado
+      doc.setTextColor(80, 80, 80);
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'bold');
+      doc.text('VALOR TOTAL', 20, yPos + 29);
 
-    doc.setTextColor(179, 33, 23);
-    doc.setFontSize(14);
-    doc.setFont('helvetica', 'bold');
-    doc.text(
-      totalFinal.toLocaleString('pt-BR', {
-        style: 'currency',
-        currency: 'BRL'
-      }),
-      190,
-      yPos + 29,
-      { align: 'right' }
-    );
+      doc.setTextColor(179, 33, 23);
+      doc.setFontSize(14);
+      doc.setFont('helvetica', 'bold');
+      doc.text(
+        totalFinal.toLocaleString('pt-BR', {
+          style: 'currency',
+          currency: 'BRL'
+        }),
+        190,
+        yPos + 29,
+        { align: 'right' }
+      );
+
+      yPos += 40;
+    } else {
+      // Espaçamento adicional quando não há resumo financeiro
+      yPos += 8;
+    }
 
     // =============================
     // OBSERVAÇÕES / NOTAS
     // =============================
-    yPos += 40;
-
     if (ordem.observacoes || ordem.notas || ordem.descricao) {
       if (yPos > 220) {
         doc.addPage();
@@ -4633,11 +4729,9 @@ async function gerarPDFOrdem(orderId) {
       doc.setFontSize(10);
       doc.setFont('helvetica', 'bold');
       doc.text('OBSERVAÇÕES', 20, yPos + 5);
-
       doc.setTextColor(60, 60, 60);
       doc.setFontSize(8);
       doc.setFont('helvetica', 'normal');
-
       const observacao = ordem.observacoes || ordem.notas || ordem.descricao;
       const obsLines = doc.splitTextToSize(observacao, 170);
       doc.text(obsLines.slice(0, 2), 20, yPos + 12);
@@ -4738,6 +4832,8 @@ async function gerarPDFOrdem(orderId) {
     doc.text(`CPF/CNPJ: ${ordem.cnpj || '_____________________'}`, 115, yPos + 31);
     doc.text(`End: ${ordem.endereco ? ordem.endereco.substring(0, 35) : '_____________________'}`, 115, yPos + 35);
 
+ 
+    // =============================
     // RODAPÉ
     // =============================
     const pages = doc.internal.getNumberOfPages();
@@ -4755,7 +4851,6 @@ async function gerarPDFOrdem(orderId) {
       doc.setFontSize(6.5);
       doc.setFont('helvetica', 'normal');
       doc.text('CNPJ: 52.026.476/0001-03 | Tel: (15) 99137-1232 | extinmaiss@outlook.com', 105, 289.5, { align: 'center' });
-
       doc.setFontSize(6.5);
       doc.text(
         `Gerado em ${new Date().toLocaleString('pt-BR')} | Pág ${i}/${pages}`,
@@ -4765,17 +4860,20 @@ async function gerarPDFOrdem(orderId) {
       );
     }
 
+    // Nome do arquivo diferente dependendo da opção
+    const sufixo = comValores ? 'com_valores' : 'sem_valores';
     doc.save(
-      `Nota_Servico_${ordem.cliente || 'cliente'}_${ordem.id?.slice(0, 8) || Date.now()}.pdf`
+      `Nota_Servico_${ordem.cliente || 'cliente'}_${sufixo}_${ordem.id?.slice(0, 8) || Date.now()}.pdf`
     );
-
-    showToast('Nota de Serviço gerada com sucesso!', 'success');
-
+    
+    showToast(`Nota de Serviço ${comValores ? 'com valores' : 'sem valores'} gerada com sucesso!`, 'success');
   } catch (error) {
     console.error(error);
     showToast('Erro ao gerar PDF: ' + error.message, 'error');
   }
 }
+
+
 
 
 
