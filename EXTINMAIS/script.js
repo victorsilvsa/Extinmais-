@@ -3553,15 +3553,13 @@ function renderFilteredOrders() {
           </div>
         </div>
 
-        <!-- SEÇÃO DE DETALHES RECOLHÍVEL -->
-        <div id="os-details-${os.id}" class="os-details-collapsed" style="
+  <div id="os-details-${os.id}" class="os-details-collapsed" style="
           max-height: 0;
           overflow: hidden;
           transition: max-height 0.3s ease;
         ">
-          <div style="padding-top: 14px;">
-            
-            <div style="
+   <div style="padding-top: 14px;">
+    <div style="
               background: #1a1a1a;
               border: 1px solid #333;
               border-radius: 8px;
@@ -3572,7 +3570,7 @@ function renderFilteredOrders() {
               overflow-wrap: break-word;
               hyphens: auto;
             ">
-              <div style="
+     <div style="
                 font-size: 10px;
                 color: #888;
                 text-transform: uppercase;
@@ -3581,12 +3579,9 @@ function renderFilteredOrders() {
                 display: flex;
                 align-items: center;
                 gap: 5px;
-              ">
-                <i class="fas fa-map-marker-alt" style="color: #D4C29A; flex-shrink: 0;"></i>
-                Endereço e CEP
-              </div>
-              
-              <div style="
+              "><i class="fas fa-map-marker-alt" style="color: #D4C29A; flex-shrink: 0;"></i> Endereço e CEP
+     </div>
+     <div style="
                 font-size: 14px;
                 color: #fff;
                 font-weight: 500;
@@ -3597,26 +3592,24 @@ function renderFilteredOrders() {
                 hyphens: auto;
                 line-height: 1.4;
               ">
-                ${escapeHtml(os.endereco || '-')}
-              </div>
-
-              <div style="
+      ${escapeHtml(os.endereco || '-')}
+     </div>
+     <div style="
                 font-size: 13px; 
                 color: #aaa;
                 font-weight: 400;
               ">
-                CEP: ${escapeHtml(os.cep || '-')}
-              </div>
-            </div>
-
-            <div style="
+      CEP: ${escapeHtml(os.cep || '-')}
+     </div>
+    </div>
+    <div style="
               background: #1a1a1a;
               border: 1px solid #333;
               border-radius: 8px;
               padding: 12px;
               margin-bottom: 14px;
             ">
-              <div style="
+     <div style="
                 font-size: 10px;
                 color: #888;
                 text-transform: uppercase;
@@ -3625,11 +3618,9 @@ function renderFilteredOrders() {
                 display: flex;
                 align-items: center;
                 gap: 5px;
-              ">
-                <i class="fas fa-circle-check" style="color: ${statusPagamento === 'Pago' ? '#28a745' : '#dc3545'}; flex-shrink: 0;"></i>
-                Status de Pagamento
-              </div>
-              <div style="
+              "><i class="fas fa-circle-check" style="color: ${statusPagamento === 'Pago' ? '#28a745' : '#dc3545'}; flex-shrink: 0;"></i> Status de Pagamento
+     </div>
+     <div style="
                 font-size: 14px;
                 color: ${statusPagamento === 'Pago' ? '#28a745' : '#dc3545'};
                 font-weight: 700;
@@ -3637,12 +3628,9 @@ function renderFilteredOrders() {
                 display: flex;
                 align-items: center;
                 gap: 6px;
-              ">
-                <i class="fas fa-${statusPagamento === 'Pago' ? 'check-circle' : 'times-circle'}" style="flex-shrink: 0;"></i>
-                ${escapeHtml(statusPagamento)}
-              </div>
-
-              <div style="
+              "><i class="fas fa-${statusPagamento === 'Pago' ? 'check-circle' : 'times-circle'}" style="flex-shrink: 0;"></i> ${escapeHtml(statusPagamento)}
+     </div>
+     <div style="
                 font-size: 10px;
                 color: #888;
                 text-transform: uppercase;
@@ -3653,11 +3641,9 @@ function renderFilteredOrders() {
                 display: flex;
                 align-items: center;
                 gap: 5px;
-              ">
-                <i class="fas fa-credit-card" style="color: #D4C29A; flex-shrink: 0;"></i>
-                Forma de Pagamento
-              </div>
-              <div style="
+              "><i class="fas fa-credit-card" style="color: #D4C29A; flex-shrink: 0;"></i> Forma de Pagamento
+     </div>
+     <div style="
                 font-size: 14px;
                 color: #fff;
                 font-weight: 600;
@@ -3665,13 +3651,11 @@ function renderFilteredOrders() {
                 word-break: break-word;
                 overflow-wrap: break-word;
               ">
-                ${escapeHtml(formaPagamento)}
-              </div>
-            </div>
-
-            ${produtosListaHTML ? `
-              <div style="margin-top: 14px; margin-bottom: 14px;">
-                <div style="
+      ${escapeHtml(formaPagamento)}
+     </div>
+    </div> ${produtosListaHTML ? ` 
+    <div style="margin-top: 14px; margin-bottom: 14px;">
+     <div style="
                   color: #D4C29A;
                   font-size: 12px;
                   font-weight: 700;
@@ -3680,16 +3664,13 @@ function renderFilteredOrders() {
                   letter-spacing: 0.5px;
                   padding-bottom: 8px;
                   border-bottom: 2px solid #D4C29A;
-                ">
-                  <i class="fas fa-boxes" style="margin-right: 8px; font-size: 11px;"></i>
-                  Produtos Utilizados (${qtdProdutos} un.)
-                </div>
-                <div style="max-height: 220px; overflow-y: auto;">
-                  ${produtosListaHTML}
-                </div>
-              </div>
-            ` : `
-              <div style="
+                "><i class="fas fa-boxes" style="margin-right: 8px; font-size: 11px;"></i> Produtos Utilizados (${qtdProdutos} un.)
+     </div>
+     <div style="max-height: 220px; overflow-y: auto;">
+      ${produtosListaHTML}
+     </div>
+    </div> ` : ` 
+    <div style="
                 margin: 14px 0;
                 padding: 14px;
                 background: #1a1a1a;
@@ -3698,14 +3679,37 @@ function renderFilteredOrders() {
                 color: #888;
                 font-size: 13px;
                 text-align: center;
+              "><i class="fas fa-inbox" style="margin-right: 8px; font-size: 16px; color: #D4C29A;"></i> Nenhum produto cadastrado
+    </div> `} <!-- VALOR TOTAL DA OS -->
+    <div style="
+              background: #1a1a1a;
+              border: 1px solid #333;
+              border-radius: 8px;
+              padding: 12px;
+              margin-top: 14px;
+            ">
+     <div style="
+                font-size: 10px;
+                color: #888;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+                margin-bottom: 6px;
+                display: flex;
+                align-items: center;
+                gap: 5px;
+              "><i class="fas fa-dollar-sign" style="color: #D4C29A; flex-shrink: 0;"></i> Valor Total da OS
+     </div>
+     <div style="
+                font-size: 18px;
+                color: #4ade80;
+                font-weight: 700;
               ">
-                <i class="fas fa-inbox" style="margin-right: 8px; font-size: 16px; color: #D4C29A;"></i>
-                Nenhum produto cadastrado
-              </div>
-            `}
+      ${(Number(os.total) || Number(os.preco) || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+     </div>
+    </div>
+   </div>
+  </div>
 
-          </div>
-        </div>
         <!-- FIM DA SEÇÃO RECOLHÍVEL -->
 
         <!-- BOTÃO TOGGLE DETALHES -->
@@ -5264,14 +5268,7 @@ document.querySelectorAll('#ordersSection .filter-btn').forEach(btn => {
 });
 
 // Helper: escapeHtml para evitar injeção simples quando colocamos texto direto no innerHTML
-function escapeHtml(str) {
-  return String(str)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#039;');
-}
+
 
 // Inicializa lista ao carregar a página
 window.addEventListener('load', () => {
@@ -5932,33 +5929,299 @@ function populateOSProductSelect() {
 /* ============================= */
 
 document.addEventListener('click', function (e) {
-  if (e.target && e.target.id === 'addProductToOSBtn') {
-    const select = document.getElementById('osProductSelect');
-    const qtyInput = document.getElementById('osProductQty');
-
-    if (!select || !qtyInput) return;
-
-    const productId = parseInt(select.value);
-    const qty = parseInt(qtyInput.value);
-
-    if (!productId || qty <= 0) {
-      alert('Selecione um produto e quantidade válida.');
-      return;
-    }
-
-    const product = products.find(p => p.id === productId);
-    if (!product) return;
-
-    osSelectedProducts.push({
-      id: product.id,
-      name: product.name,
-      price: product.price,
-      qty
-    });
-
-    renderOSProducts();
+  if (e.target && (e.target.id === 'addProductToOSBtn' || e.target.closest('#addProductToOSBtn'))) {
+    abrirModalSelecionarProdutoOS();
   }
 });
+function abrirModalSelecionarProdutoOS() {
+  const modalHtml = `
+    <div id="selectProductOSModal" style="
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.9);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      padding: 20px;
+      backdrop-filter: blur(4px);
+    ">
+      <div style="
+        background: linear-gradient(145deg, #1f1f1f 0%, #1a1a1a 100%);
+        border: 2px solid #10b981;
+        border-radius: 16px;
+        width: 100%;
+        max-width: 520px;
+        max-height: 85vh;
+        color: #f5f5f5;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8), 0 0 40px rgba(16, 185, 129, 0.1);
+        display: flex;
+        flex-direction: column;
+        animation: slideIn 0.3s ease-out;
+      ">
+        <style>
+          @keyframes slideIn {
+            from {
+              opacity: 0;
+              transform: translateY(-20px) scale(0.95);
+            }
+            to {
+              opacity: 1;
+              transform: translateY(0) scale(1);
+            }
+          }
+          #productOSModalList::-webkit-scrollbar {
+            width: 8px;
+          }
+          #productOSModalList::-webkit-scrollbar-track {
+            background: #0d0d0d;
+            border-radius: 10px;
+          }
+          #productOSModalList::-webkit-scrollbar-thumb {
+            background: #10b981;
+            border-radius: 10px;
+          }
+          #productOSModalList::-webkit-scrollbar-thumb:hover {
+            background: #0d9668;
+          }
+        </style>
+
+        <!-- Header -->
+        <div style="
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 20px 22px;
+          border-bottom: 2px solid #10b981;
+          background: linear-gradient(135deg, #2a2a2a 0%, #1f1f1f 100%);
+          border-radius: 14px 14px 0 0;
+          flex-shrink: 0;
+        ">
+          <h3 style="
+            margin: 0;
+            font-size: 1.25rem;
+            color: #10b981;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            letter-spacing: 0.3px;
+          ">
+            <i class="fas fa-search" style="font-size: 1.1rem;"></i>
+            Selecionar Produto
+          </h3>
+          <button onclick="fecharModalSelecionarProdutoOS()" style="
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #ef4444;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+          " onmouseover="this.style.background='rgba(239, 68, 68, 0.2)'; this.style.borderColor='#ef4444'" onmouseout="this.style.background='rgba(239, 68, 68, 0.1)'; this.style.borderColor='rgba(239, 68, 68, 0.3)'">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+
+        <!-- Campo de Busca -->
+        <div style="padding: 20px 22px; border-bottom: 1px solid #2a2a2a; flex-shrink: 0; background: #1a1a1a;">
+          <div style="position: relative;">
+            <input type="text" id="searchProductOSInput" placeholder="Digite para buscar produtos..." style="
+              width: 100%;
+              padding: 14px 16px 14px 46px;
+              background: #0d0d0d;
+              border: 2px solid #333;
+              border-radius: 10px;
+              color: #fff;
+              font-size: 0.95rem;
+              transition: all 0.3s ease;
+              box-sizing: border-box;
+              font-weight: 500;
+            " onfocus="this.style.borderColor='#10b981'; this.style.boxShadow='0 0 0 3px rgba(16, 185, 129, 0.1)'" onblur="this.style.borderColor='#333'; this.style.boxShadow='none'" oninput="filtrarProdutosOSModal()">
+            <i class="fas fa-search" style="
+              position: absolute;
+              left: 16px;
+              top: 50%;
+              transform: translateY(-50%);
+              color: #10b981;
+              font-size: 16px;
+            "></i>
+          </div>
+        </div>
+
+        <!-- Lista de Produtos -->
+        <div id="productOSModalList" style="
+          flex: 1;
+          overflow-y: auto;
+          padding: 16px 22px;
+          background: #1a1a1a;
+        ">
+          <!-- Produtos serão inseridos aqui -->
+        </div>
+
+      </div>
+    </div>
+  `;
+
+  document.body.insertAdjacentHTML('beforeend', modalHtml);
+  renderizarListaProdutosOSModal();
+}
+function filtrarProdutosOSModal() {
+  const input = document.getElementById('searchProductOSInput');
+  if (!input) return;
+  renderizarListaProdutosOSModal(input.value);
+}
+
+
+function fecharModalSelecionarProdutoOS() {
+  const modal = document.getElementById('selectProductOSModal');
+  if (modal) modal.remove();
+}
+
+function renderizarListaProdutosOSModal(filtro = '') {
+  const container = document.getElementById('productOSModalList');
+  if (!container) return;
+
+  const filtroLower = filtro.toLowerCase();
+  const produtosFiltrados = products.filter(p => 
+    p.name.toLowerCase().includes(filtroLower) || 
+    (p.description && p.description.toLowerCase().includes(filtroLower))
+  );
+
+  if (produtosFiltrados.length === 0) {
+    container.innerHTML = `
+      <div style="
+        padding: 60px 20px;
+        text-align: center;
+        color: #666;
+      ">
+        <i class="fas fa-box-open" style="font-size: 4rem; margin-bottom: 16px; color: #10b981; opacity: 0.3;"></i>
+        <p style="margin: 0; font-size: 15px; font-weight: 500;">Nenhum produto encontrado</p>
+        <p style="margin: 8px 0 0 0; font-size: 13px; color: #555;">Tente buscar com outros termos</p>
+      </div>
+    `;
+    return;
+  }
+
+  container.innerHTML = produtosFiltrados.map(prod => `
+    <div onclick="selecionarProdutoOSModal(${prod.id})" style="
+      background: linear-gradient(135deg, #0d0d0d 0%, #121212 100%);
+      border: 2px solid #2a2a2a;
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 12px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    " onmouseover="this.style.background='linear-gradient(135deg, #1a1a1a 0%, #1f1f1f 100%)'; this.style.borderColor='#10b981'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 20px rgba(16, 185, 129, 0.2)'" onmouseout="this.style.background='linear-gradient(135deg, #0d0d0d 0%, #121212 100%)'; this.style.borderColor='#2a2a2a'; this.style.transform='translateY(0)'; this.style.boxShadow='none'">
+      
+      <div style="
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 60px;
+        height: 60px;
+        background: radial-gradient(circle, rgba(16, 185, 129, 0.1) 0%, transparent 70%);
+        border-radius: 0 0 0 100%;
+      "></div>
+
+      <div style="
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 8px;
+      ">
+        <div style="
+          width: 8px;
+          height: 8px;
+          background: #10b981;
+          border-radius: 50%;
+          box-shadow: 0 0 8px rgba(16, 185, 129, 0.6);
+        "></div>
+        <div style="
+          color: #fff;
+          font-weight: 700;
+          font-size: 16px;
+          letter-spacing: 0.3px;
+        ">
+          ${escapeHtml(prod.name)}
+        </div>
+      </div>
+
+      <div style="
+        color: #999;
+        font-size: 13px;
+        margin-bottom: 12px;
+        line-height: 1.5;
+        padding-left: 18px;
+      ">
+        ${escapeHtml(prod.description || 'Sem descrição disponível')}
+      </div>
+
+      <div style="
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-left: 18px;
+      ">
+        <div style="
+          color: #4ade80;
+          font-weight: 800;
+          font-size: 18px;
+          text-shadow: 0 0 10px rgba(74, 222, 128, 0.3);
+        ">
+          R$ ${prod.price.toFixed(2)}
+        </div>
+        <div style="
+          background: rgba(16, 185, 129, 0.15);
+          color: #10b981;
+          padding: 6px 14px;
+          border-radius: 20px;
+          font-size: 12px;
+          font-weight: 600;
+          border: 1px solid rgba(16, 185, 129, 0.3);
+        ">
+          <i class="fas fa-plus" style="margin-right: 4px;"></i>
+          Adicionar
+        </div>
+      </div>
+
+    </div>
+  `).join('');
+}
+function selecionarProdutoOSModal(productId) {
+  const produto = products.find(p => p.id === productId);
+  if (!produto) return;
+
+  const qtdInput = document.getElementById('osProductQty');
+  const qty = parseInt(qtdInput?.value) || 1;
+  
+  if (qty <= 0) {
+    showToast('Quantidade inválida', 'error');
+    return;
+  }
+  
+  osSelectedProducts.push({ 
+    id: produto.id, 
+    name: produto.name, 
+    qty: qty,
+    price: produto.price 
+  });
+  
+  if (qtdInput) qtdInput.value = '1';
+  
+  renderOSProducts();
+  fecharModalSelecionarProdutoOS();
+  showToast(`${produto.name} adicionado com sucesso!`, 'success');
+}
+
 
 /* ============================= */
 /* RENDER PRODUTOS DA OS */
@@ -5971,34 +6234,89 @@ function renderOSProducts() {
   list.innerHTML = '';
 
   if (osSelectedProducts.length === 0) {
-    list.innerHTML = '<p style="color:#999;">Nenhum produto adicionado.</p>';
+    list.innerHTML = `
+      <div style="
+        padding: 30px 20px;
+        text-align: center;
+        color: #666;
+      ">
+        <i class="fas fa-shopping-basket" style="font-size: 2.5rem; margin-bottom: 10px; color: #10b981; opacity: 0.3;"></i>
+        <p style="margin: 0; font-size: 14px;">Nenhum produto adicionado</p>
+      </div>
+    `;
     updateOSProductTotals();
     return;
   }
 
-  osSelectedProducts.forEach(prod => {
+  osSelectedProducts.forEach((prod, index) => {
     const item = document.createElement('div');
     item.style.cssText = `
       display:flex;
       justify-content:space-between;
       align-items:center;
-      background:#2a2a2a;
-      border:1px solid #333;
-      border-radius:6px;
-      padding:10px;
-      margin-bottom:8px;
+      background: linear-gradient(135deg, #2a2a2a 0%, #242424 100%);
+      border:2px solid #333;
+      border-radius:10px;
+      padding:14px 16px;
+      margin-bottom:10px;
+      transition: all 0.3s ease;
     `;
 
+    item.onmouseover = function() {
+      this.style.borderColor = '#10b981';
+      this.style.transform = 'translateX(4px)';
+    };
+    item.onmouseout = function() {
+      this.style.borderColor = '#333';
+      this.style.transform = 'translateX(0)';
+    };
+
     item.innerHTML = `
-      <div>
-        <strong style="color:#fff;">${prod.name}</strong><br>
-        <small style="color:#aaa;">Qtd: ${prod.qty} | R$ ${prod.price.toFixed(2)}</small>
+      <div style="flex: 1;">
+        <div style="
+          color: #fff;
+          font-weight: 700;
+          font-size: 15px;
+          margin-bottom: 6px;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        ">
+          <i class="fas fa-box" style="color: #10b981; font-size: 13px;"></i>
+          ${escapeHtml(prod.name)}
+        </div>
+        <div style="
+          display: flex;
+          gap: 16px;
+          color: #aaa;
+          font-size: 13px;
+        ">
+          <span><strong style="color: #10b981;">Qtd:</strong> ${prod.qty}</span>
+          <span><strong style="color: #10b981;">Unit:</strong> R$ ${prod.price.toFixed(2)}</span>
+          <span><strong style="color: #4ade80;">Total:</strong> R$ ${(prod.price * prod.qty).toFixed(2)}</span>
+        </div>
       </div>
       <button
-        style="background:none;border:none;color:#ff5c5c;cursor:pointer"
-        onclick="removeProductFromOS(${prod.id})"
+        data-remove-os-product="${prod.id}"
+        style="
+          background: rgba(239, 68, 68, 0.1);
+          border: 1px solid rgba(239, 68, 68, 0.3);
+          color: #ef4444;
+          cursor: pointer;
+          font-size: 1rem;
+          width: 36px;
+          height: 36px;
+          border-radius: 8px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: all 0.3s ease;
+        "
+        onmouseover="this.style.background='rgba(239, 68, 68, 0.2)'; this.style.borderColor='#ef4444'; this.style.transform='scale(1.1)'"
+        onmouseout="this.style.background='rgba(239, 68, 68, 0.1)'; this.style.borderColor='rgba(239, 68, 68, 0.3)'; this.style.transform='scale(1)'"
+        title="Remover produto"
       >
-        <i class="fas fa-trash"></i>
+        <i class="fas fa-trash-alt"></i>
       </button>
     `;
 
@@ -6008,48 +6326,73 @@ function renderOSProducts() {
   updateOSProductTotals();
 }
 
+
 /* ============================= */
 /* REMOVER PRODUTO DA OS */
 /* ============================= */
 
 function removeProductFromOS(id) {
+  const produtoRemovido = osSelectedProducts.find(p => p.id === id);
   osSelectedProducts = osSelectedProducts.filter(p => p.id !== id);
   renderOSProducts();
+  if (produtoRemovido) {
+    showToast(`${produtoRemovido.name} removido com sucesso`, 'success');
+  }
 }
+
+
+document.addEventListener('click', function(e) {
+  const btn = e.target.closest('[data-remove-os-product]');
+  if (btn) {
+    const productId = parseInt(btn.getAttribute('data-remove-os-product'));
+    removeProductFromOS(productId);
+  }
+});
 
 /* ============================= */
 /* CALCULAR TOTAIS + LUCRO */
 /* ============================= */
 
 function updateOSProductTotals() {
-  const subtotalEl = document.getElementById('productsSubtotal');
-  const profitValueEl = document.getElementById('productsProfitValue');
-  const totalEl = document.getElementById('productsTotalWithProfit');
-  const profitInput = document.getElementById('profitPercent');
+  const subtotal = osSelectedProducts.reduce((acc, p) => {
+    return acc + (Number(p.price) * Number(p.qty));
+  }, 0);
 
-  let subtotal = 0;
-  osSelectedProducts.forEach(p => {
-    subtotal += p.price * p.qty;
-  });
+  const profitPercent = parseFloat(
+    document.getElementById('profitPercent')?.value
+  ) || 0;
 
-  const profitPercent = profitInput ? parseFloat(profitInput.value) || 0 : 0;
   const profitValue = subtotal * (profitPercent / 100);
-  const total = subtotal + profitValue;
+  const totalFinal = subtotal + profitValue;
+
+  const subtotalEl = document.getElementById('productsSubtotal');
+  const profitEl = document.getElementById('productsProfitValue');
+  const totalEl = document.getElementById('productsTotalWithProfit');
 
   if (subtotalEl) subtotalEl.textContent = `R$ ${subtotal.toFixed(2)}`;
-  if (profitValueEl) profitValueEl.textContent = `R$ ${profitValue.toFixed(2)}`;
-  if (totalEl) totalEl.textContent = `R$ ${total.toFixed(2)}`;
+  if (profitEl) profitEl.textContent = `R$ ${profitValue.toFixed(2)}`;
+  if (totalEl) totalEl.textContent = `R$ ${totalFinal.toFixed(2)}`;
 }
+
+
 
 /* ============================= */
 /* LISTENER LUCRO (%) */
 /* ============================= */
 
-document.addEventListener('input', function (e) {
+document.addEventListener('input', function(e) {
   if (e.target && e.target.id === 'profitPercent') {
     updateOSProductTotals();
   }
 });
+
+function escapeHtml(text) {
+  if (!text) return '';
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
 
 /* ============================= */
 /* INICIALIZA PRODUTOS */
