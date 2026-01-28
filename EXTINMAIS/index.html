@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -65,8 +66,9 @@
         <div class="nav-item-desktop" data-section="orders">
           <i class="fas fa-tools"></i> <span>Ordens de Serviço</span>
         </div>
- <div class="nav-item-desktop" data-section="calendar"><i class="fas fa-calendar-alt"></i> <span>Calendário</span>
-  </div>
+        <div class="nav-item-desktop" data-section="calendar"><i class="fas fa-calendar-alt"></i>
+          <span>Calendário</span>
+        </div>
         <div class="nav-item-desktop" data-section="config"><i class="fas fa-cog"></i> <span>Configurações</span>
         </div>
       </nav>
@@ -287,130 +289,128 @@
           </div>
 
           <!-- Busca -->
-          <div class="search-bar">
-            <div class="search-box">
-              <i class="fas fa-search"></i>
-              <input type="text" id="productSearch" placeholder="Buscar produto...">
-            </div>
-          </div>
+
 
           <!-- Lista de Produtos -->
           <div id="productsList"></div>
-
+ <div id="pagination"></div>
         </div>
 
       </section>
 
-  <section id="calendarSection" class="content-section">
-   <div class="page-header">
-    <h1 class="page-title"> Calendário de Inspeções</h1>
-    <p class="page-subtitle">Gerenciar agendamentos de inspeções</p>
-   </div>
-   <div class="calendar-top-actions"><button class="btn" id="addScheduleBtn"> <i class="fas fa-plus"></i> Nova Inspeção </button> <button class="btn btn-info" id="exportMonthPDFBtn"> <i class="fas fa-file-pdf"></i> Exportar Mês </button>
-   </div><!-- Controles do Calendário -->
-   <div class="calendar-controls"><button class="calendar-nav-btn" id="prevMonthBtn"> <i class="fas fa-chevron-left"></i> <span class="btn-text">Anterior</span> </button>
-    <h2 class="calendar-month-title" id="currentMonthTitle">Janeiro 2024</h2><button class="calendar-nav-btn" id="nextMonthBtn"> <span class="btn-text">Próximo</span> <i class="fas fa-chevron-right"></i> </button>
-   </div><!-- Grid do Calendário -->
-   <div class="calendar-grid" id="calendarGrid"><!-- Será preenchido dinamicamente -->
-   </div><!-- Lista de Inspeções do Dia -->
-   <div id="dayInspectionsList" style="display: none;">
-    <div class="day-inspections-header">
-     <h3 id="selectedDayTitle">Inspeções do dia</h3><button class="btn-close-day" id="closeDayListBtn"> <i class="fas fa-times"></i> Fechar </button>
-    </div>
-    <div id="dayInspectionsContent"></div>
-   </div>
-  </section><!-- ========================================
+      <section id="calendarSection" class="content-section">
+        <div class="page-header">
+          <h1 class="page-title"> Calendário de Inspeções</h1>
+          <p class="page-subtitle">Gerenciar agendamentos de inspeções</p>
+        </div>
+        <div class="calendar-top-actions"><button class="btn" id="addScheduleBtn"> <i class="fas fa-plus"></i> Nova
+            Inspeção </button> <button class="btn btn-info" id="exportMonthPDFBtn"> <i class="fas fa-file-pdf"></i>
+            Exportar Mês </button>
+        </div><!-- Controles do Calendário -->
+        <div class="calendar-controls"><button class="calendar-nav-btn" id="prevMonthBtn"> <i
+              class="fas fa-chevron-left"></i> <span class="btn-text">Anterior</span> </button>
+          <h2 class="calendar-month-title" id="currentMonthTitle">Janeiro 2024</h2><button class="calendar-nav-btn"
+            id="nextMonthBtn"> <span class="btn-text">Próximo</span> <i class="fas fa-chevron-right"></i> </button>
+        </div><!-- Grid do Calendário -->
+        <div class="calendar-grid" id="calendarGrid"><!-- Será preenchido dinamicamente -->
+        </div><!-- Lista de Inspeções do Dia -->
+        <div id="dayInspectionsList" style="display: none;">
+          <div class="day-inspections-header">
+            <h3 id="selectedDayTitle">Inspeções do dia</h3><button class="btn-close-day" id="closeDayListBtn"> <i
+                class="fas fa-times"></i> Fechar </button>
+          </div>
+          <div id="dayInspectionsContent"></div>
+        </div>
+      </section><!-- ========================================
      MODAL: AGENDAR NOVA INSPEÇÃO
 ========================================= -->
- <div id="scheduleModal" class="modal">
-  <div class="modal-content">
+      <div id="scheduleModal" class="modal">
+        <div class="modal-content">
 
-    <!-- Header -->
-    <div class="modal-header">
-      <h2 class="modal-title">
-        <i class="fas fa-calendar-plus"></i> Agendar Inspeção
-      </h2>
-      <button class="close-modal" onclick="fecharModalAgendamento()">×</button>
-    </div>
+          <!-- Header -->
+          <div class="modal-header">
+            <h2 class="modal-title">
+              <i class="fas fa-calendar-plus"></i> Agendar Inspeção
+            </h2>
+            <button class="close-modal" onclick="fecharModalAgendamento()">×</button>
+          </div>
 
-    <!-- Body -->
-    <form id="scheduleForm">
+          <!-- Body -->
+          <form id="scheduleForm">
 
-      <div class="form-group">
-        <label for="scheduleClientSelect">Cliente *</label>
-        <select id="scheduleClientSelect" required>
-          <option value="">Selecione um cliente</option>
-        </select>
+            <div class="form-group">
+              <label for="scheduleClientSelect">Cliente *</label>
+              <select id="scheduleClientSelect" required>
+                <option value="">Selecione um cliente</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="scheduleDate">Data da Inspeção *</label>
+              <input type="date" id="scheduleDate" required>
+            </div>
+
+            <div class="form-group">
+              <label for="scheduleTime">Horário *</label>
+              <input type="time" id="scheduleTime" required>
+            </div>
+
+            <div class="form-group">
+              <label for="scheduleAddress">Endereço</label>
+              <input type="text" id="scheduleAddress" readonly>
+            </div>
+
+            <div class="form-group">
+              <label for="scheduleCNPJ">CNPJ</label>
+              <input type="text" id="scheduleCNPJ" readonly>
+            </div>
+
+            <div class="form-group">
+              <label for="scheduleNotes">Observações</label>
+              <textarea id="scheduleNotes" rows="3" placeholder="Observações adicionais (opcional)"></textarea>
+            </div>
+
+            <input type="hidden" id="scheduleClientId">
+            <input type="hidden" id="scheduleClientName">
+            <input type="hidden" id="scheduleClientType">
+
+            <div style="display:flex; gap:10px; margin-top:20px;">
+              <button type="submit" class="btn">
+                <i class="fas fa-save"></i> Salvar
+              </button>
+
+              <button type="button" class="btn" onclick="fecharModalAgendamento()" style="background:#6b7280;">
+                <i class="fas fa-times"></i> Cancelar
+              </button>
+            </div>
+
+          </form>
+        </div>
       </div>
-
-      <div class="form-group">
-        <label for="scheduleDate">Data da Inspeção *</label>
-        <input type="date" id="scheduleDate" required>
-      </div>
-
-      <div class="form-group">
-        <label for="scheduleTime">Horário *</label>
-        <input type="time" id="scheduleTime" required>
-      </div>
-
-      <div class="form-group">
-        <label for="scheduleAddress">Endereço</label>
-        <input type="text" id="scheduleAddress" readonly>
-      </div>
-
-      <div class="form-group">
-        <label for="scheduleCNPJ">CNPJ</label>
-        <input type="text" id="scheduleCNPJ" readonly>
-      </div>
-
-      <div class="form-group">
-        <label for="scheduleNotes">Observações</label>
-        <textarea id="scheduleNotes" rows="3"
-          placeholder="Observações adicionais (opcional)"></textarea>
-      </div>
-
-      <input type="hidden" id="scheduleClientId">
-      <input type="hidden" id="scheduleClientName">
-      <input type="hidden" id="scheduleClientType">
-
-      <div style="display:flex; gap:10px; margin-top:20px;">
-        <button type="submit" class="btn">
-          <i class="fas fa-save"></i> Salvar
-        </button>
-
-        <button type="button" class="btn" onclick="fecharModalAgendamento()"
-          style="background:#6b7280;">
-          <i class="fas fa-times"></i> Cancelar
-        </button>
-      </div>
-
-    </form>
-  </div>
-</div>
-<!-- ========================================
+      <!-- ========================================
      MODAL: DETALHES DA INSPEÇÃO
 ========================================= -->
-<div id="inspectionDetailModal" class="modal">
-    <div class="modal-content">
+      <div id="inspectionDetailModal" class="modal">
+        <div class="modal-content">
 
-        <!-- Header -->
-        <div class="modal-header">
+          <!-- Header -->
+          <div class="modal-header">
             <h2 class="modal-title">
-                <i class="fas fa-info-circle"></i> Detalhes da Inspeção
+              <i class="fas fa-info-circle"></i> Detalhes da Inspeção
             </h2>
 
             <button class="close-modal" onclick="fecharModalDetalhes()">
-                &times;
+              &times;
             </button>
-        </div>
+          </div>
 
-        <!-- Body -->
-        <div id="inspectionDetailContent">
+          <!-- Body -->
+          <div id="inspectionDetailContent">
             <!-- Conteúdo preenchido dinamicamente -->
-        </div>
+          </div>
 
-    </div>
-</div>
+        </div>
+      </div>
 
 
 
@@ -513,8 +513,8 @@
       <div class="nav-item-mobile" data-section="orders">
         <i class="fas fa-tools"></i> <span>OS</span>
       </div>
-<div class="nav-item-mobile" data-section="calendar"><i class="fas fa-calendar-alt"></i> <span>Agenda</span>
-  </div>
+      <div class="nav-item-mobile" data-section="calendar"><i class="fas fa-calendar-alt"></i> <span>Agenda</span>
+      </div>
       <div class="nav-item-mobile" data-section="config"><i class="fas fa-cog"></i> <span>Config</span>
       </div>
     </nav>
@@ -811,168 +811,168 @@
               </div>
             </div>
           </div><!-- Hidrantes Section -->
-     <div class="inspection-section" id="section-hidrantes">
-  <h3>Rede de Hidrantes</h3>
-  <div class="checkbox-group">
-    <input type="checkbox" id="hasHidrantes" name="has_hidrantes">
-    <label for="hasHidrantes">Possui Rede de Hidrantes?</label>
-  </div>
+          <div class="inspection-section" id="section-hidrantes">
+            <h3>Rede de Hidrantes</h3>
+            <div class="checkbox-group">
+              <input type="checkbox" id="hasHidrantes" name="has_hidrantes">
+              <label for="hasHidrantes">Possui Rede de Hidrantes?</label>
+            </div>
 
-  <div id="hidrantesSection" class="conditional-section">
-    <div class="form-row">
-      <div class="form-group">
-        <label>Diâmetro da Tubulação</label>
-        <input type="text" name="hidrantes_diametro">
-      </div>
-      <div class="form-group">
-        <label>Quantidade de Pontos</label>
-        <input type="number" name="hidrantes_quantidade">
-      </div>
-    </div>
+            <div id="hidrantesSection" class="conditional-section">
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Diâmetro da Tubulação</label>
+                  <input type="text" name="hidrantes_diametro">
+                </div>
+                <div class="form-group">
+                  <label>Quantidade de Pontos</label>
+                  <input type="number" name="hidrantes_quantidade">
+                </div>
+              </div>
 
-    <div class="form-row">
-      <div class="form-group">
-        <label>Suportes Firmes</label>
-        <select name="hidrantes_suportes">
-          <option value="">Selecione</option>
-          <option value="Sim">Sim</option>
-          <option value="Não">Não</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label>Sem Vazamentos</label>
-        <select name="hidrantes_vazamentos">
-          <option value="">Selecione</option>
-          <option value="Sim">Sim</option>
-          <option value="Não">Não</option>
-        </select>
-      </div>
-    </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Suportes Firmes</label>
+                  <select name="hidrantes_suportes">
+                    <option value="">Selecione</option>
+                    <option value="Sim">Sim</option>
+                    <option value="Não">Não</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>Sem Vazamentos</label>
+                  <select name="hidrantes_vazamentos">
+                    <option value="">Selecione</option>
+                    <option value="Sim">Sim</option>
+                    <option value="Não">Não</option>
+                  </select>
+                </div>
+              </div>
 
-    <div class="form-group">
-      <label>Identificação Conforme Norma</label>
-      <select name="hidrantes_identificacao">
-        <option value="">Selecione</option>
-        <option value="Sim">Sim</option>
-        <option value="Não">Não</option>
-      </select>
-    </div>
+              <div class="form-group">
+                <label>Identificação Conforme Norma</label>
+                <select name="hidrantes_identificacao">
+                  <option value="">Selecione</option>
+                  <option value="Sim">Sim</option>
+                  <option value="Não">Não</option>
+                </select>
+              </div>
 
-    <h4>Acessórios</h4>
-    <div class="form-row">
-      <div class="form-group">
-        <label>Adaptador Storz</label>
-        <select name="adaptador_storz">
-          <option value="">Selecione</option>
-          <option value="1½&quot;">1½"</option>
-          <option value="2½&quot;">2½"</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label>Material do Adaptador</label>
-        <select name="adaptador_material">
-          <option value="">Selecione</option>
-          <option value="Latão">Latão</option>
-          <option value="Alumínio">Alumínio</option>
-        </select>
-      </div>
-    </div>
+              <h4>Acessórios</h4>
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Adaptador Storz</label>
+                  <select name="adaptador_storz">
+                    <option value="">Selecione</option>
+                    <option value="1½&quot;">1½"</option>
+                    <option value="2½&quot;">2½"</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>Material do Adaptador</label>
+                  <select name="adaptador_material">
+                    <option value="">Selecione</option>
+                    <option value="Latão">Latão</option>
+                    <option value="Alumínio">Alumínio</option>
+                  </select>
+                </div>
+              </div>
 
-    <div class="form-row">
-      <div class="form-group">
-        <label>Esguicho</label>
-        <select name="esguicho_tipo">
-          <option value="">Selecione</option>
-          <option value="Regulável (neblina/jato sólido)">Regulável (neblina/jato sólido)</option>
-          <option value="Fixo (jato pleno)">Fixo (jato pleno)</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label>Material do Esguicho</label>
-        <select name="esguicho_material">
-          <option value="">Selecione</option>
-          <option value="Alumínio">Alumínio</option>
-          <option value="Latão">Latão</option>
-        </select>
-      </div>
-    </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Esguicho</label>
+                  <select name="esguicho_tipo">
+                    <option value="">Selecione</option>
+                    <option value="Regulável (neblina/jato sólido)">Regulável (neblina/jato sólido)</option>
+                    <option value="Fixo (jato pleno)">Fixo (jato pleno)</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>Material do Esguicho</label>
+                  <select name="esguicho_material">
+                    <option value="">Selecione</option>
+                    <option value="Alumínio">Alumínio</option>
+                    <option value="Latão">Latão</option>
+                  </select>
+                </div>
+              </div>
 
-    <div class="form-row">
-      <div class="form-group">
-        <label>Chave Storz</label>
-        <select name="chave_storz">
-          <option value="">Selecione</option>
-          <option value="Sim">Sim</option>
-          <option value="Não">Não</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label>Material da Chave</label>
-        <select name="chave_material">
-          <option value="">Selecione</option>
-          <option value="Aço">Aço</option>
-          <option value="Alumínio">Alumínio</option>
-        </select>
-      </div>
-    </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Chave Storz</label>
+                  <select name="chave_storz">
+                    <option value="">Selecione</option>
+                    <option value="Sim">Sim</option>
+                    <option value="Não">Não</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>Material da Chave</label>
+                  <select name="chave_material">
+                    <option value="">Selecione</option>
+                    <option value="Aço">Aço</option>
+                    <option value="Alumínio">Alumínio</option>
+                  </select>
+                </div>
+              </div>
 
-    <div class="form-row">
-      <div class="form-group">
-        <label>Tipo de Mangueira</label>
-        <select name="mangueira_tipo">
-          <option value="">Selecione</option>
-          <option value="Tipo 1 (Predial)">Tipo 1 (Predial)</option>
-          <option value="Tipo 2 (Industrial Leve)">Tipo 2 (Industrial Leve)</option>
-          <option value="Tipo 3 (Industrial Pesado)">Tipo 3 (Industrial Pesado)</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label>Diâmetro da Mangueira</label>
-        <select name="mangueira_diametro">
-          <option value="">Selecione</option>
-          <option value="1½&quot; (38mm)">1½" (38mm)</option>
-          <option value="2½&quot; (63mm)">2½" (63mm)</option>
-        </select>
-      </div>
-    </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Tipo de Mangueira</label>
+                  <select name="mangueira_tipo">
+                    <option value="">Selecione</option>
+                    <option value="Tipo 1 (Predial)">Tipo 1 (Predial)</option>
+                    <option value="Tipo 2 (Industrial Leve)">Tipo 2 (Industrial Leve)</option>
+                    <option value="Tipo 3 (Industrial Pesado)">Tipo 3 (Industrial Pesado)</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>Diâmetro da Mangueira</label>
+                  <select name="mangueira_diametro">
+                    <option value="">Selecione</option>
+                    <option value="1½&quot; (38mm)">1½" (38mm)</option>
+                    <option value="2½&quot; (63mm)">2½" (63mm)</option>
+                  </select>
+                </div>
+              </div>
 
-    <div class="form-group">
-      <label>Comprimento da Mangueira (metros)</label>
-      <input type="number" name="mangueira_comprimento">
-    </div>
+              <div class="form-group">
+                <label>Comprimento da Mangueira (metros)</label>
+                <input type="number" name="mangueira_comprimento">
+              </div>
 
-    <h4>Hidrantes – Registro de Recalque (RR)</h4>
-    <div class="form-row">
-      <div class="form-group">
-        <label>Possui Hidrante RR?</label>
-        <select name="hidrante_rr_possui">
-          <option value="">Selecione</option>
-          <option value="Sim">Sim</option>
-          <option value="Não">Não</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label>Possui Adaptador?</label>
-        <select name="hidrante_rr_adaptador">
-          <option value="">Selecione</option>
-          <option value="Sim">Sim</option>
-          <option value="Não">Não</option>
-        </select>
-      </div>
-    </div>
+              <h4>Hidrantes – Registro de Recalque (RR)</h4>
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Possui Hidrante RR?</label>
+                  <select name="hidrante_rr_possui">
+                    <option value="">Selecione</option>
+                    <option value="Sim">Sim</option>
+                    <option value="Não">Não</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>Possui Adaptador?</label>
+                  <select name="hidrante_rr_adaptador">
+                    <option value="">Selecione</option>
+                    <option value="Sim">Sim</option>
+                    <option value="Não">Não</option>
+                  </select>
+                </div>
+              </div>
 
-    <div class="form-row">
-      <div class="form-group">
-        <label>Medida do Adaptador</label>
-        <input type="text" name="hidrante_rr_medida" placeholder='Ex: 2½"'>
-      </div>
-      <div class="form-group">
-        <label>Observações (opcional)</label>
-        <input type="text" name="hidrante_rr_observacoes" placeholder="Digite observações se necessário">
-      </div>
-    </div>
-  </div>
-</div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Medida do Adaptador</label>
+                  <input type="text" name="hidrante_rr_medida" placeholder='Ex: 2½"'>
+                </div>
+                <div class="form-group">
+                  <label>Observações (opcional)</label>
+                  <input type="text" name="hidrante_rr_observacoes" placeholder="Digite observações se necessário">
+                </div>
+              </div>
+            </div>
+          </div>
 
 
           <div class="inspection-section" id="section-alarme">
@@ -1232,7 +1232,7 @@
     </div>
   </div>
   <div class="modal" id="orderModal">
-   <div class="modal-content" style="
+    <div class="modal-content" style="
       max-height:90vh;
       width:100%;
       max-width:720px;
@@ -1240,80 +1240,97 @@
       display:flex;
       flex-direction:column;
     "><!-- HEADER -->
-    <div class="modal-header">
-     <h3 class="modal-title"><i class="fas fa-file-invoice"></i> Nova Ordem de Serviço</h3><button class="close-modal" onclick="closeModal('orderModal')"> <i class="fas fa-times"></i> </button>
-    </div>
-    <form id="orderForm" style="flex:1; overflow-y:auto; padding-right:6px;"><!-- ===================== DADOS DA OS ===================== -->
-     <div class="form-row" style="grid-template-columns:1fr 1fr;">
-      <div class="form-group"><label>Cliente</label> <select id="clienteSelect" required> <option value="">Selecione um cliente</option> </select> <input type="hidden" name="cliente" id="clienteNomeHidden"> <input type="hidden" name="cliente_tipo" id="clienteTipoHidden">
+      <div class="modal-header">
+        <h3 class="modal-title"><i class="fas fa-file-invoice"></i> Nova Ordem de Serviço</h3><button
+          class="close-modal" onclick="closeModal('orderModal')"> <i class="fas fa-times"></i> </button>
       </div>
-      <div class="form-group"><label>CNPJ</label> <input type="text" name="cnpj" id="cnpjInput" required>
-      </div>
-     </div><!-- CAMPOS ESPECÍFICOS DE EMPRESA -->
-     <div id="camposEmpresa" style="display:none;">
-      <div class="form-row" style="grid-template-columns:1fr 1fr;">
-       <div class="form-group"><label>Telefone</label> <input type="text" name="telefone" id="telefoneEmpresaInput">
-       </div>
-       <div class="form-group"><label>Email</label> <input type="email" name="email" id="emailEmpresaInput">
-       </div>
-      </div>
-      <div class="form-row" style="grid-template-columns:1fr 1fr;">
-       <div class="form-group"><label>Responsável</label> <input type="text" name="responsavel" id="responsavelEmpresaInput">
-       </div>
-       <div class="form-group"><label>CEP</label> <input type="text" name="cep" id="cepEmpresaInput">
-       </div>
-      </div>
-      <div class="form-row" style="grid-template-columns:3fr 1fr;">
-       <div class="form-group"><label>Endereço</label> <input type="text" name="endereco" id="enderecoEmpresaInput">
-       </div>
-       <div class="form-group"><label>Nº Empresa</label> <input type="text" name="numero_empresa" id="numeroEmpresaInput">
-       </div>
-      </div>
-     </div><!-- CAMPOS ESPECÍFICOS DE PRÉDIO -->
-     <div id="camposPredio" style="display:none;">
-      <div class="form-row" style="grid-template-columns:1fr 1fr;">
-       <div class="form-group"><label>Telefone do Prédio</label> <input type="text" name="telefone_predio" id="telefonePredioInput">
-       </div>
-       <div class="form-group"><label>Email do Prédio</label> <input type="email" name="email_predio" id="emailPredioInput">
-       </div>
-      </div>
-      <div class="form-row" style="grid-template-columns:1fr 1fr;">
-       <div class="form-group"><label>Responsável do Prédio</label> <input type="text" name="responsavel_predio" id="responsavelPredioInput">
-       </div>
-       <div class="form-group"><label>CEP do Prédio</label> <input type="text" name="cep_predio" id="cepPredioInput">
-       </div>
-      </div>
-      <div class="form-row" style="grid-template-columns:3fr 1fr;">
-       <div class="form-group"><label>Endereço do Prédio</label> <input type="text" name="endereco_predio" id="enderecoPredioInput">
-       </div>
-       <div class="form-group"><label>Nº Prédio</label> <input type="text" name="numero_predio" id="numeroPredioInput">
-       </div>
-      </div>
-     </div>
-     <div class="form-row" style="grid-template-columns:1fr 1fr;">
-      <div class="form-group"><label>Serviço</label> <input type="text" name="servico" id="servico" required>
-      </div>
-      <div class="form-group"><label>Técnico</label> <input type="text" name="tecnico" id="tecnicoInput" required>
-      </div>
-     </div>
-     <div class="form-row" style="grid-template-columns:1fr;">
-      <div class="form-group"><label>Status</label> <select name="status" required> <option value="Pendente">Pendente</option> <option value="Concluída">Concluída</option> </select>
-      </div>
-     </div>
-     <hr style="margin:20px 0; border-color:#333;">
-     <h4 style="margin-bottom:10px; color:#10b981;"><i class="fas fa-box"></i> Produtos da Ordem</h4><!-- BOTÃO BUSCAR PRODUTO E QUANTIDADE -->
-     <div class="form-row" style="grid-template-columns:1fr 1fr;">
-      <div class="form-group"><label>Quantidade</label> <input type="number" id="osProductQty" value="1" min="1" style="
-              background:#1a1a1a;
-              border:2px solid #333;
-              color:#fff;
-              padding:10px;
-              border-radius:8px;
-              width:100%;
-              box-sizing:border-box;
-            ">
-      </div>
-      <div class="form-group" style="display:flex; align-items:flex-end;"><button type="button" class="btn btn-primary" id="addProductToOSBtn" style="
+      <form id="orderForm" style="flex:1; overflow-y:auto; padding-right:6px;">
+        <div class="form-row" style="grid-template-columns:1fr 1fr;">
+          <div class="form-group">
+            <label>Cliente</label> <select id="clienteSelect" required>
+              <option value="">Selecione um cliente</option>
+            </select> <input type="hidden" name="cliente" id="clienteNomeHidden"> <input type="hidden"
+              name="cliente_tipo" id="clienteTipoHidden">
+          </div>
+          <div class="form-group">
+            <label>CNPJ</label> <input type="text" name="cnpj" id="cnpjInput" required>
+          </div>
+        </div><!-- CAMPOS ESPECÍFICOS DE EMPRESA -->
+        <div id="camposEmpresa" style="display:none;">
+          <div class="form-row" style="grid-template-columns:1fr 1fr;">
+            <div class="form-group">
+              <label>Telefone</label> <input type="text" name="telefone" id="telefoneEmpresaInput">
+            </div>
+            <div class="form-group">
+              <label>Email</label> <input type="email" name="email" id="emailEmpresaInput">
+            </div>
+          </div>
+          <div class="form-row" style="grid-template-columns:1fr 1fr;">
+            <div class="form-group">
+              <label>Responsável</label> <input type="text" name="responsavel" id="responsavelEmpresaInput">
+            </div>
+            <div class="form-group">
+              <label>CEP</label> <input type="text" name="cep" id="cepEmpresaInput">
+            </div>
+          </div>
+          <div class="form-row" style="grid-template-columns:3fr 1fr;">
+            <div class="form-group">
+              <label>Endereço</label> <input type="text" name="endereco" id="enderecoEmpresaInput">
+            </div>
+            <div class="form-group">
+              <label>Nº Empresa</label> <input type="text" name="numero_empresa" id="numeroEmpresaInput">
+            </div>
+          </div>
+        </div><!-- CAMPOS ESPECÍFICOS DE PRÉDIO -->
+        <div id="camposPredio" style="display:none;">
+          <div class="form-row" style="grid-template-columns:1fr 1fr;">
+            <div class="form-group">
+              <label>Telefone do Prédio</label> <input type="text" name="telefone_predio" id="telefonePredioInput">
+            </div>
+            <div class="form-group">
+              <label>Email do Prédio</label> <input type="email" name="email_predio" id="emailPredioInput">
+            </div>
+          </div>
+          <div class="form-row" style="grid-template-columns:1fr 1fr;">
+            <div class="form-group">
+              <label>Responsável do Prédio</label> <input type="text" name="responsavel_predio"
+                id="responsavelPredioInput">
+            </div>
+            <div class="form-group">
+              <label>CEP do Prédio</label> <input type="text" name="cep_predio" id="cepPredioInput">
+            </div>
+          </div>
+          <div class="form-row" style="grid-template-columns:3fr 1fr;">
+            <div class="form-group">
+              <label>Endereço do Prédio</label> <input type="text" name="endereco_predio" id="enderecoPredioInput">
+            </div>
+            <div class="form-group">
+              <label>Nº Prédio</label> <input type="text" name="numero_predio" id="numeroPredioInput">
+            </div>
+          </div>
+        </div>
+        <div class="form-row" style="grid-template-columns:1fr 1fr;">
+          <div class="form-group">
+            <label>Serviço</label> <input type="text" name="servico" id="servico" required>
+          </div>
+          <div class="form-group">
+            <label>Técnico</label> <input type="text" name="tecnico" id="tecnicoInput" required>
+          </div>
+        </div>
+        <div class="form-row" style="grid-template-columns:1fr;">
+          <div class="form-group">
+            <label>Status</label> <select name="status" required>
+              <option value="Pendente">Pendente</option>
+              <option value="Concluída">Concluída</option>
+            </select>
+          </div>
+        </div>
+        <hr style="margin:20px 0; border-color:#333;">
+        <h4 style="margin-bottom:10px; color:#10b981;"><i class="fas fa-box"></i> Produtos da Ordem</h4>
+        <!-- BOTÃO BUSCAR PRODUTO -->
+        <div class="form-row" style="grid-template-columns:1fr;">
+          <div class="form-group" style="display:flex; align-items:flex-end;"><button type="button"
+              class="btn btn-primary" id="addProductToOSBtn" style="
               width:100%;
               background: linear-gradient(135deg, #10b981 0%, #059669 100%);
               border:none;
@@ -1328,19 +1345,23 @@
               justify-content:center;
               gap:8px;
             "> <i class="fas fa-search"></i> Buscar Produto </button>
-      </div>
-     </div><!-- LISTA DE PRODUTOS ADICIONADOS -->
-     <div id="osProductsList" style="max-height:200px; overflow-y:auto; margin:15px 0; padding:8px; background:#0d0d0d; border:2px solid #333; border-radius:10px;">
-      <div style="
+          </div>
+        </div><!-- LISTA DE PRODUTOS ADICIONADOS -->
+        <div id="osProductsList"
+          style="max-height:200px; overflow-y:auto; margin:15px 0; padding:8px; background:#0d0d0d; border:2px solid #333; border-radius:10px;">
+          <div style="
             padding: 30px 20px;
             text-align: center;
             color: #666;
-          "><i class="fas fa-shopping-basket" style="font-size: 2.5rem; margin-bottom: 10px; color: #10b981; opacity: 0.3;"></i>
-       <p style="margin: 0; font-size: 14px;">Nenhum produto adicionado</p>
-      </div>
-     </div><!-- LUCRO E TOTAIS -->
-     <div class="form-row" style="grid-template-columns:1fr;">
-      <div class="form-group"><label>Lucro sobre produtos (%)</label> <input type="number" id="profitPercent" placeholder="Ex: 20" style="
+          ">
+            <i class="fas fa-shopping-basket"
+              style="font-size: 2.5rem; margin-bottom: 10px; color: #10b981; opacity: 0.3;"></i>
+            <p style="margin: 0; font-size: 14px;">Nenhum produto adicionado</p>
+          </div>
+        </div><!-- LUCRO E TOTAIS -->
+        <div class="form-row" style="grid-template-columns:1fr;">
+          <div class="form-group">
+            <label>Lucro sobre produtos (%)</label> <input type="number" id="profitPercent" placeholder="Ex: 20" style="
               background:#1a1a1a;
               border:2px solid #333;
               color:#fff;
@@ -1349,14 +1370,19 @@
               width:100%;
               box-sizing:border-box;
             ">
-      </div>
-     </div>
-     <div style="background:linear-gradient(135deg, #1f1f1f 0%, #1a1a1a 100%); border:2px solid #10b981; border-radius:12px; padding:16px; margin-bottom:20px;">
-      <p style="margin:6px 0; color:#ccc; display:flex; justify-content:space-between;"><span>Subtotal Produtos:</span> <strong id="productsSubtotal" style="color:#10b981;">R$ 0,00</strong></p>
-      <p style="margin:6px 0; color:#ccc; display:flex; justify-content:space-between;"><span>Lucro:</span> <strong id="productsProfitValue" style="color:#4ade80;">R$ 0,00</strong></p>
-      <hr style="margin:10px 0; border-color:#333;">
-      <p style="margin:6px 0; color:#fff; display:flex; justify-content:space-between; font-size:1.1rem;"><span><strong>Total Final:</strong></span> <strong id="productsTotalWithProfit" style="color:#4ade80; font-size:1.2rem;">R$ 0,00</strong></p>
-     </div><button type="submit" class="btn btn-success" style="
+          </div>
+        </div>
+        <div
+          style="background:linear-gradient(135deg, #1f1f1f 0%, #1a1a1a 100%); border:2px solid #10b981; border-radius:12px; padding:16px; margin-bottom:20px;">
+          <p style="margin:6px 0; color:#ccc; display:flex; justify-content:space-between;"><span>Subtotal
+              Produtos:</span> <strong id="productsSubtotal" style="color:#10b981;">R$ 0,00</strong></p>
+          <p style="margin:6px 0; color:#ccc; display:flex; justify-content:space-between;"><span>Lucro:</span> <strong
+              id="productsProfitValue" style="color:#4ade80;">R$ 0,00</strong></p>
+          <hr style="margin:10px 0; border-color:#333;">
+          <p style="margin:6px 0; color:#fff; display:flex; justify-content:space-between; font-size:1.1rem;">
+            <span><strong>Total Final:</strong></span> <strong id="productsTotalWithProfit"
+              style="color:#4ade80; font-size:1.2rem;">R$ 0,00</strong></p>
+        </div><button type="submit" class="btn btn-success" style="
           width:100%;
           margin-bottom:10px;
           background: linear-gradient(135deg, #10b981 0%, #059669 100%);
@@ -1369,87 +1395,167 @@
           cursor:pointer;
           transition:all 0.3s ease;
         "> <i class="fas fa-save"></i> Salvar OS </button>
-    </form>
-   </div>
+      </form>
+    </div>
   </div>
 
 
 
   <!-- Modal Produto -->
-  <div id="productModal" class="modal-overlay">
-
-    <div class="modal-box">
-      <div class="modal-header">
-        <h2><i class="fas fa-box"></i> Novo Produto</h2>
-        <button class="modal-close" onclick="closeProductModal()">
-          <i class="fas fa-times"></i>
-        </button>
-      </div>
-
-      <div class="modal-body">
-
-        <div class="form-group">
-          <label>Nome do Produto</label>
-          <input type="text" id="productName" placeholder="Ex: Extintor ABC 6kg">
-        </div>
-
-        <div class="form-group">
-          <label>Descrição</label>
-          <textarea id="productDescription" placeholder="Descrição do produto"></textarea>
-        </div>
-
-        <div class="form-group">
-          <label>Preço (R$)</label>
-          <input type="number" id="productPrice" placeholder="0,00">
-        </div>
-
-
-
-      </div>
-
-      <div class="modal-footer">
-        <button class="btn btn-secondary" onclick="closeProductModal()">
-          Cancelar
-        </button>
-        <button class="btn" onclick="saveProduct()">
-          <i class="fas fa-save"></i> Salvar Produto
-        </button>
-      </div>
-
+<div id="productModal" class="modal-overlay">
+   <div class="modal-box">
+    <div class="modal-header">
+     <h2><i class="fas fa-box"></i> Novo Produto</h2><button class="modal-close" onclick="closeProductModal()"> <i class="fas fa-times"></i> </button>
     </div>
+    <div class="modal-body">
+     <div class="form-group"><label>Nome do Produto</label> <input type="text" id="productName" placeholder="Ex: Extintor ABC 6kg">
+     </div>
+     <div class="form-group"><label>Descrição</label> <textarea id="productDescription" placeholder="Descrição do produto"></textarea>
+     </div>
+     <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+      <div class="form-group"><label><i class="fas fa-tag" style="color:#4ade80;"></i> Preço (R$)</label> <input type="number" id="productPrice" placeholder="0,00" step="0.01" min="0">
+      </div>
+      <div class="form-group"><label><i class="fas fa-boxes" style="color:#8b5cf6;"></i> Quantidade</label> <input type="number" id="productQuantity" placeholder="0" min="0" step="1" value="0">
+      </div>
+     </div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-secondary" onclick="closeProductModal()"> Cancelar </button> <button class="btn" onclick="saveProduct()"> <i class="fas fa-save"></i> Salvar Produto </button>
+    </div>
+   </div>
   </div>
   <div id="editOSModal" class="modal-overlay" style="display:none;">
     <div class="modal-box modal-compact">
       <div class="modal-header">
         <h2><i class="fas fa-edit"></i> Editar OS</h2><button class="modal-close" onclick="closeEditOSModal()"> <i
             class="fas fa-times"></i> </button>
+      </div><!-- ABAS -->
+      <div style="display: flex; border-bottom: 2px solid #333; background: #1a1a1a;"><button class="tab-btn active"
+          data-tab="dados" onclick="switchEditTab('dados')" style="
+        flex: 1;
+        padding: 12px 16px;
+        background: transparent;
+        border: none;
+        border-bottom: 3px solid #10b981;
+        color: #10b981;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+      "> <i class="fas fa-info-circle"></i> Dados da OS </button> <button class="tab-btn" data-tab="produtos"
+          onclick="switchEditTab('produtos')" style="
+        flex: 1;
+        padding: 12px 16px;
+        background: transparent;
+        border: none;
+        border-bottom: 3px solid transparent;
+        color: #999;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+      "> <i class="fas fa-boxes"></i> Produtos </button>
       </div>
-      <div class="modal-body"><!-- Linha 1: Cliente e CNPJ -->
-        <div class="form-row">
-          <div class="form-group"><label><i class="fas fa-user"></i> Cliente</label> <input type="text"
-              id="editCliente">
+      <div class="modal-body"><!-- ABA 1: DADOS DA OS -->
+        <div id="tab-dados" class="tab-content" style="display: block;"><!-- Linha 1: Cliente e CNPJ -->
+          <div class="form-row">
+            <div class="form-group"><label><i class="fas fa-user"></i> Cliente</label> <input type="text"
+                id="editCliente">
+            </div>
+            <div class="form-group"><label><i class="fas fa-id-card"></i> CNPJ</label> <input type="text" id="editCNPJ">
+            </div>
+          </div><!-- Linha 2: Endereço (full width) -->
+          <div class="form-group"><label><i class="fas fa-map-marker-alt"></i> Endereço</label> <input type="text"
+              id="editEndereco">
+          </div><!-- Linha 3: Serviço e Técnico -->
+          <div class="form-row">
+            <div class="form-group"><label><i class="fas fa-tools"></i> Serviço</label> <input type="text"
+                id="editServico">
+            </div>
+            <div class="form-group"><label><i class="fas fa-user-hard-hat"></i> Técnico</label> <input type="text"
+                id="editTecnico">
+            </div>
+          </div><!-- Linha 4: Pagamento e Data -->
+          <div class="form-row">
+            <div class="form-group"><label><i class="fas fa-credit-card"></i> Pagamento</label> <input type="text"
+                id="editPagamento">
+            </div>
+            <div class="form-group"><label><i class="fas fa-calendar-alt"></i> Data</label> <input type="date"
+                id="editData">
+            </div>
           </div>
-          <div class="form-group"><label><i class="fas fa-id-card"></i> CNPJ</label> <input type="text" id="editCNPJ">
+        </div><!-- ABA 2: PRODUTOS -->
+        <div id="tab-produtos" class="tab-content" style="display: none;">
+          <!-- Linha de Lucro -->
+          <div class="form-row" style="margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid #333;">
+            <div class="form-group" style="flex: 1;">
+              <label style="font-weight: 600; color: #fff;"><i class="fas fa-percent" style="color: #10b981;"></i>
+                Percentual de Lucro (%)</label> <input type="number" id="editProfitPercent" placeholder="30" min="0"
+                step="0.1" style="
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #333;
+            border-radius: 6px;
+            font-size: 0.95rem;
+            background: #2a2a2a;
+            color: #fff;
+            box-sizing: border-box;
+          " value="30">
+            </div>
+            <div class="form-group" style="flex: 1;">
+              <label style="font-weight: 600; color: #fff;"><i class="fas fa-calculator" style="color: #10b981;"></i>
+                Subtotal (R$)</label> <input type="text" id="editSubtotal" readonly style="
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #333;
+            border-radius: 6px;
+            font-size: 0.95rem;
+            background: #1a1a1a;
+            color: #10b981;
+            box-sizing: border-box;
+            font-weight: 600;
+          " value="0.00">
+            </div>
+            <div class="form-group" style="flex: 1;">
+              <label style="font-weight: 600; color: #fff;"><i class="fas fa-money-bill" style="color: #10b981;"></i>
+                Total com Lucro (R$)</label> <input type="text" id="editTotalComLucro" readonly style="
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #333;
+            border-radius: 6px;
+            font-size: 0.95rem;
+            background: #1a1a1a;
+            color: #10b981;
+            box-sizing: border-box;
+            font-weight: 600;
+          " value="0.00">
+            </div>
+          </div><!-- BOTÃO ADICIONAR PRODUTO -->
+          <div style="margin-bottom: 16px;"><button id="addProductToEditOSBtn" style="
+              width: 100%;
+              padding: 12px;
+              background: rgba(16, 185, 129, 0.15);
+              border: 2px dashed rgba(16, 185, 129, 0.5);
+              border-radius: 8px;
+              color: #10b981;
+              font-weight: 600;
+              font-size: 0.95rem;
+              cursor: pointer;
+              transition: all 0.3s ease;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              gap: 8px;
+            " onmouseover="this.style.background='rgba(16, 185, 129, 0.25)'; this.style.borderColor='#10b981'"
+              onmouseout="this.style.background='rgba(16, 185, 129, 0.15)'; this.style.borderColor='rgba(16, 185, 129, 0.5)'">
+              <i class="fas fa-plus-circle" style="font-size: 1.1rem;"></i> Adicionar Produto </button>
           </div>
-        </div><!-- Linha 2: Endereço (full width) -->
-        <div class="form-group"><label><i class="fas fa-map-marker-alt"></i> Endereço</label> <input type="text"
-            id="editEndereco">
-        </div><!-- Linha 3: Serviço e Técnico -->
-        <div class="form-row">
-          <div class="form-group"><label><i class="fas fa-tools"></i> Serviço</label> <input type="text"
-              id="editServico">
-          </div>
-          <div class="form-group"><label><i class="fas fa-user-hard-hat"></i> Técnico</label> <input type="text"
-              id="editTecnico">
-          </div>
-        </div><!-- Linha 4: Pagamento e Data -->
-        <div class="form-row">
-          <div class="form-group"><label><i class="fas fa-credit-card"></i> Pagamento</label> <input type="text"
-              id="editPagamento">
-          </div>
-          <div class="form-group"><label><i class="fas fa-calendar-alt"></i> Data</label> <input type="date"
-              id="editData">
-          </div>
+          <div id="editProductsContainer" style="margin-top: 12px;"></div>
         </div>
       </div>
       <div class="modal-footer"><button class="btn btn-secondary" onclick="closeEditOSModal()"> <i
@@ -1458,7 +1564,6 @@
       </div>
     </div>
   </div>
-
 
   <!-- Toast Notification -->
   <div id="toast" class="toast"></div>
