@@ -241,7 +241,7 @@ document.querySelectorAll('.nav-item-desktop').forEach(item => {
 });
 
 function navigateToSection(section) {
-  
+
   document.querySelectorAll('.content-section').forEach(sec => sec.classList.remove('active'));
 
   const el = document.getElementById(section + 'Section');
@@ -291,6 +291,613 @@ const itemsPerPage = 10;
 let companiesExpanded = true;
 let buildingsExpanded = true;
 
+
+
+// Função para alternar visibilidade das empresas
+function toggleCompanies() {
+  companiesExpanded = !companiesExpanded;
+  loadCompanies();
+}
+
+// Função para alternar visibilidade dos prédios
+function toggleBuildings() {
+  buildingsExpanded = !buildingsExpanded;
+  loadCompanies();
+}
+
+// Funções de mudança de página
+function changeCompanyPage(page) {
+  const companiesSnapshot = database.ref('companies').once('value');
+  companiesSnapshot.then(snapshot => {
+    const companies = snapshot.val() || {};
+    const totalPages = Math.ceil(Object.keys(companies).length / itemsPerPage);
+    if (page >= 1 && page <= totalPages) {
+      currentCompanyPage = page;
+      loadCompanies();
+    }
+  });
+}
+
+function changeBuildingPage(page) {
+  const buildingsSnapshot = database.ref('buildings').once('value');
+  buildingsSnapshot.then(snapshot => {
+    const buildings = snapshot.val() || {};
+    const totalPages = Math.ceil(Object.keys(buildings).length / itemsPerPage);
+    if (page >= 1 && page <= totalPages) {
+      currentBuildingPage = page;
+      loadCompanies();
+    }
+  });
+}
+
+// Função para criar e mostrar modal de edição de empresa
+function editCompany(key) {
+  database.ref('companies/' + key).once('value').then(snapshot => {
+    const company = snapshot.val();
+    if (!company) return;
+
+    // Criar modal
+    const modal = document.createElement('div');
+    modal.id = 'editModal';
+    modal.style.cssText = `
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      padding: 20px;
+      overflow-y: auto;
+    `;
+
+    modal.innerHTML = `
+      <div style="
+        background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
+        border-radius: 16px;
+        padding: 30px;
+        max-width: 600px;
+        width: 100%;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+        border: 1px solid #D4C29A;
+        max-height: 90vh;
+        overflow-y: auto;
+      ">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+          <h2 style="color: #D4C29A; margin: 0; font-size: 24px; font-weight: bold;">
+            <i class="fas fa-edit"></i> Editar Empresa
+          </h2>
+          <button onclick="closeEditModal()" style="
+            background: none;
+            border: none;
+            color: #D4C29A;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+          ">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+
+        <form id="editCompanyForm" style="display: flex; flex-direction: column; gap: 20px;">
+          <div>
+            <label style="color: #D4C29A; display: block; margin-bottom: 8px; font-weight: bold;">
+              Razão Social *
+            </label>
+            <input 
+              type="text" 
+              id="edit_razao_social" 
+              value="${company.razao_social || ''}"
+              required
+              style="
+                width: 100%;
+                padding: 12px;
+                background: #1a1a1a;
+                border: 2px solid #D4C29A;
+                border-radius: 8px;
+                color: #fff;
+                font-size: 14px;
+                outline: none;
+                transition: all 0.3s;
+              "
+            >
+          </div>
+
+          <div>
+            <label style="color: #D4C29A; display: block; margin-bottom: 8px; font-weight: bold;">
+              CNPJ *
+            </label>
+            <input 
+              type="text" 
+              id="edit_cnpj" 
+              value="${company.cnpj || ''}"
+              required
+              style="
+                width: 100%;
+                padding: 12px;
+                background: #1a1a1a;
+                border: 2px solid #D4C29A;
+                border-radius: 8px;
+                color: #fff;
+                font-size: 14px;
+                outline: none;
+                transition: all 0.3s;
+              "
+            >
+          </div>
+
+          <div>
+            <label style="color: #D4C29A; display: block; margin-bottom: 8px; font-weight: bold;">
+              Telefone
+            </label>
+            <input 
+              type="text" 
+              id="edit_telefone" 
+              value="${company.telefone || ''}"
+              style="
+                width: 100%;
+                padding: 12px;
+                background: #1a1a1a;
+                border: 2px solid #D4C29A;
+                border-radius: 8px;
+                color: #fff;
+                font-size: 14px;
+                outline: none;
+                transition: all 0.3s;
+              "
+            >
+          </div>
+
+          <div>
+            <label style="color: #D4C29A; display: block; margin-bottom: 8px; font-weight: bold;">
+              Número da Empresa
+            </label>
+            <input 
+              type="text" 
+              id="edit_numero_empresa" 
+              value="${company.numero_empresa || ''}"
+              style="
+                width: 100%;
+                padding: 12px;
+                background: #1a1a1a;
+                border: 2px solid #D4C29A;
+                border-radius: 8px;
+                color: #fff;
+                font-size: 14px;
+                outline: none;
+                transition: all 0.3s;
+              "
+            >
+          </div>
+
+          <div>
+            <label style="color: #D4C29A; display: block; margin-bottom: 8px; font-weight: bold;">
+              Responsável
+            </label>
+            <input 
+              type="text" 
+              id="edit_responsavel" 
+              value="${company.responsavel || ''}"
+              style="
+                width: 100%;
+                padding: 12px;
+                background: #1a1a1a;
+                border: 2px solid #D4C29A;
+                border-radius: 8px;
+                color: #fff;
+                font-size: 14px;
+                outline: none;
+                transition: all 0.3s;
+              "
+            >
+          </div>
+
+          <div>
+            <label style="color: #D4C29A; display: block; margin-bottom: 8px; font-weight: bold;">
+              Endereço
+            </label>
+            <textarea 
+              id="edit_endereco" 
+              rows="3"
+              style="
+                width: 100%;
+                padding: 12px;
+                background: #1a1a1a;
+                border: 2px solid #D4C29A;
+                border-radius: 8px;
+                color: #fff;
+                font-size: 14px;
+                outline: none;
+                transition: all 0.3s;
+                resize: vertical;
+              "
+            >${company.endereco || ''}</textarea>
+          </div>
+
+          <div style="display: flex; gap: 15px; margin-top: 10px;">
+            <button 
+              type="submit"
+              style="
+                flex: 1;
+                padding: 14px;
+                background: linear-gradient(135deg, #D4C29A 0%, #B8A47E 100%);
+                color: #0d0d0d;
+                border: none;
+                border-radius: 8px;
+                font-weight: bold;
+                font-size: 16px;
+                cursor: pointer;
+                transition: all 0.3s;
+                box-shadow: 0 4px 15px rgba(212, 194, 154, 0.35);
+              "
+            >
+              <i class="fas fa-save"></i> Salvar Alterações
+            </button>
+            <button 
+              type="button"
+              onclick="closeEditModal()"
+              style="
+                flex: 1;
+                padding: 14px;
+                background: #444;
+                color: #fff;
+                border: none;
+                border-radius: 8px;
+                font-weight: bold;
+                font-size: 16px;
+                cursor: pointer;
+                transition: all 0.3s;
+              "
+            >
+              <i class="fas fa-times"></i> Cancelar
+            </button>
+          </div>
+        </form>
+      </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    // Handler do formulário
+    document.getElementById('editCompanyForm').onsubmit = (e) => {
+      e.preventDefault();
+      
+      const updatedData = {
+        razao_social: document.getElementById('edit_razao_social').value.trim(),
+        cnpj: document.getElementById('edit_cnpj').value.trim(),
+        telefone: document.getElementById('edit_telefone').value.trim(),
+        numero_empresa: document.getElementById('edit_numero_empresa').value.trim(),
+        responsavel: document.getElementById('edit_responsavel').value.trim(),
+        endereco: document.getElementById('edit_endereco').value.trim()
+      };
+
+      // Atualizar no Firebase
+      database.ref('companies/' + key).update(updatedData)
+        .then(() => {
+          closeEditModal();
+          loadCompanies();
+          showNotification('Empresa atualizada com sucesso!', 'success');
+        })
+        .catch((error) => {
+          console.error('Erro ao atualizar empresa:', error);
+          showNotification('Erro ao atualizar empresa. Tente novamente.', 'error');
+        });
+    };
+  });
+}
+
+// Função para criar e mostrar modal de edição de prédio
+function editBuilding(key) {
+  database.ref('buildings/' + key).once('value').then(snapshot => {
+    const building = snapshot.val();
+    if (!building) return;
+
+    // Criar modal
+    const modal = document.createElement('div');
+    modal.id = 'editModal';
+    modal.style.cssText = `
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      padding: 20px;
+      overflow-y: auto;
+    `;
+
+    modal.innerHTML = `
+      <div style="
+        background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
+        border-radius: 16px;
+        padding: 30px;
+        max-width: 600px;
+        width: 100%;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+        border: 1px solid #2ecc71;
+        max-height: 90vh;
+        overflow-y: auto;
+      ">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+          <h2 style="color: #2ecc71; margin: 0; font-size: 24px; font-weight: bold;">
+            <i class="fas fa-edit"></i> Editar Prédio
+          </h2>
+          <button onclick="closeEditModal()" style="
+            background: none;
+            border: none;
+            color: #2ecc71;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+          ">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+
+        <form id="editBuildingForm" style="display: flex; flex-direction: column; gap: 20px;">
+          <div>
+            <label style="color: #2ecc71; display: block; margin-bottom: 8px; font-weight: bold;">
+              Razão Social *
+            </label>
+            <input 
+              type="text" 
+              id="edit_razao_social_predio" 
+              value="${building.razao_social_predio || ''}"
+              required
+              style="
+                width: 100%;
+                padding: 12px;
+                background: #1a1a1a;
+                border: 2px solid #2ecc71;
+                border-radius: 8px;
+                color: #fff;
+                font-size: 14px;
+                outline: none;
+                transition: all 0.3s;
+              "
+            >
+          </div>
+
+          <div>
+            <label style="color: #2ecc71; display: block; margin-bottom: 8px; font-weight: bold;">
+              CNPJ *
+            </label>
+            <input 
+              type="text" 
+              id="edit_cnpj_predio" 
+              value="${building.cnpj_predio || ''}"
+              required
+              style="
+                width: 100%;
+                padding: 12px;
+                background: #1a1a1a;
+                border: 2px solid #2ecc71;
+                border-radius: 8px;
+                color: #fff;
+                font-size: 14px;
+                outline: none;
+                transition: all 0.3s;
+              "
+            >
+          </div>
+
+          <div>
+            <label style="color: #2ecc71; display: block; margin-bottom: 8px; font-weight: bold;">
+              Telefone
+            </label>
+            <input 
+              type="text" 
+              id="edit_telefone_predio" 
+              value="${building.telefone_predio || ''}"
+              style="
+                width: 100%;
+                padding: 12px;
+                background: #1a1a1a;
+                border: 2px solid #2ecc71;
+                border-radius: 8px;
+                color: #fff;
+                font-size: 14px;
+                outline: none;
+                transition: all 0.3s;
+              "
+            >
+          </div>
+
+          <div>
+            <label style="color: #2ecc71; display: block; margin-bottom: 8px; font-weight: bold;">
+              Número do Prédio
+            </label>
+            <input 
+              type="text" 
+              id="edit_numero_predio" 
+              value="${building.numero_predio || ''}"
+              style="
+                width: 100%;
+                padding: 12px;
+                background: #1a1a1a;
+                border: 2px solid #2ecc71;
+                border-radius: 8px;
+                color: #fff;
+                font-size: 14px;
+                outline: none;
+                transition: all 0.3s;
+              "
+            >
+          </div>
+
+          <div>
+            <label style="color: #2ecc71; display: block; margin-bottom: 8px; font-weight: bold;">
+              Endereço
+            </label>
+            <textarea 
+              id="edit_endereco_predio" 
+              rows="3"
+              style="
+                width: 100%;
+                padding: 12px;
+                background: #1a1a1a;
+                border: 2px solid #2ecc71;
+                border-radius: 8px;
+                color: #fff;
+                font-size: 14px;
+                outline: none;
+                transition: all 0.3s;
+                resize: vertical;
+              "
+            >${building.endereco_predio || ''}</textarea>
+          </div>
+
+          <div>
+            <label style="color: #2ecc71; display: block; margin-bottom: 8px; font-weight: bold;">
+              Responsável
+            </label>
+            <input 
+              type="text" 
+              id="edit_responsavel_predio" 
+              value="${building.responsavel_predio || ''}"
+              style="
+                width: 100%;
+                padding: 12px;
+                background: #1a1a1a;
+                border: 2px solid #2ecc71;
+                border-radius: 8px;
+                color: #fff;
+                font-size: 14px;
+                outline: none;
+                transition: all 0.3s;
+              "
+            >
+          </div>
+
+          <div style="display: flex; gap: 15px; margin-top: 10px;">
+            <button 
+              type="submit"
+              style="
+                flex: 1;
+                padding: 14px;
+                background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+                color: #0d0d0d;
+                border: none;
+                border-radius: 8px;
+                font-weight: bold;
+                font-size: 16px;
+                cursor: pointer;
+                transition: all 0.3s;
+                box-shadow: 0 4px 15px rgba(46, 204, 113, 0.35);
+              "
+            >
+              <i class="fas fa-save"></i> Salvar Alterações
+            </button>
+            <button 
+              type="button"
+              onclick="closeEditModal()"
+              style="
+                flex: 1;
+                padding: 14px;
+                background: #444;
+                color: #fff;
+                border: none;
+                border-radius: 8px;
+                font-weight: bold;
+                font-size: 16px;
+                cursor: pointer;
+                transition: all 0.3s;
+              "
+            >
+              <i class="fas fa-times"></i> Cancelar
+            </button>
+          </div>
+        </form>
+      </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    // Handler do formulário
+    document.getElementById('editBuildingForm').onsubmit = (e) => {
+      e.preventDefault();
+      
+      const updatedData = {
+        razao_social_predio: document.getElementById('edit_razao_social_predio').value.trim(),
+        cnpj_predio: document.getElementById('edit_cnpj_predio').value.trim(),
+        telefone_predio: document.getElementById('edit_telefone_predio').value.trim(),
+        numero_predio: document.getElementById('edit_numero_predio').value.trim(),
+        endereco_predio: document.getElementById('edit_endereco_predio').value.trim(),
+        responsavel_predio: document.getElementById('edit_responsavel_predio').value.trim()
+      };
+
+      // Atualizar no Firebase
+      database.ref('buildings/' + key).update(updatedData)
+        .then(() => {
+          closeEditModal();
+          loadCompanies();
+          showNotification('Prédio atualizado com sucesso!', 'success');
+        })
+        .catch((error) => {
+          console.error('Erro ao atualizar prédio:', error);
+          showNotification('Erro ao atualizar prédio. Tente novamente.', 'error');
+        });
+    };
+  });
+}
+
+// Função para fechar o modal
+function closeEditModal() {
+  const modal = document.getElementById('editModal');
+  if (modal) {
+    modal.remove();
+  }
+}
+
+// Função para mostrar notificações
+function showNotification(message, type = 'success') {
+  const notification = document.createElement('div');
+  notification.style.cssText = `
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 16px 24px;
+    background: ${type === 'success' ? 'linear-gradient(135deg, #2ecc71 0%, #27ae60 100%)' : 'linear-gradient(135deg, #e74c3c 0%, #c0392b 100%)'};
+    color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    z-index: 10000;
+    font-weight: bold;
+    animation: slideIn 0.3s ease;
+  `;
+  notification.innerHTML = `
+    <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
+    ${message}
+  `;
+  
+  document.body.appendChild(notification);
+  
+  setTimeout(() => {
+    notification.style.animation = 'slideOut 0.3s ease';
+    setTimeout(() => notification.remove(), 300);
+  }, 3000);
+}
+
+// Função principal de carregamento
 async function loadCompanies() {
   const list = document.getElementById('companiesList');
 
@@ -321,7 +928,7 @@ async function loadCompanies() {
   // ================= EMPRESAS =================
   if (Object.keys(companies).length > 0) {
     const totalCompanies = Object.keys(companies).length;
-    
+
     const empresasSeparator = document.createElement('div');
     empresasSeparator.style.cssText = `
       display: flex;
@@ -331,7 +938,7 @@ async function loadCompanies() {
       cursor: pointer;
       transition: all 0.3s ease;
     `;
-    
+
     empresasSeparator.onclick = () => toggleCompanies();
 
     empresasSeparator.innerHTML = `
@@ -398,6 +1005,9 @@ async function loadCompanies() {
             <button class="btn-small btn-primary" onclick="startInspection('${key}')">
               <i class="fas fa-clipboard-check"></i> Nova Inspeção
             </button>
+        <button class="btn-small btn-secondary" onclick="editCompany('${key}')" style="background-color:#2c3e50; border-color:#2c3e50;">
+  <i class="fas fa-edit"></i> Editar
+</button>
             <button
               class="btn-small btn-danger"
               style="background-color:#D4C29A; border-color:#D4C29A; color:#000;"
@@ -504,14 +1114,14 @@ async function loadCompanies() {
         companiesContainer.appendChild(paginationControls);
       }
     }
-    
+
     list.appendChild(companiesContainer);
   }
 
   // ================= PRÉDIOS =================
   if (Object.keys(buildings).length > 0) {
     const totalBuildings = Object.keys(buildings).length;
-    
+
     const prediosSeparator = document.createElement('div');
     prediosSeparator.style.cssText = `
       display: flex;
@@ -521,7 +1131,7 @@ async function loadCompanies() {
       cursor: pointer;
       transition: all 0.3s ease;
     `;
-    
+
     prediosSeparator.onclick = () => toggleBuildings();
 
     prediosSeparator.innerHTML = `
@@ -588,6 +1198,9 @@ async function loadCompanies() {
             <button class="btn-small btn-primary" onclick="startInspectionBuilding('${key}')">
               <i class="fas fa-clipboard-check"></i> Nova Inspeção
             </button>
+     <button class="btn-small btn-secondary" onclick="editBuilding('${key}')" style="background-color:#2c3e50; border-color:#2c3e50;">
+  <i class="fas fa-edit"></i> Editar
+</button>
             <button
               class="btn-small btn-danger"
               style="background-color:#D4C29A; border-color:#D4C29A; color:#000;"
@@ -694,10 +1307,41 @@ async function loadCompanies() {
         buildingsContainer.appendChild(paginationControls);
       }
     }
-    
+
     list.appendChild(buildingsContainer);
   }
 }
+
+// Adicionar estilos de animação para notificações
+const style = document.createElement('style');
+style.textContent = `
+  @keyframes slideIn {
+    from {
+      transform: translateX(400px);
+      opacity: 0;
+    }
+    to {
+      transform: translateX(0);
+      opacity: 1;
+    }
+  }
+  
+  @keyframes slideOut {
+    from {
+      transform: translateX(0);
+      opacity: 1;
+    }
+    to {
+      transform: translateX(400px);
+      opacity: 0;
+    }
+  }
+`;
+document.head.appendChild(style);
+
+// Inicializar ao carregar a página
+document.addEventListener('DOMContentLoaded', loadCompanies);
+
 
 // Funções de toggle (colapsar/expandir)
 function toggleCompanies() {
@@ -924,13 +1568,6 @@ async function deleteBuilding(id) {
   );
 }
 
-
-
-
-
-
-
-
 // Add Company
 document.getElementById('addCompanyBtn').addEventListener('click', () => {
   openModal('addCompanyModal');
@@ -992,8 +1629,6 @@ async function startInspection(companyId) {
   }, 200);
 }
 
-
-
 // Add Building Form Submit
 document.getElementById('addBuildingForm').addEventListener('submit', async (e) => {
   e.preventDefault();
@@ -1044,8 +1679,6 @@ async function startInspectionBuilding(buildingId) {
     window.currentInspectionType = 'predio';
   }, 200);
 }
-
-
 
 // Inspection Tabs
 document.querySelectorAll('.inspection-tab').forEach(tab => {
@@ -1273,10 +1906,6 @@ function generateCompletePDF(data) {
 
   return html;
 }
-
-
-
-
 
 // PARTE 1 - Rota de Fuga
 function generateSinalizacaoSection_Parte1(data) {
@@ -1533,10 +2162,6 @@ function generateClientSection(data) {
   `;
 }
 
-
-
-
-
 function generateCertificateSection(data) {
   return `
     <div class="pdf-section">
@@ -1562,8 +2187,6 @@ function generateCertificateSection(data) {
     </div>
   `;
 }
-
-
 
 function generateBombasSection(data) {
   let html = `
@@ -1710,8 +2333,6 @@ function generateHidrantesSection(data) {
     </div>
   `;
 }
-
-
 
 function generateAlarmeSection(data) {
   return `
@@ -1959,8 +2580,6 @@ function generateExtintoresSection(data) {
   return html;
 }
 
-
-
 function generateExtintoresPDF(data) {
   const isMobile = window.innerWidth <= 768;
   const todosExtintores = getAllExtintores(data);
@@ -2010,9 +2629,6 @@ function generateExtintoresPDF(data) {
 
   return html;
 }
-
-
-
 
 // Função para DESKTOP - Sinalização completa em uma página
 function generateSinalizacaoSection(data) {
@@ -2096,10 +2712,6 @@ function generateSinalizacaoSection(data) {
   return html;
 }
 
-
-
-
-
 function generateConformidadeSection(data) {
   return `
         <div class="pdf-section">
@@ -2165,7 +2777,6 @@ function generatePDFFooter() {
         </div>
       `;
 }
-
 
 // Generate Report Button - Show Selection Modal
 document.getElementById('generateReportBtn').addEventListener('click', () => {
@@ -2238,8 +2849,6 @@ document.getElementById('generateReportBtn').addEventListener('click', () => {
   closeModal('inspectionFormModal');
   openModal('pdfSelectionModal');
 });
-
-
 
 // Generate Selected PDF
 function generateSelectedPDF(type) {
@@ -2350,11 +2959,6 @@ document.getElementById('finishInspectionBtn').addEventListener('click', async (
     button.innerHTML = '<i class="fas fa-check-circle"></i> Finalizar Inspeção';
   }
 });
-
-
-
-
-
 
 // Back to Form
 document.getElementById('backToFormBtn').addEventListener('click', () => {
@@ -2470,6 +3074,9 @@ document.getElementById('saveInspectionBtn').addEventListener('click', async () 
 let currentInspectionPage = 1;
 const inspectionsPerPage = 7;
 
+// ============================================
+// FUNÇÃO DE CARREGAR INSPEÇÕES COM EXCLUIR
+// ============================================
 async function loadInspections() {
   const snapshot = await database.ref('inspections').once('value');
   const inspections = snapshot.val() || {};
@@ -2589,6 +3196,9 @@ async function loadInspections() {
         <button class="btn-small btn-info" onclick="viewInspection('${insp.id}')">
           <i class="fas fa-eye"></i> Ver
         </button>
+        <button class="btn-small btn-danger" onclick="deleteInspection('${insp.id}')">
+          <i class="fas fa-trash"></i> Excluir
+        </button>
         <button class="btn-small btn-primary" onclick="showPDFOptionsForInspection('${insp.id}')">
           <i class="fas fa-download"></i> PDF
         </button>
@@ -2690,8 +3300,251 @@ async function loadInspections() {
         Próxima <i class="fas fa-chevron-right"></i>
       </button>
     `;
-    
+
     list.appendChild(paginationControls);
+  }
+}
+
+// ============================================
+// FUNÇÃO DE EXCLUIR INSPEÇÃO
+// ============================================
+function deleteInspection(inspectionId) {
+  database.ref('inspections/' + inspectionId).once('value').then(snapshot => {
+    const insp = snapshot.val();
+    
+    if (!insp) {
+      alert(' Inspeção não encontrada!');
+      return;
+    }
+
+    const isPredio = insp.tipo === 'predio';
+    const nomeCliente = isPredio
+      ? (insp.razao_social_predio || insp.razao_social || 'Esta inspeção')
+      : (insp.razao_social || 'Esta inspeção');
+
+    const overlay = document.createElement('div');
+    overlay.id = 'deleteConfirmOverlay';
+    overlay.style.cssText = `
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.85);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 99999;
+      padding: 20px;
+      box-sizing: border-box;
+      animation: fadeIn 0.3s ease-out;
+    `;
+
+    const modal = document.createElement('div');
+    modal.style.cssText = `
+      background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
+      border: 2px solid #ef4444;
+      border-radius: 16px;
+      padding: 30px;
+      width: 100%;
+      max-width: 500px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
+      animation: slideUp 0.3s ease-out;
+      box-sizing: border-box;
+    `;
+
+    modal.innerHTML = `
+      <div style="text-align: center;">
+        <div style="
+          width: 80px;
+          height: 80px;
+          background: rgba(239, 68, 68, 0.1);
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          margin: 0 auto 20px;
+        ">
+          <i class="fas fa-exclamation-triangle" style="font-size: 40px; color: #ef4444;"></i>
+        </div>
+
+        <h2 style="color: #fff; font-size: 24px; margin: 0 0 15px 0; font-weight: 700;">
+          Confirmar Exclusão
+        </h2>
+
+        <p style="color: #bbb; font-size: 16px; line-height: 1.6; margin: 0 0 10px 0;">
+          Tem certeza que deseja excluir a inspeção de:
+        </p>
+
+        <p style="color: #D4C29A; font-size: 18px; font-weight: 600; margin: 0 0 25px 0; word-wrap: break-word;">
+          ${escapeHtml(nomeCliente)}
+        </p>
+
+        <p style="color: #ef4444; font-size: 14px; font-weight: 600; margin: 0 0 30px 0;">
+           Esta ação não pode ser desfeita!
+        </p>
+
+        <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+          <button id="cancelDeleteBtn" style="
+            background: #444;
+            border: 1px solid #666;
+            color: #fff;
+            border-radius: 8px;
+            padding: 12px 24px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 600;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+          ">
+            <i class="fas fa-times"></i> Cancelar
+          </button>
+          <button id="confirmDeleteBtn" style="
+            background: #ef4444;
+            border: none;
+            color: #fff;
+            border-radius: 8px;
+            padding: 12px 24px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 600;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+          ">
+            <i class="fas fa-trash"></i> Sim, Excluir
+          </button>
+        </div>
+      </div>
+    `;
+
+    overlay.appendChild(modal);
+    document.body.appendChild(overlay);
+
+    const cancelBtn = document.getElementById('cancelDeleteBtn');
+    const confirmBtn = document.getElementById('confirmDeleteBtn');
+
+    cancelBtn.onmouseover = () => { cancelBtn.style.background = '#555'; };
+    cancelBtn.onmouseout = () => { cancelBtn.style.background = '#444'; };
+    confirmBtn.onmouseover = () => { confirmBtn.style.background = '#dc2626'; };
+    confirmBtn.onmouseout = () => { confirmBtn.style.background = '#ef4444'; };
+
+    cancelBtn.onclick = () => {
+      overlay.style.animation = 'fadeOut 0.3s ease-out';
+      setTimeout(() => overlay.remove(), 300);
+    };
+
+    confirmBtn.onclick = async () => {
+      confirmBtn.disabled = true;
+      confirmBtn.style.opacity = '0.6';
+      confirmBtn.style.cursor = 'not-allowed';
+      confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Excluindo...';
+
+      try {
+        await database.ref('inspections/' + inspectionId).remove();
+        overlay.style.animation = 'fadeOut 0.3s ease-out';
+        setTimeout(() => overlay.remove(), 300);
+        showSuccessMessage(' Inspeção excluída com sucesso!');
+        loadInspections();
+      } catch (error) {
+        console.error('Erro ao excluir inspeção:', error);
+        confirmBtn.disabled = false;
+        confirmBtn.style.opacity = '1';
+        confirmBtn.style.cursor = 'pointer';
+        confirmBtn.innerHTML = '<i class="fas fa-trash"></i> Sim, Excluir';
+        alert(' Erro ao excluir inspeção: ' + error.message);
+      }
+    };
+
+    overlay.onclick = (e) => {
+      if (e.target === overlay) {
+        overlay.style.animation = 'fadeOut 0.3s ease-out';
+        setTimeout(() => overlay.remove(), 300);
+      }
+    };
+
+    if (!document.getElementById('deleteAnimations')) {
+      const style = document.createElement('style');
+      style.id = 'deleteAnimations';
+      style.textContent = `
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        @keyframes fadeOut {
+          from { opacity: 1; }
+          to { opacity: 0; }
+        }
+        @keyframes slideUp {
+          from { transform: translateY(30px); opacity: 0; }
+          to { transform: translateY(0); opacity: 1; }
+        }
+      `;
+      document.head.appendChild(style);
+    }
+  });
+}
+
+// ============================================
+// FUNÇÃO AUXILIAR - ESCAPE HTML
+// ============================================
+function escapeHtml(text) {
+  if (!text) return '';
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
+// ============================================
+// FUNÇÃO DE MENSAGEM DE SUCESSO
+// ============================================
+function showSuccessMessage(message) {
+  const messageDiv = document.createElement('div');
+  messageDiv.innerHTML = `
+    <i class="fas fa-check-circle"></i>
+    <span>${message}</span>
+  `;
+  messageDiv.style.cssText = `
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+    color: #fff;
+    padding: 16px 24px;
+    border-radius: 10px;
+    font-weight: 600;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    z-index: 100000;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    animation: slideIn 0.3s ease-out;
+  `;
+
+  document.body.appendChild(messageDiv);
+
+  setTimeout(() => {
+    messageDiv.style.animation = 'slideOut 0.3s ease-out';
+    setTimeout(() => messageDiv.remove(), 300);
+  }, 3000);
+
+  if (!document.getElementById('slideAnimations')) {
+    const style = document.createElement('style');
+    style.id = 'slideAnimations';
+    style.textContent = `
+      @keyframes slideIn {
+        from { transform: translateX(400px); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+      }
+      @keyframes slideOut {
+        from { transform: translateX(0); opacity: 1; }
+        to { transform: translateX(400px); opacity: 0; }
+      }
+    `;
+    document.head.appendChild(style);
   }
 }
 
@@ -2705,14 +3558,6 @@ function changeInspectionPage(newPage) {
     container.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 }
-
-
-
-
-
-
-
-
 
 // Filter Inspections
 document.querySelectorAll('.filter-btn').forEach(btn => {
@@ -2806,8 +3651,6 @@ async function viewInspection(inspectionId) {
 
   openModal('pdfSelectionModal');
 }
-
-
 
 // Show PDF Options for Inspection
 async function showPDFOptionsForInspection(inspectionId) {
@@ -2926,135 +3769,135 @@ document.getElementById('passwordForm').addEventListener('submit', async (e) => 
    ARQUIVAR MÊS (Apenas Inspeções e Ordens)
    ============================================================ */
 document.getElementById('archiveMonthBtn')?.addEventListener('click', async () => {
-    const button = document.getElementById('archiveMonthBtn');
-    if (!confirm('Deseja arquivar as inspeções e ordens? Isso limpará os registros atuais após o download do backup.')) return;
+  const button = document.getElementById('archiveMonthBtn');
+  if (!confirm('Deseja arquivar as inspeções e ordens? Isso limpará os registros atuais após o download do backup.')) return;
 
-    button.disabled = true;
-    button.innerHTML = '<span class="loading"></span> Arquivando...';
+  button.disabled = true;
+  button.innerHTML = '<span class="loading"></span> Arquivando...';
 
-    try {
-        const now = new Date();
-        const month = now.getMonth() + 1;
-        const year = now.getFullYear();
+  try {
+    const now = new Date();
+    const month = now.getMonth() + 1;
+    const year = now.getFullYear();
 
-        // Buscamos apenas o que será arquivado
-        const [inspectionsSnap, ordersSnap] = await Promise.all([
-            database.ref('inspections').once('value'),
-            database.ref('orders').once('value')
-        ]);
+    // Buscamos apenas o que será arquivado
+    const [inspectionsSnap, ordersSnap] = await Promise.all([
+      database.ref('inspections').once('value'),
+      database.ref('orders').once('value')
+    ]);
 
-        const backup = {
-            version: '1.3', // Versão atualizada
-            type: 'inspections_orders_only',
-            exportDate: now.toISOString(),
-            month,
-            year,
-            user: { nome: currentUser?.nome || '', cnpj: currentUser?.cnpj || '' },
-            inspections: inspectionsSnap.val() || {},
-            orders: ordersSnap.val() || {}
-        };
+    const backup = {
+      version: '1.3', // Versão atualizada
+      type: 'inspections_orders_only',
+      exportDate: now.toISOString(),
+      month,
+      year,
+      user: { nome: currentUser?.nome || '', cnpj: currentUser?.cnpj || '' },
+      inspections: inspectionsSnap.val() || {},
+      orders: ordersSnap.val() || {}
+    };
 
-        // Verifica se há algo para arquivar
-        if (!inspectionsSnap.exists() && !ordersSnap.exists()) {
-            showToast('Não há inspeções ou ordens para arquivar.', 'warning');
-            return;
-        }
-
-        const json = JSON.stringify(backup, null, 2);
-        const blob = new Blob([json], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `arquivamento_${year}_${String(month).padStart(2, '0')}.json`;
-        a.click();
-        URL.revokeObjectURL(url);
-
-        // ZERAR APENAS AS TABELAS DE MOVIMENTAÇÃO
-        await Promise.all([
-            database.ref('inspections').set(null),
-            database.ref('orders').set(null)
-        ]);
-
-        showToast('Sucesso! Inspeções e Ordens arquivadas e limpas.');
-        
-        // Atualiza as listas
-        loadDashboard();
-        loadInspections();
-        if (typeof loadOrders === 'function') loadOrders();
-
-    } catch (err) {
-        console.error('Erro ao arquivar:', err);
-        showToast('Erro ao criar arquivamento', 'error');
-    } finally {
-        button.disabled = false;
-        button.innerHTML = '<i class="fas fa-download"></i> Arquivar';
+    // Verifica se há algo para arquivar
+    if (!inspectionsSnap.exists() && !ordersSnap.exists()) {
+      showToast('Não há inspeções ou ordens para arquivar.', 'warning');
+      return;
     }
+
+    const json = JSON.stringify(backup, null, 2);
+    const blob = new Blob([json], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `arquivamento_${year}_${String(month).padStart(2, '0')}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+
+    // ZERAR APENAS AS TABELAS DE MOVIMENTAÇÃO
+    await Promise.all([
+      database.ref('inspections').set(null),
+      database.ref('orders').set(null)
+    ]);
+
+    showToast('Sucesso! Inspeções e Ordens arquivadas e limpas.');
+
+    // Atualiza as listas
+    loadDashboard();
+    loadInspections();
+    if (typeof loadOrders === 'function') loadOrders();
+
+  } catch (err) {
+    console.error('Erro ao arquivar:', err);
+    showToast('Erro ao criar arquivamento', 'error');
+  } finally {
+    button.disabled = false;
+    button.innerHTML = '<i class="fas fa-download"></i> Arquivar';
+  }
 });
 
 /* ============================================================
    RESTAURAR (Apenas Inspeções e Ordens)
    ============================================================ */
 document.getElementById('restoreFile').addEventListener('change', async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
+  const file = e.target.files[0];
+  if (!file) return;
 
-    if (!confirm('Deseja restaurar este backup? As inspeções e ordens contidas no arquivo serão adicionadas ao sistema.')) {
-        e.target.value = '';
-        return;
-    }
+  if (!confirm('Deseja restaurar este backup? As inspeções e ordens contidas no arquivo serão adicionadas ao sistema.')) {
+    e.target.value = '';
+    return;
+  }
 
-    try {
-        const reader = new FileReader();
-        reader.onload = async (event) => {
-            try {
-                const backup = JSON.parse(event.target.result);
+  try {
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+      try {
+        const backup = JSON.parse(event.target.result);
 
-                const updates = {};
-                let countInsp = 0;
-                let countOrders = 0;
+        const updates = {};
+        let countInsp = 0;
+        let countOrders = 0;
 
-                // 1. Restaurar Inspeções (se houver no arquivo)
-                if (backup.inspections) {
-                    for (let key in backup.inspections) {
-                        updates[`inspections/${key}`] = backup.inspections[key];
-                        countInsp++;
-                    }
-                }
+        // 1. Restaurar Inspeções (se houver no arquivo)
+        if (backup.inspections) {
+          for (let key in backup.inspections) {
+            updates[`inspections/${key}`] = backup.inspections[key];
+            countInsp++;
+          }
+        }
 
-                // 2. Restaurar Ordens (se houver no arquivo)
-                if (backup.orders) {
-                    for (let key in backup.orders) {
-                        updates[`orders/${key}`] = backup.orders[key];
-                        countOrders++;
-                    }
-                }
+        // 2. Restaurar Ordens (se houver no arquivo)
+        if (backup.orders) {
+          for (let key in backup.orders) {
+            updates[`orders/${key}`] = backup.orders[key];
+            countOrders++;
+          }
+        }
 
-                if (countInsp === 0 && countOrders === 0) {
-                    showToast('Nenhum dado encontrado no arquivo.', 'warning');
-                    return;
-                }
+        if (countInsp === 0 && countOrders === 0) {
+          showToast('Nenhum dado encontrado no arquivo.', 'warning');
+          return;
+        }
 
-                // Executa a restauração
-                await database.ref().update(updates);
+        // Executa a restauração
+        await database.ref().update(updates);
 
-                showToast(`Restaurado: ${countInsp} Inspeções e ${countOrders} Ordens.`);
+        showToast(`Restaurado: ${countInsp} Inspeções e ${countOrders} Ordens.`);
 
-                // Atualizar interface
-                loadDashboard();
-                loadInspections();
-                if (typeof loadOrders === 'function') loadOrders();
+        // Atualizar interface
+        loadDashboard();
+        loadInspections();
+        if (typeof loadOrders === 'function') loadOrders();
 
-            } catch (parseError) {
-                console.error('Erro no Parse:', parseError);
-                showToast('Arquivo de backup inválido ou corrompido.', 'error');
-            }
-        };
-        reader.readAsText(file);
-    } catch (error) {
-        showToast('Erro ao restaurar dados', 'error');
-    } finally {
-        e.target.value = '';
-    }
+      } catch (parseError) {
+        console.error('Erro no Parse:', parseError);
+        showToast('Arquivo de backup inválido ou corrompido.', 'error');
+      }
+    };
+    reader.readAsText(file);
+  } catch (error) {
+    showToast('Erro ao restaurar dados', 'error');
+  } finally {
+    e.target.value = '';
+  }
 });
 
 // Initialize
@@ -3186,6 +4029,9 @@ function agruparProdutos(produtos) {
   return Object.values(agrupados);
 }
 
+// ============================= 
+// RENDERIZAR ORDENS FILTRADAS
+// ============================= 
 // ============================= 
 // RENDERIZAR ORDENS FILTRADAS
 // ============================= 
@@ -3553,13 +4399,13 @@ function renderFilteredOrders() {
           </div>
         </div>
 
-  <div id="os-details-${os.id}" class="os-details-collapsed" style="
+        <div id="os-details-${os.id}" class="os-details-collapsed" style="
           max-height: 0;
           overflow: hidden;
           transition: max-height 0.3s ease;
         ">
-   <div style="padding-top: 14px;">
-    <div style="
+          <div style="padding-top: 14px;">
+            <div style="
               background: #1a1a1a;
               border: 1px solid #333;
               border-radius: 8px;
@@ -3570,7 +4416,7 @@ function renderFilteredOrders() {
               overflow-wrap: break-word;
               hyphens: auto;
             ">
-     <div style="
+              <div style="
                 font-size: 10px;
                 color: #888;
                 text-transform: uppercase;
@@ -3580,8 +4426,8 @@ function renderFilteredOrders() {
                 align-items: center;
                 gap: 5px;
               "><i class="fas fa-map-marker-alt" style="color: #D4C29A; flex-shrink: 0;"></i> Endereço e CEP
-     </div>
-     <div style="
+              </div>
+              <div style="
                 font-size: 14px;
                 color: #fff;
                 font-weight: 500;
@@ -3592,24 +4438,24 @@ function renderFilteredOrders() {
                 hyphens: auto;
                 line-height: 1.4;
               ">
-      ${escapeHtml(os.endereco || '-')}
-     </div>
-     <div style="
+                ${escapeHtml(os.endereco || '-')}
+              </div>
+              <div style="
                 font-size: 13px; 
                 color: #aaa;
                 font-weight: 400;
               ">
-      CEP: ${escapeHtml(os.cep || '-')}
-     </div>
-    </div>
-    <div style="
+                CEP: ${escapeHtml(os.cep || '-')}
+              </div>
+            </div>
+            <div style="
               background: #1a1a1a;
               border: 1px solid #333;
               border-radius: 8px;
               padding: 12px;
               margin-bottom: 14px;
             ">
-     <div style="
+              <div style="
                 font-size: 10px;
                 color: #888;
                 text-transform: uppercase;
@@ -3619,8 +4465,8 @@ function renderFilteredOrders() {
                 align-items: center;
                 gap: 5px;
               "><i class="fas fa-circle-check" style="color: ${statusPagamento === 'Pago' ? '#28a745' : '#dc3545'}; flex-shrink: 0;"></i> Status de Pagamento
-     </div>
-     <div style="
+              </div>
+              <div style="
                 font-size: 14px;
                 color: ${statusPagamento === 'Pago' ? '#28a745' : '#dc3545'};
                 font-weight: 700;
@@ -3629,8 +4475,8 @@ function renderFilteredOrders() {
                 align-items: center;
                 gap: 6px;
               "><i class="fas fa-${statusPagamento === 'Pago' ? 'check-circle' : 'times-circle'}" style="flex-shrink: 0;"></i> ${escapeHtml(statusPagamento)}
-     </div>
-     <div style="
+              </div>
+              <div style="
                 font-size: 10px;
                 color: #888;
                 text-transform: uppercase;
@@ -3642,8 +4488,8 @@ function renderFilteredOrders() {
                 align-items: center;
                 gap: 5px;
               "><i class="fas fa-credit-card" style="color: #D4C29A; flex-shrink: 0;"></i> Forma de Pagamento
-     </div>
-     <div style="
+              </div>
+              <div style="
                 font-size: 14px;
                 color: #fff;
                 font-weight: 600;
@@ -3651,11 +4497,12 @@ function renderFilteredOrders() {
                 word-break: break-word;
                 overflow-wrap: break-word;
               ">
-      ${escapeHtml(formaPagamento)}
-     </div>
-    </div> ${produtosListaHTML ? ` 
-    <div style="margin-top: 14px; margin-bottom: 14px;">
-     <div style="
+                ${escapeHtml(formaPagamento)}
+              </div>
+            </div>
+            ${produtosListaHTML ? ` 
+              <div style="margin-top: 14px; margin-bottom: 14px;">
+                <div style="
                   color: #D4C29A;
                   font-size: 12px;
                   font-weight: 700;
@@ -3665,12 +4512,13 @@ function renderFilteredOrders() {
                   padding-bottom: 8px;
                   border-bottom: 2px solid #D4C29A;
                 "><i class="fas fa-boxes" style="margin-right: 8px; font-size: 11px;"></i> Produtos Utilizados (${qtdProdutos} un.)
-     </div>
-     <div style="max-height: 220px; overflow-y: auto;">
-      ${produtosListaHTML}
-     </div>
-    </div> ` : ` 
-    <div style="
+                </div>
+                <div style="max-height: 220px; overflow-y: auto;">
+                  ${produtosListaHTML}
+                </div>
+              </div> 
+            ` : ` 
+              <div style="
                 margin: 14px 0;
                 padding: 14px;
                 background: #1a1a1a;
@@ -3680,15 +4528,17 @@ function renderFilteredOrders() {
                 font-size: 13px;
                 text-align: center;
               "><i class="fas fa-inbox" style="margin-right: 8px; font-size: 16px; color: #D4C29A;"></i> Nenhum produto cadastrado
-    </div> `} <!-- VALOR TOTAL DA OS -->
-    <div style="
+              </div> 
+            `}
+            <!-- VALOR TOTAL DA OS -->
+            <div style="
               background: #1a1a1a;
               border: 1px solid #333;
               border-radius: 8px;
               padding: 12px;
               margin-top: 14px;
             ">
-     <div style="
+              <div style="
                 font-size: 10px;
                 color: #888;
                 text-transform: uppercase;
@@ -3698,17 +4548,17 @@ function renderFilteredOrders() {
                 align-items: center;
                 gap: 5px;
               "><i class="fas fa-dollar-sign" style="color: #D4C29A; flex-shrink: 0;"></i> Valor Total da OS
-     </div>
-     <div style="
+              </div>
+              <div style="
                 font-size: 18px;
                 color: #4ade80;
                 font-weight: 700;
               ">
-      ${(Number(os.total) || Number(os.preco) || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
-     </div>
-    </div>
-   </div>
-  </div>
+                ${(Number(os.total) || Number(os.preco) || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+              </div>
+            </div>
+          </div>
+        </div>
 
         <!-- FIM DA SEÇÃO RECOLHÍVEL -->
 
@@ -3900,7 +4750,7 @@ function mostrarOpcoesPDF(osId) {
         gap: 12px;
         margin-bottom: 20px;
       ">
-        <button onclick="gerarPDFOrdem('${osId}', true); document.body.removeChild(this.closest('div').parentElement)" style="
+        <button onclick="gerarPDFOrdem('${osId}', 'com_valores'); document.body.removeChild(this.closest('div').parentElement)" style="
           width: 100%;
           padding: 16px;
           background: linear-gradient(135deg, #10b93a 0%, #059669 100%);
@@ -3921,7 +4771,7 @@ function mostrarOpcoesPDF(osId) {
           <span>PDF com Valores</span>
         </button>
 
-        <button onclick="gerarPDFOrdem('${osId}', false); document.body.removeChild(this.closest('div').parentElement)" style="
+        <button onclick="gerarPDFOrdem('${osId}', 'sem_valores'); document.body.removeChild(this.closest('div').parentElement)" style="
           width: 100%;
           padding: 16px;
           background: linear-gradient(135deg, #f63b3b 0%, #eb2525 100%);
@@ -3936,8 +4786,31 @@ function mostrarOpcoesPDF(osId) {
           align-items: center;
           justify-content: center;
           gap: 10px;
+          box-shadow: 0 4px 12px rgba(243, 59, 59, 0.3);
+        " onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 6px 16px rgba(243, 59, 59, 0.4)'" onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='0 4px 12px rgba(243, 59, 59, 0.3)'">
           <i class="fas fa-file-alt" style="font-size: 18px;"></i>
           <span>PDF sem Valores</span>
+        </button>
+
+        <button onclick="gerarPDFOrdem('${osId}', 'valores_detalhados'); document.body.removeChild(this.closest('div').parentElement)" style="
+          width: 100%;
+          padding: 16px;
+          background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+          color: #fff;
+          border: none;
+          border-radius: 10px;
+          font-size: 15px;
+          font-weight: 700;
+          cursor: pointer;
+          transition: all 0.3s;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 10px;
+          box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
+        " onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 6px 16px rgba(124, 58, 237, 0.4)'" onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='0 4px 12px rgba(124, 58, 237, 0.3)'">
+          <i class="fas fa-list-check" style="font-size: 18px;"></i>
+          <span>PDF com Valores Detalhados</span>
         </button>
       </div>
 
@@ -3978,12 +4851,6 @@ function mostrarOpcoesPDF(osId) {
   document.body.appendChild(modal);
 }
 
-
-
-
-
-
-
 // Cache para melhor performance
 const toggleCache = new Map();
 
@@ -4015,8 +4882,6 @@ window.toggleOSDetails = function (osId) {
 window.clearToggleCache = function () {
   toggleCache.clear();
 }
-
-
 // ============================= 
 // MODAL DE PAGAMENTO
 // ============================= 
@@ -4316,14 +5181,11 @@ async function salvarFormaPagamento(orderId) {
   }
 }
 
-
 // ============================= 
 // FUNÇÃO GERAR PDF COM JSPDF
 // ============================= 
 
-
-async function gerarPDFOrdem(orderId, comValores = true) {
-
+async function gerarPDFOrdem(orderId, tipoRelatorio = 'com_valores') {
   const ordem = allOrders.find(o => o.id === orderId);
   if (!ordem) {
     showToast('Ordem não encontrada', 'error');
@@ -4331,560 +5193,740 @@ async function gerarPDFOrdem(orderId, comValores = true) {
   }
 
   try {
-    showToast(`Gerando PDF ${comValores ? 'com' : 'sem'} valores...`, 'info');
+    const mensagens = {
+      'com_valores': 'Gerando PDF com valor total...',
+      'sem_valores': 'Gerando PDF sem valores...',
+      'valores_detalhados': 'Gerando PDF com valores detalhados...'
+    };
+    showToast(mensagens[tipoRelatorio] || 'Gerando PDF...', 'info');
 
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF({
-      orientation: 'portrait',
-      unit: 'mm',
-      format: 'a4'
-    });
-
-    // =============================
-    // DADOS BASE
-    // =============================
     const produtosOriginais = Array.isArray(ordem.products) ? ordem.products : [];
     const produtos = agruparProdutos(produtosOriginais);
 
-    const dataStr = ordem.data
-      ? new Date(ordem.data).toLocaleDateString('pt-BR')
-      : '-';
+    const dataStr = ordem.data ? new Date(ordem.data).toLocaleDateString('pt-BR') : '-';
+    const formaPagamento = ordem.payment_method || ordem.formaPagamento || 'Não informado';
+    const statusPagamento = ordem.payment_status || ordem.statusPagamento || 'Não Pago';
+    const totalFinal = Number(ordem.total) || Number(ordem.preco) || 0;
+    const statusText = (ordem.status || ordem.estado || (ordem.completed ? 'Concluída' : 'Pendente')).toString();
+    const indexNaLista = allOrders.findIndex(o => o.id === ordem.id);
+    const numeroSequencial = indexNaLista !== -1 ? (indexNaLista + 1) : '-';
 
-    const formaPagamento =
-      ordem.payment_method ||
-      ordem.formaPagamento ||
-      'Não informado';
+    let numero = ordem.numeroPredio || ordem.numeroEmpresa || '';
+    let enderecoCompleto = ordem.endereco || '-';
+    if (numero) {
+      enderecoCompleto = `${enderecoCompleto}, Nº ${numero}`;
+    }
 
-    const statusPagamento =
-      ordem.payment_status ||
-      ordem.statusPagamento ||
-      'Não Pago';
+    const qtdTotal = produtos.reduce((acc, p) => acc + p.qty, 0);
 
-    const totalFinal =
-      Number(ordem.total) ||
-      Number(ordem.preco) ||
-      0;
+   // ===== DIVIDE PRODUTOS EM MÚLTIPLAS COLUNAS =====
+function dividirEmColunas(array, itensPorColuna) {
+  const colunas = [];
+  for (let i = 0; i < array.length; i += itensPorColuna) {
+    colunas.push(array.slice(i, i + itensPorColuna));
+  }
+  return colunas;
+}
 
-    const statusText = (
-      ordem.status ||
-      ordem.estado ||
-      (ordem.completed ? 'Concluída' : 'Pendente')
-    ).toString();
+const ITENS_POR_COLUNA = 9; // 🔥 AUMENTEI DE 9 PARA 15
+const colunasProdutos = dividirEmColunas(produtos, ITENS_POR_COLUNA);
 
-    // =============================
-    // HEADER
-    // =============================
-    doc.setFillColor(248, 249, 250);
-    doc.rect(0, 0, 210, 38, 'F');
+// GRID AUTOMÁTICO
+let colunasGrid = 3;
+if (colunasProdutos.length >= 6) colunasGrid = 3;
+if (colunasProdutos.length >= 9) colunasGrid = 4;
 
-    // Barra lateral vermelha
-    doc.setFillColor(179, 33, 23);
-    doc.rect(0, 0, 5, 38, 'F');
+// FUNÇÃO PARA TRUNCAR NOME DO PRODUTO
+const truncarNome = (nome, maxLength = 50) => { // 🔥 DIMINUÍ DE 30 PARA 18
+  if (!nome) return '-';
+  if (nome.length <= maxLength) return nome;
+  return nome.substring(0, maxLength) + '...';
+};
 
-    // Logo
-    if (window.currentLogoUrl) {
-      try {
-        doc.addImage(
-          window.currentLogoUrl,
-          'PNG',
-          10,
-          7,
-          28,
-          14,
-          undefined,
-          'FAST'
-        );
-      } catch (e) {
-        console.warn('Erro ao inserir logo', e);
+// ===== RENDERIZA TABELA DE PRODUTOS =====
+const renderizarTabelaProdutos = (lista, offset = 0) => {
+  if (!lista || !lista.length) return '';
+
+  // PDF COM VALORES DETALHADOS (Unit. + Total)
+  if (tipoRelatorio === 'valores_detalhados') {
+    return `
+      <table style="width: 100%; border-collapse: collapse; background: white; font-size: 7px; border: 1px solid #e5e7eb; border-radius: 4px; overflow: hidden;">
+        <thead style="background: linear-gradient(135deg, #4b5563 0%, #6b7280 100%); color: white;">
+          <tr>
+            <th style="padding: 3px 4px; text-align: center; font-weight: 700; text-transform: uppercase; font-size: 6px; width: 20px;">N°</th>
+            <th style="padding: 3px 4px; text-align: left; font-weight: 700; text-transform: uppercase; font-size: 6px;">Produto</th>
+            <th style="padding: 3px 4px; text-align: center; font-weight: 700; text-transform: uppercase; font-size: 6px; width: 30px;">Qtd</th>
+            <th style="padding: 3px 4px; text-align: right; font-weight: 700; text-transform: uppercase; font-size: 6px; width: 55px;">Unit.</th>
+            <th style="padding: 3px 4px; text-align: right; font-weight: 700; text-transform: uppercase; font-size: 6px; width: 60px;">Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${lista.map((p, idx) => {
+            const valorUn = (Number(p.price) || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+            const subtotal = ((Number(p.price) || 0) * p.qty).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+            const bgColor = idx % 2 === 0 ? '#ffffff' : '#f9fafb';
+            const nomeTruncado = truncarNome(p.name, 18);
+            return `
+              <tr style="background: ${bgColor};">
+                <td style="padding: 3px 4px; border-bottom: 1px solid #f3f4f6; color: #6b7280; text-align: center; font-weight: 700; font-size: 5px;">${offset + idx + 1}</td>
+                <td style="padding: 3px 4px; border-bottom: 1px solid #f3f4f6; color: #374151; text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 5px;" title="${p.name || '-'}">${nomeTruncado}</td>
+                <td style="padding: 3px 4px; border-bottom: 1px solid #f3f4f6; color: #374151; text-align: center; font-weight: 600; font-size: 5px;">${p.qty}x</td>
+                <td style="padding: 3px 4px; border-bottom: 1px solid #f3f4f6; color: #b91c1c; text-align: right; font-weight: 600; font-size: 5px;">${valorUn}</td>
+                <td style="padding: 3px 4px; border-bottom: 1px solid #f3f4f6; color: #1f2937; text-align: right; font-weight: 700; font-size: 5px;">${subtotal}</td>
+              </tr>
+            `;
+          }).join('')}
+        </tbody>
+      </table>
+    `;
+  }
+      
+      // PDF SEM VALORES ou COM VALORES (apenas Produto + Qtd)
+
+      // PDF SEM VALORES ou COM VALORES (apenas Produto + Qtd)
+      else {
+        return `
+          <table style="width: 100%; border-collapse: collapse; background: white; font-size: 6px; border: 1px solid #e5e7eb; border-radius: 3px; overflow: hidden;">
+            <thead style="background: linear-gradient(135deg, #4b5563 0%, #6b7280 100%); color: white;">
+              <tr>
+                <th style="padding: 2px 3px; text-align: center; font-weight: 700; text-transform: uppercase; font-size: 5px; width: 18px;">N°</th>
+                <th style="padding: 2px 3px; text-align: left; font-weight: 700; text-transform: uppercase; font-size: 5px;">Produto</th>
+                <th style="padding: 2px 3px; text-align: center; font-weight: 700; text-transform: uppercase; font-size: 5px; width: 25px;">Qtd</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${lista.map((p, idx) => {
+                const bgColor = idx % 2 === 0 ? '#ffffff' : '#f9fafb';
+                const nomeTruncado = truncarNome(p.name, 60);
+                return `
+                  <tr style="background: ${bgColor};">
+                    <td style="padding: 3px 4px; border-bottom: 1px solid #f3f4f6; color: #6b7280; text-align: center; font-weight: 700; font-size: 6px;">${offset + idx + 1}</td>
+                    <td style="padding: 3px 4px; border-bottom: 1px solid #f3f4f6; color: #374151; text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 6.5px;" title="${p.name || '-'}">${nomeTruncado}</td>
+                    <td style="padding: 3px 4px; border-bottom: 1px solid #f3f4f6; color: #374151; text-align: center; font-weight: 600; font-size: 6px;">${p.qty}x</td>
+                  </tr>
+                `;
+              }).join('')}
+            </tbody>
+          </table>
+        `;
       }
-    } else {
-      doc.setTextColor(179, 33, 23);
-      doc.setFontSize(15);
-      doc.setFont('helvetica', 'bold');
-      doc.text('EXTINMAIS', 12, 15);
-    }
 
-    // Informações da empresa
-    doc.setTextColor(90, 90, 90);
-    doc.setFontSize(7.5);
-    doc.setFont('helvetica', 'normal');
-    doc.text('CNPJ: 52.026.476/0001-03', 12, 24);
-    doc.text('Tel: (15) 99137-1232', 12, 28);
-    doc.text('extinmaiss@outlook.com', 12, 32);
 
-    // Título
-    doc.setTextColor(179, 33, 23);
-    doc.setFontSize(15);
-    doc.setFont('helvetica', 'bold');
-    doc.text('NOTA DE SERVIÇO', 200, 13, { align: 'right' });
+    };
 
-    // Número da OS
-    doc.setTextColor(90, 90, 90);
-    doc.setFontSize(9);
-    doc.setFont('helvetica', 'normal');
-    doc.text(
-      `N° ${ordem.id?.slice(0, 8) || '-'}`,
-      200,
-      19,
-      { align: 'right' }
-    );
-
-    // Número do Prédio ou Empresa - pegando do BD com camelCase
-    let numeroLabel = 'Prédio/N°:';
-    let numero = ordem.numeroPredio || '-';
-    
-    if (ordem.clienteTipo === 'empresa') {
-      numeroLabel = 'Empresa/N°:';
-      numero = ordem.numeroEmpresa || '-';
-    }
-    
-    doc.setFontSize(9);
-    doc.setFont('helvetica', 'normal');
-    doc.text(
-      `${numeroLabel} ${numero}`,
-      200,
-      24,
-      { align: 'right' }
-    );
-
-    // Status
-    doc.setFontSize(9);
-    doc.setFont('helvetica', 'normal');
-    doc.text(
-      `Status: ${statusText}`,
-      200,
-      29,
-      { align: 'right' }
-    );
-
-    // =============================
-    // DADOS DO CLIENTE
-    // =============================
-    let yPos = 46;
-
-    // Card com sombra sutil
-    doc.setDrawColor(220, 220, 220);
-    doc.setLineWidth(0.3);
-    doc.roundedRect(15, yPos, 180, 37, 2, 2);
-
-    // Barra superior colorida
-    doc.setFillColor(179, 33, 23);
-    doc.roundedRect(15, yPos, 180, 7, 2, 2, 'F');
-
-    doc.setTextColor(255, 255, 255);
-    doc.setFontSize(10);
-    doc.setFont('helvetica', 'bold');
-    doc.text('DADOS DO CLIENTE', 20, yPos + 5);
-
-    // Conteúdo
-    doc.setTextColor(60, 60, 60);
-    doc.setFontSize(8.5);
-
-    // Nome do Cliente
-    doc.setFont('helvetica', 'bold');
-    doc.text('Cliente:', 20, yPos + 13);
-    doc.setFont('helvetica', 'normal');
-    doc.text(ordem.cliente || '-', 38, yPos + 13);
-
-    // Data
-    doc.setFont('helvetica', 'bold');
-    doc.text('Data:', 130, yPos + 13);
-    doc.setFont('helvetica', 'normal');
-    doc.text(dataStr, 143, yPos + 13);
-
-    // CNPJ/CPF
-    doc.setFont('helvetica', 'bold');
-    doc.text('CNPJ/CPF:', 20, yPos + 19);
-    doc.setFont('helvetica', 'normal');
-    if (ordem.cnpj) {
-      doc.text(ordem.cnpj, 43, yPos + 19);
-    } else {
-      doc.text('____________________', 43, yPos + 19);
-    }
-
-    // Telefone - campo para preencher
-    doc.setFont('helvetica', 'bold');
-    doc.text('Telefone:', 130, yPos + 19);
-    doc.setFont('helvetica', 'normal');
-    if (ordem.telefone || ordem.contato) {
-      doc.text(ordem.telefone || ordem.contato, 153, yPos + 19);
-    } else {
-      doc.text('____________________', 153, yPos + 19);
-    }
-
-    // Email - campo para preencher
-    doc.setFont('helvetica', 'bold');
-    doc.text('E-mail:', 130, yPos + 25);
-    doc.setFont('helvetica', 'normal');
-
-    if (ordem.email) {
-      doc.text(ordem.email, 153, yPos + 25);
-    } else {
-      doc.text('____________________', 153, yPos + 25);
-    }
-
-    // Endereço
-    doc.setFont('helvetica', 'bold');
-    doc.text('Endereço:', 20, yPos + 25);
-    doc.setFont('helvetica', 'normal');
-
-    const enderecoText = ordem.endereco || '-';
-    const enderecoLines = doc.splitTextToSize(enderecoText, 85);
-    doc.text(enderecoLines, 42, yPos + 25);
-
-    // Calcula espaço extra se o endereço quebrar linha (cada linha extra soma aprox. 3.5mm)
-    const alturaExtra = (enderecoLines.length - 1) * 3.5;
-
-    // --- NOVO CAMPO: CEP (com posição ajustada pela alturaExtra) ---
-    doc.setFont('helvetica', 'bold');
-    doc.text('CEP:', 20, yPos + 31 + alturaExtra);
-    doc.setFont('helvetica', 'normal');
-    if (ordem.cep) {
-      doc.text(ordem.cep, 33, yPos + 31 + alturaExtra);
-    } else {
-      doc.text('____________________', 33, yPos + 31 + alturaExtra);
-    }
-
-    // =============================
-    // DETALHES DO SERVIÇO
-    // =============================
-    yPos += 42;
-
-    doc.setDrawColor(220, 220, 220);
-    doc.setLineWidth(0.3);
-    doc.roundedRect(15, yPos, 180, 22, 2, 2);
-
-    doc.setFillColor(179, 33, 23);
-    doc.roundedRect(15, yPos, 180, 7, 2, 2, 'F');
-
-    doc.setTextColor(255, 255, 255);
-    doc.setFontSize(10);
-    doc.setFont('helvetica', 'bold');
-    doc.text('DESCRIÇÃO DO SERVIÇO', 20, yPos + 5);
-
-    doc.setTextColor(60, 60, 60);
-    doc.setFontSize(8.5);
-
-    doc.setFont('helvetica', 'bold');
-    doc.text('Serviço:', 20, yPos + 13);
-    doc.setFont('helvetica', 'normal');
-    doc.text(ordem.servico || '-', 38, yPos + 13);
-
-    doc.setFont('helvetica', 'bold');
-    doc.text('Técnico:', 20, yPos + 18);
-    doc.setFont('helvetica', 'normal');
-    doc.text(ordem.tecnico || '-', 40, yPos + 18);
-
-    doc.setFont('helvetica', 'bold');
-    doc.text('Data Execução:', 115, yPos + 18);
-    doc.setFont('helvetica', 'normal');
-    doc.text(dataStr, 150, yPos + 18);
-
-    // =============================
-    // PRODUTOS/MATERIAIS UTILIZADOS
-    // =============================
-    if (produtos.length) {
-      yPos += 28;
-
-      doc.setTextColor(179, 33, 23);
-      doc.setFontSize(10);
-      doc.setFont('helvetica', 'bold');
-      doc.text('MATERIAIS E PRODUTOS', 15, yPos);
-
-      doc.setDrawColor(179, 33, 23);
-      doc.setLineWidth(0.4);
-      doc.line(15, yPos + 1.5, 195, yPos + 1.5);
-      yPos += 5;
-
-      // Cabeçalho da tabela
-      doc.setFillColor(240, 240, 240);
-      doc.roundedRect(15, yPos, 180, 6, 1, 1, 'F');
-
-      doc.setTextColor(60, 60, 60);
-      doc.setFontSize(8.5);
-      doc.setFont('helvetica', 'bold');
-      doc.text('DESCRIÇÃO', 20, yPos + 4.5);
-      doc.text('QTD', 165, yPos + 4.5);
-
-      yPos += 6;
-
-      produtos.forEach(p => {
-        if (yPos > 240) {
-          doc.addPage();
-          yPos = 25;
+    const htmlPDF = `<!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+      <style>
+        * { 
+          margin: 0; 
+          padding: 0; 
+          box-sizing: border-box; 
+        }
+        
+        html, body { 
+          width: 100%; 
+          height: auto;
+          font-family: 'Segoe UI', Arial, sans-serif;
+        }
+        
+        body { 
+          background: #ffffff;
+          padding: 0;
         }
 
-        // Linha alternada
-        doc.setFillColor(250, 250, 250);
-        doc.rect(15, yPos, 180, 7, 'F');
+        .pdf-nota-page {
+          width: 210mm;
+          height: 297mm;
+          margin: 0 auto;
+          background: #ffffff;
+          display: flex;
+          flex-direction: column;
+          position: relative;
+          overflow: hidden;
+        }
 
-        doc.setDrawColor(230, 230, 230);
-        doc.setLineWidth(0.2);
-        doc.rect(15, yPos, 180, 7);
+        .pdf-nota-header {
+          background: linear-gradient(135deg, #b91c1c 0%, #dc2626 100%);
+          color: white;
+          padding: 12px 15px;
+          border-bottom: 3px solid #7f1d1d;
+          flex-shrink: 0;
+        }
 
-        doc.setTextColor(60, 60, 60);
-        doc.setFontSize(8.5);
-        doc.setFont('helvetica', 'normal');
+        .pdf-nota-header-top {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+          gap: 15px;
+        }
 
-        const produtoNome = doc.splitTextToSize(p.name || '-', 125);
-        doc.text(produtoNome[0] || '-', 20, yPos + 4.5);
+        .pdf-nota-logo-section {
+          display: flex;
+          flex-direction: column;
+          gap: 3px;
+        }
 
-        doc.setFont('helvetica', 'bold');
-        doc.text(`${p.qty}x`, 165, yPos + 4.5);
+        .pdf-nota-logo-header {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
 
-        yPos += 7;
-      });
-    }
+        .pdf-nota-logo-icon {
+          font-size: 20px;
+          color: #ffffff;
+        }
 
-    // =============================
-    // RESUMO FINANCEIRO (SOMENTE SE comValores = true)
-    // =============================
-    if (comValores) {
-      yPos += 8;
+        .pdf-nota-logo-text {
+          font-size: 14px;
+          font-weight: 900;
+        }
 
-      doc.setDrawColor(220, 220, 220);
-      doc.setLineWidth(0.3);
-      doc.roundedRect(15, yPos, 180, 34, 2, 2);
+        .pdf-nota-company-info {
+          font-size: 7px;
+          line-height: 1.4;
+          opacity: 0.9;
+        }
 
-      doc.setFillColor(179, 33, 23);
-      doc.roundedRect(15, yPos, 180, 7, 2, 2, 'F');
+        .pdf-nota-header-center {
+          text-align: center;
+          flex: 1;
+        }
 
-      doc.setTextColor(255, 255, 255);
-      doc.setFontSize(10);
-      doc.setFont('helvetica', 'bold');
-      doc.text('RESUMO FINANCEIRO', 20, yPos + 5);
+        .pdf-nota-header-center h1 {
+          font-size: 16px;
+          font-weight: 900;
+          margin: 0 0 2px 0;
+        }
 
-      doc.setTextColor(60, 60, 60);
-      doc.setFontSize(8.5);
+        .pdf-nota-header-center p {
+          font-size: 9px;
+          margin: 0;
+          opacity: 0.9;
+        }
 
-      // Quantidade de Produtos
-      const qtdTotal = produtos.reduce((acc, p) => acc + p.qty, 0);
-      doc.setFont('helvetica', 'bold');
-      doc.text('Total de Itens:', 20, yPos + 14);
-      doc.setFont('helvetica', 'normal');
-      doc.text(`${qtdTotal} ${qtdTotal === 1 ? 'un' : 'uns'}`, 50, yPos + 14);
+        .pdf-nota-header-right {
+          text-align: right;
+          font-size: 8px;
+          line-height: 1.4;
+        }
 
-      // Forma de Pagamento
-      doc.setFont('helvetica', 'bold');
-      doc.text('Pagamento:', 20, yPos + 19);
-      doc.setFont('helvetica', 'normal');
-      doc.text(formaPagamento, 48, yPos + 19);
+        .pdf-nota-header-item {
+          font-weight: 600;
+          margin: 2px 0;
+        }
 
-      // Status de Pagamento
-      const statusPago = statusPagamento === 'Pago';
-      doc.setFont('helvetica', 'bold');
-      doc.text('Status:', 110, yPos + 19);
+        .pdf-nota-body {
+          flex: 1;
+          padding: 10px 15px 10px 15px;
+          background: #fafafa;
+          overflow: auto;
+        }
 
-      doc.setFillColor(statusPago ? 220 : 255, statusPago ? 252 : 243, statusPago ? 231 : 224);
-      doc.roundedRect(128, yPos + 16, 30, 5, 1, 1, 'F');
+        .pdf-nota-section {
+          margin-bottom: 8px;
+          background: white;
+          border: 1px solid #d1d5db;
+          overflow: hidden;
+          box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+          border-radius: 6px;
+        }
 
-      doc.setTextColor(statusPago ? 22 : 220, statusPago ? 163 : 53, statusPago ? 74 : 69);
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(7.5);
-      doc.text(statusPagamento.toUpperCase(), 143, yPos + 19.5, { align: 'center' });
+        .pdf-nota-section-title {
+          background: linear-gradient(135deg, #4b5563 0%, #6b7280 100%);
+          color: white;
+          padding: 6px 10px;
+          font-size: 9px;
+          font-weight: 700;
+          text-transform: uppercase;
+          letter-spacing: 0.3px;
+          display: flex;
+          align-items: center;
+          gap: 6px;
+        }
 
-      // Linha divisória
-      doc.setDrawColor(220, 220, 220);
-      doc.setLineWidth(0.3);
-      doc.line(20, yPos + 24, 190, yPos + 24);
+        .pdf-nota-section-title.vermelho {
+          background: linear-gradient(135deg, #b91c1c 0%, #dc2626 100%);
+          border-bottom: 2px solid #7f1d1d;
+        }
 
-      // Valor Total Destacado
-      doc.setTextColor(80, 80, 80);
-      doc.setFontSize(9);
-      doc.setFont('helvetica', 'bold');
-      doc.text('VALOR TOTAL', 20, yPos + 29);
+        .pdf-nota-section-title i {
+          font-size: 10px;
+        }
 
-      doc.setTextColor(179, 33, 23);
-      doc.setFontSize(14);
-      doc.setFont('helvetica', 'bold');
-      doc.text(
-        totalFinal.toLocaleString('pt-BR', {
-          style: 'currency',
-          currency: 'BRL'
-        }),
-        190,
-        yPos + 29,
-        { align: 'right' }
-      );
+        .pdf-nota-section-content {
+          padding: 8px 10px;
+        }
 
-      yPos += 40;
-    } else {
-      // Espaçamento adicional quando não há resumo financeiro
-      yPos += 8;
-    }
+        .pdf-nota-dados-inline {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 6px;
+        }
 
-    // =============================
-    // OBSERVAÇÕES / NOTAS
-    // =============================
-    if (ordem.observacoes || ordem.notas || ordem.descricao) {
-      if (yPos > 220) {
-        doc.addPage();
-        yPos = 25;
-      }
+        .pdf-nota-dado-item {
+          background: #f9fafb;
+          border: 1px solid #e5e7eb;
+          border-left: 3px solid #6b7280;
+          padding: 5px 8px;
+          display: flex;
+          flex-direction: column;
+          gap: 2px;
+          border-radius: 4px;
+        }
 
-      doc.setDrawColor(245, 158, 11);
-      doc.setLineWidth(0.3);
-      doc.roundedRect(15, yPos, 180, 22, 2, 2);
+        .pdf-nota-dado-item.destaque {
+          border-left-color: #b91c1c;
+          background: #fef2f2;
+        }
 
-      doc.setFillColor(255, 251, 235);
-      doc.roundedRect(15, yPos, 180, 7, 2, 2, 'F');
+        .pdf-nota-dado-label {
+          font-size: 7px;
+          font-weight: 700;
+          color: #6b7280;
+          text-transform: uppercase;
+          letter-spacing: 0.2px;
+        }
 
-      doc.setTextColor(180, 83, 9);
-      doc.setFontSize(10);
-      doc.setFont('helvetica', 'bold');
-      doc.text('OBSERVAÇÕES', 20, yPos + 5);
-      doc.setTextColor(60, 60, 60);
-      doc.setFontSize(8);
-      doc.setFont('helvetica', 'normal');
-      const observacao = ordem.observacoes || ordem.notas || ordem.descricao;
-      const obsLines = doc.splitTextToSize(observacao, 170);
-      doc.text(obsLines.slice(0, 2), 20, yPos + 12);
+        .pdf-nota-dado-valor {
+          font-size: 9px;
+          font-weight: 600;
+          color: #1f2937;
+          word-break: break-word;
+        }
 
-      yPos += 26;
-    }
+        .pdf-produtos-columns {
+          display: grid;
+          grid-template-columns: repeat(${colunasGrid}, 1fr);
+          gap: 10px;
+        }
 
-    // =============================
-    // TERMOS E CONDIÇÕES
-    // =============================
-    if (yPos > 210) {
-      doc.addPage();
-      yPos = 25;
-    }
+        .pdf-nota-resumo-compact {
+          display: flex;
+          gap: 8px;
+          align-items: stretch;
+        }
 
-    doc.setDrawColor(220, 220, 220);
-    doc.setLineWidth(0.3);
-    doc.roundedRect(15, yPos, 180, 24, 2, 2);
+        .pdf-nota-resumo-item {
+          flex: 1;
+          background: #f9fafb;
+          border: 1px solid #e5e7eb;
+          padding: 8px;
+          text-align: center;
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          border-radius: 4px;
+        }
 
-    doc.setFillColor(245, 245, 245);
-    doc.roundedRect(15, yPos, 180, 7, 2, 2, 'F');
+        .pdf-nota-resumo-item.destaque {
+          background: linear-gradient(135deg, #b91c1c 0%, #dc2626 100%);
+          color: white;
+          border: 2px solid #7f1d1d;
+        }
 
-    doc.setTextColor(179, 33, 23);
-    doc.setFontSize(9);
-    doc.setFont('helvetica', 'bold');
-    doc.text('CONDIÇÕES GERAIS', 20, yPos + 5);
+        .pdf-nota-resumo-label {
+          font-size: 7px;
+          font-weight: 700;
+          color: #6b7280;
+          text-transform: uppercase;
+          margin-bottom: 3px;
+        }
 
-    doc.setTextColor(60, 60, 60);
-    doc.setFontSize(7.5);
-    doc.setFont('helvetica', 'normal');
+        .pdf-nota-resumo-item.destaque .pdf-nota-resumo-label {
+          color: rgba(255,255,255,0.8);
+        }
 
-    const termos = [
-      '• Garantia de 90 dias para serviços e peças instaladas.',
-      '• Garantia não cobre mau uso ou danos por terceiros.',
-      '• Validade do orçamento: 30 dias.',
-    ];
+        .pdf-nota-resumo-valor {
+          font-size: 11px;
+          font-weight: 800;
+          color: #1f2937;
+        }
 
-    let termosY = yPos + 11;
-    termos.forEach(termo => {
-      doc.text(termo, 20, termosY);
-      termosY += 4;
+        .pdf-nota-resumo-item.destaque .pdf-nota-resumo-valor {
+          color: #ffffff;
+          font-size: 16px;
+        }
+
+        .pdf-nota-observacoes-texto {
+          font-size: 8px;
+          line-height: 1.5;
+          color: #4b5563;
+          margin: 0;
+          padding: 6px;
+          background: #f9fafb;
+          border-left: 3px solid #f59e0b;
+          border-radius: 4px;
+        }
+
+        .pdf-nota-condicoes-list {
+          display: grid;
+          grid-template-columns: repeat(2, 1fr);
+          gap: 6px;
+        }
+
+        .pdf-nota-condicoes-item {
+          display: flex;
+          gap: 6px;
+          align-items: flex-start;
+          font-size: 8px;
+          line-height: 1.3;
+          color: #374151;
+          padding: 4px;
+          background: #f9fafb;
+          border-left: 2px solid #6b7280;
+          border-radius: 4px;
+        }
+
+        .pdf-nota-condicoes-item i {
+          color: #22c55e;
+          font-size: 8px;
+          margin-top: 1px;
+          flex-shrink: 0;
+        }
+
+        .pdf-nota-assinaturas {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 15px;
+          margin-top: 8px;
+        }
+
+        .pdf-nota-assinatura-campo {
+          display: flex;
+          flex-direction: column;
+          gap: 3px;
+        }
+
+        .pdf-nota-assinatura-linha {
+          border-bottom: 1.5px solid #374151;
+          height: 20px;
+        }
+
+        .pdf-nota-assinatura-nome {
+          font-weight: 700;
+          color: #1f2937;
+          font-size: 8px;
+          text-align: center;
+        }
+
+        .pdf-nota-assinatura-info {
+          font-size: 7px;
+          color: #6b7280;
+          text-align: center;
+          line-height: 1.3;
+        }
+
+        .pdf-nota-pdf-footer {
+          width: 100%;
+          padding: 8px 15px;
+          border-top: 3px solid #b91c1c;
+          text-align: center;
+          background: #f9fafb;
+          flex-shrink: 0;
+        }
+
+        .pdf-nota-footer-brand {
+          font-size: 11px;
+          font-weight: 900;
+          color: #1f2937;
+          margin-bottom: 3px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 5px;
+        }
+
+        .pdf-nota-footer-brand i {
+          color: #b91c1c;
+        }
+
+        .pdf-nota-footer-info {
+          font-size: 7px;
+          color: #6b7280;
+          margin-bottom: 2px;
+        }
+
+        .pdf-nota-footer-timestamp {
+          font-size: 6px;
+          color: #9ca3af;
+          font-style: italic;
+        }
+
+        @media print {
+          * {
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+          }
+          body { margin: 0; padding: 0; }
+          .pdf-nota-page { max-width: none; }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="pdf-nota-page">
+        <div class="pdf-nota-header">
+          <div class="pdf-nota-header-top">
+            <div class="pdf-nota-logo-section">
+              <div class="pdf-nota-logo-header">
+                <div class="pdf-nota-logo-text">EXTINMAIS</div>
+              </div>
+              <div class="pdf-nota-company-info">
+                <div>CNPJ: 52.026.476/0001-03 | Tel: (15) 99137-1232</div>
+                <div>Email: extinmaiss@outlook.com</div>
+              </div>
+            </div>
+            <div class="pdf-nota-header-center">
+              <h1>NOTA DE SERVIÇO</h1>
+              <p>Nº OS: ${numeroSequencial}</p>
+            </div>
+            <div class="pdf-nota-header-right">
+              <div class="pdf-nota-header-item">Status: ${statusText}</div>
+              <div class="pdf-nota-header-item">Data: ${dataStr}</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="pdf-nota-body">
+          <div class="pdf-nota-section">
+            <div class="pdf-nota-section-title vermelho">
+              <i class="fas fa-user-circle"></i> DADOS DO CLIENTE
+            </div>
+            <div class="pdf-nota-section-content">
+              <div class="pdf-nota-dados-inline">
+                <div class="pdf-nota-dado-item destaque">
+                  <div class="pdf-nota-dado-label">Cliente</div>
+                  <div class="pdf-nota-dado-valor">${ordem.cliente || '-'}</div>
+                </div>
+                <div class="pdf-nota-dado-item">
+                  <div class="pdf-nota-dado-label">CPF/CNPJ</div>
+                  <div class="pdf-nota-dado-valor">${ordem.cnpj || '____'}</div>
+                </div>
+                <div class="pdf-nota-dado-item">
+                  <div class="pdf-nota-dado-label">Telefone</div>
+                  <div class="pdf-nota-dado-valor">${ordem.telefone || ordem.contato || '____'}</div>
+                </div>
+                <div class="pdf-nota-dado-item">
+                  <div class="pdf-nota-dado-label">E-mail</div>
+                  <div class="pdf-nota-dado-valor">${ordem.email || '____'}</div>
+                </div>
+                <div class="pdf-nota-dado-item">
+                  <div class="pdf-nota-dado-label">Endereço Completo</div>
+                  <div class="pdf-nota-dado-valor">${enderecoCompleto}</div>
+                </div>
+                <div class="pdf-nota-dado-item">
+                  <div class="pdf-nota-dado-label">CEP</div>
+                  <div class="pdf-nota-dado-valor">${ordem.cep || '____'}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="pdf-nota-section">
+            <div class="pdf-nota-section-title">
+              <i class="fas fa-tools"></i> DESCRIÇÃO DO SERVIÇO
+            </div>
+            <div class="pdf-nota-section-content">
+              <div class="pdf-nota-dados-inline">
+                <div class="pdf-nota-dado-item destaque">
+                  <div class="pdf-nota-dado-label">Serviço</div>
+                  <div class="pdf-nota-dado-valor">${ordem.servico || '-'}</div>
+                </div>
+                <div class="pdf-nota-dado-item">
+                  <div class="pdf-nota-dado-label">Técnico</div>
+                  <div class="pdf-nota-dado-valor">${ordem.tecnico || '-'}</div>
+                </div>
+                <div class="pdf-nota-dado-item">
+                  <div class="pdf-nota-dado-label">Data Execução</div>
+                  <div class="pdf-nota-dado-valor">${dataStr}</div>
+                </div>
+                <div class="pdf-nota-dado-item">
+                  <div class="pdf-nota-dado-label">Cidade</div>
+                  <div class="pdf-nota-dado-valor">${ordem.cidade || '-'}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          ${produtos.length ? `
+            <div class="pdf-nota-section">
+              <div class="pdf-nota-section-title">
+                <i class="fas fa-box"></i> MATERIAIS E PRODUTOS (${qtdTotal} un.)
+              </div>
+              <div class="pdf-nota-section-content">
+                <div class="pdf-produtos-columns">
+                  ${colunasProdutos.map((coluna, idx) => `
+                    <div>
+                      ${renderizarTabelaProdutos(coluna, idx * ITENS_POR_COLUNA)}
+                    </div>
+                  `).join('')}
+                </div>
+              </div>
+            </div>
+          ` : ''}
+
+          ${tipoRelatorio !== 'sem_valores' ? `
+            <div class="pdf-nota-section">
+              <div class="pdf-nota-section-title vermelho">
+                <i class="fas fa-chart-line"></i> RESUMO FINANCEIRO
+              </div>
+              <div class="pdf-nota-section-content">
+                <div class="pdf-nota-resumo-compact">
+                  <div class="pdf-nota-resumo-item">
+                    <div class="pdf-nota-resumo-label">Total Itens</div>
+                    <div class="pdf-nota-resumo-valor">${qtdTotal}</div>
+                  </div>
+                  <div class="pdf-nota-resumo-item">
+                    <div class="pdf-nota-resumo-label">Pagamento</div>
+                    <div class="pdf-nota-resumo-valor" style="font-size: 9px;">${formaPagamento}</div>
+                  </div>
+                  <div class="pdf-nota-resumo-item">
+                    <div class="pdf-nota-resumo-label">Status</div>
+                    <div class="pdf-nota-resumo-valor" style="font-size: 9px; color: ${statusPagamento === 'Pago' ? '#22c55e' : '#ef4444'};">${statusPagamento}</div>
+                  </div>
+                  <div class="pdf-nota-resumo-item destaque">
+                    <div class="pdf-nota-resumo-label">Valor Total</div>
+                    <div class="pdf-nota-resumo-valor">${totalFinal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ` : ''}
+
+          ${ordem.observacoes || ordem.notas || ordem.descricao ? `
+            <div class="pdf-nota-section">
+              <div class="pdf-nota-section-title">
+                <i class="fas fa-sticky-note"></i> OBSERVAÇÕES
+              </div>
+              <div class="pdf-nota-section-content">
+                <p class="pdf-nota-observacoes-texto">${ordem.observacoes || ordem.notas || ordem.descricao}</p>
+              </div>
+            </div>
+          ` : ''}
+
+          <div class="pdf-nota-section">
+            <div class="pdf-nota-section-title">
+              <i class="fas fa-shield-alt"></i> CONDIÇÕES GERAIS
+            </div>
+            <div class="pdf-nota-section-content">
+              <div class="pdf-nota-condicoes-list">
+                <div class="pdf-nota-condicoes-item">
+                  <i class="fas fa-check-circle"></i>
+                  <span>Garantia de 90 dias para serviços e peças.</span>
+                </div>
+                <div class="pdf-nota-condicoes-item">
+                  <i class="fas fa-check-circle"></i>
+                  <span>Garantia não cobre mau uso ou danos.</span>
+                </div>
+                <div class="pdf-nota-condicoes-item">
+                  <i class="fas fa-check-circle"></i>
+                  <span>Validade do orçamento: 30 dias.</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="pdf-nota-section">
+            <div class="pdf-nota-section-title">
+              <i class="fas fa-pen-square"></i> ASSINATURAS
+            </div>
+            <div class="pdf-nota-section-content">
+              <div class="pdf-nota-assinaturas">
+                <div class="pdf-nota-assinatura-campo">
+                  <div class="pdf-nota-assinatura-linha"></div>
+                  <div class="pdf-nota-assinatura-nome">Técnico Responsável</div>
+                  <div class="pdf-nota-assinatura-info">
+                    Nome: ${ordem.tecnico || '_____________________'}<br>
+                    Tel: (15) 99137-1232
+                  </div>
+                </div>
+                <div class="pdf-nota-assinatura-campo">
+                  <div class="pdf-nota-assinatura-linha"></div>
+                  <div class="pdf-nota-assinatura-nome">Cliente</div>
+                  <div class="pdf-nota-assinatura-info">
+                    Nome: ${ordem.cliente || '_____________________'}<br>
+                    CPF/CNPJ: ${ordem.cnpj || '_____________________'}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="pdf-nota-pdf-footer">
+          <div class="pdf-nota-footer-brand">
+            <i class="fas fa-fire-extinguisher"></i> EXTINMAIS
+          </div>
+          <div class="pdf-nota-footer-info">
+            CNPJ: 52.026.476/0001-03 | Tel: (15) 99137-1232 | Email: extinmaiss@outlook.com
+          </div>
+          <div class="pdf-nota-footer-timestamp">
+            ${new Date().toLocaleString('pt-BR')}
+          </div>
+        </div>
+      </div>
+    </body>
+    </html>`;
+
+    // Aguardar 100ms para garantir renderização
+    await new Promise(resolve => setTimeout(resolve, 100));
+
+    const div = document.createElement('div');
+    div.style.position = 'absolute';
+    div.style.left = '-9999px';
+    div.innerHTML = htmlPDF;
+    document.body.appendChild(div);
+
+    const container = div.querySelector('.pdf-nota-page');
+    
+    // Aguardar carregamento de fontes e ícones
+    await document.fonts.ready;
+    await new Promise(resolve => setTimeout(resolve, 300));
+
+    const canvas = await html2canvas(container, {
+      scale: 2,
+      useCORS: true,
+      allowTaint: false,
+      backgroundColor: '#ffffff',
+      logging: false,
+      width: container.offsetWidth,
+      height: container.offsetHeight
     });
 
-    // =============================
-    // ASSINATURAS
-    // =============================
-    yPos += 30;
+    document.body.removeChild(div);
 
-    if (yPos > 230) {
-      doc.addPage();
-      yPos = 25;
-    }
-
-    doc.setDrawColor(220, 220, 220);
-    doc.setLineWidth(0.3);
-    doc.roundedRect(15, yPos, 180, 38, 2, 2);
-
-    doc.setFillColor(245, 245, 245);
-    doc.roundedRect(15, yPos, 180, 7, 2, 2, 'F');
-
-    doc.setTextColor(179, 33, 23);
-    doc.setFontSize(10);
-    doc.setFont('helvetica', 'bold');
-    doc.text('ASSINATURAS', 105, yPos + 5, { align: 'center' });
-
-    // Campo Técnico
-    doc.setDrawColor(150, 150, 150);
-    doc.setLineWidth(0.4);
-    doc.line(25, yPos + 18, 95, yPos + 18);
-
-    doc.setTextColor(60, 60, 60);
-    doc.setFontSize(8.5);
-    doc.setFont('helvetica', 'bold');
-    doc.text('Técnico Responsável', 60, yPos + 22, { align: 'center' });
-
-    // Dados do Técnico
-    doc.setFontSize(7);
-    doc.setFont('helvetica', 'normal');
-    doc.setTextColor(90, 90, 90);
-    doc.text(`Nome: ${ordem.tecnico || '_____________________'}`, 25, yPos + 27);
-    doc.text('Tel: (15) 99137-1232', 25, yPos + 31);
-    doc.text('Email: extinmaiss@outlook.com', 25, yPos + 35);
-
-    // Campo Cliente
-    doc.setDrawColor(150, 150, 150);
-    doc.line(115, yPos + 18, 185, yPos + 18);
-
-    doc.setTextColor(60, 60, 60);
-    doc.setFontSize(8.5);
-    doc.setFont('helvetica', 'bold');
-    doc.text('Cliente', 150, yPos + 22, { align: 'center' });
-
-    // Dados do Cliente
-    doc.setFontSize(7);
-    doc.setFont('helvetica', 'normal');
-    doc.setTextColor(90, 90, 90);
-    doc.text(`Nome: ${ordem.cliente || '_____________________'}`, 115, yPos + 27);
-    doc.text(`CPF/CNPJ: ${ordem.cnpj || '_____________________'}`, 115, yPos + 31);
-    doc.text(`End: ${ordem.endereco ? ordem.endereco.substring(0, 35) : '_____________________'}`, 115, yPos + 35);
-
- 
-    // =============================
-    // RODAPÉ
-    // =============================
-    const pages = doc.internal.getNumberOfPages();
-    for (let i = 1; i <= pages; i++) {
-      doc.setPage(i);
-      doc.setDrawColor(220, 220, 220);
-      doc.setLineWidth(0.3);
-      doc.line(15, 282, 195, 282);
-      doc.setTextColor(179, 33, 23);
-      doc.setFontSize(8.5);
-      doc.setFont('helvetica', 'bold');
-      doc.text('EXTINMAIS', 105, 286, { align: 'center' });
-
-      doc.setTextColor(100, 100, 100);
-      doc.setFontSize(6.5);
-      doc.setFont('helvetica', 'normal');
-      doc.text('CNPJ: 52.026.476/0001-03 | Tel: (15) 99137-1232 | extinmaiss@outlook.com', 105, 289.5, { align: 'center' });
-      doc.setFontSize(6.5);
-      doc.text(
-        `Gerado em ${new Date().toLocaleString('pt-BR')} | Pág ${i}/${pages}`,
-        105,
-        293,
-        { align: 'center' }
-      );
-    }
-
-    // Nome do arquivo diferente dependendo da opção
-    const sufixo = comValores ? 'com_valores' : 'sem_valores';
-    doc.save(
-      `Nota_Servico_${ordem.cliente || 'cliente'}_${sufixo}_${ordem.id?.slice(0, 8) || Date.now()}.pdf`
-    );
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF('p', 'mm', 'a4');
+    const imgData = canvas.toDataURL('image/png', 1.0);
     
-    showToast(`Nota de Serviço ${comValores ? 'com valores' : 'sem valores'} gerada com sucesso!`, 'success');
+    // ===== FORÇA TUDO EM UMA ÚNICA PÁGINA A4 =====
+    const imgWidth = 210;  // Largura A4
+    const imgHeight = 297; // Altura A4
+
+    // Adiciona a imagem comprimindo/esticando para caber exatamente em 1 página
+    pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight, '', 'FAST');
+
+    const nomeArquivos = {
+      'com_valores': `Nota_Servico_${ordem.cliente || 'cliente'}_ComValorTotal_${Date.now()}.pdf`,
+      'sem_valores': `Nota_Servico_${ordem.cliente || 'cliente'}_SemValores_${Date.now()}.pdf`,
+      'valores_detalhados': `Nota_Servico_${ordem.cliente || 'cliente'}_Detalhado_${Date.now()}.pdf`
+    };
+
+    pdf.save(nomeArquivos[tipoRelatorio] || `Nota_Servico_${Date.now()}.pdf`);
+    showToast('PDF gerado com sucesso!', 'success');
+
   } catch (error) {
-    console.error(error);
+    console.error('Erro ao gerar PDF:', error);
     showToast('Erro ao gerar PDF: ' + error.message, 'error');
   }
 }
 
-
-
-
-
-// ============================= 
-// FUNÇÃO EDITAR OS
-// ============================= 
 let editingOSId = null;
+let editingProducts = [];
 
 async function editarOS(orderId) {
   try {
@@ -4897,6 +5939,7 @@ async function editarOS(orderId) {
     }
 
     editingOSId = orderId;
+    editingProducts = Array.isArray(ordem.products) ? [...ordem.products] : [];
 
     document.getElementById('editCliente').value = ordem.cliente || '';
     document.getElementById('editCNPJ').value = ordem.cnpj || '';
@@ -4905,12 +5948,15 @@ async function editarOS(orderId) {
     document.getElementById('editTecnico').value = ordem.tecnico || '';
     document.getElementById('editPagamento').value =
       ordem.payment_method || ordem.formaPagamento || '';
+    document.getElementById('editProfitPercent').value = ordem.profitPercent || 30;
 
     if (ordem.data) {
       document.getElementById('editData').value =
         new Date(ordem.data).toISOString().split('T')[0];
     }
 
+    renderizarProdutosEdicao();
+    atualizarTotaisEdicao();
     document.getElementById('editOSModal').style.display = 'flex';
 
     showToast('Editando ordem de serviço', 'info');
@@ -4920,21 +5966,430 @@ async function editarOS(orderId) {
   }
 }
 
+function renderizarProdutosEdicao() {
+  const container = document.getElementById('editProductsContainer');
+  if (!container) return;
+
+  container.innerHTML = '';
+
+  if (!editingProducts || editingProducts.length === 0) {
+    container.innerHTML = '<p style="color: #999; text-align: center; padding: 20px;">Nenhum produto nesta ordem</p>';
+    return;
+  }
+
+  editingProducts.forEach((product, index) => {
+    const totalProd = (product.price || 0) * (product.qty || 1);
+
+    const prodHtml = `
+      <div class="product-edit-item" data-prod-index="${index}" style="
+        background: #242424;
+        border: 1px solid #333;
+        border-radius: 10px;
+        margin-bottom: 12px;
+        overflow: hidden;
+      ">
+        <!-- HEADER COMPRIMIDO (LISTA) -->
+        <div class="product-header-collapsed" onclick="toggleProdutoEdicao(${index})" style="
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 12px 16px;
+          background: #1a1a1a;
+          cursor: pointer;
+          user-select: none;
+          transition: background 0.3s ease;
+          flex-wrap: wrap;
+          gap: 8px;
+        " onmouseover="this.style.background='#2a2a2a'" onmouseout="this.style.background='#1a1a1a'">
+          <div style="display: flex; gap: 8px; align-items: center; flex: 1; min-width: 0;">
+            <i class="fas fa-boxes" style="color: #10b981; font-size: 1rem; flex-shrink: 0;"></i>
+            <span style="color: #fff; font-weight: 600; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${(product.name || 'Sem nome').substring(0, 25)}${(product.name || '').length > 25 ? '...' : ''}</span>
+          </div>
+          <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+            <span style="color: #999; font-size: 0.9rem;">Qtd: <strong style="color: #10b981;">${product.qty || 1}</strong></span>
+            <span style="color: #10b981; font-weight: 600;">R$ ${totalProd.toFixed(2)}</span>
+          </div>
+          <button class="toggle-btn-${index}" style="
+            background: transparent;
+            border: none;
+            color: #10b981;
+            font-size: 1.2rem;
+            cursor: pointer;
+            padding: 4px 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.3s ease;
+            flex-shrink: 0;
+          ">
+            <i class="fas fa-chevron-down"></i>
+          </button>
+        </div>
+
+        <!-- CONTEÚDO EXPANDÍVEL -->
+        <div class="product-content-${index}" style="
+          padding: 16px;
+          display: none;
+          background: #1a1a1a;
+          border-top: 1px solid #333;
+          animation: slideDown 0.3s ease;
+        ">
+          <div style="display: flex; flex-direction: column; gap: 12px;">
+            <div class="form-group" style="width: 100%;">
+              <label style="font-weight: 600; color: #fff; display: block; margin-bottom: 8px;"><i class="fas fa-box" style="color: #10b981;"></i> Nome do Produto</label>
+              <input type="text" class="product-name" value="${(product.name || '').replace(/"/g, '&quot;')}" placeholder="Nome do produto" style="
+                width: 100%;
+                padding: 10px;
+                border: 1px solid #333;
+                border-radius: 6px;
+                font-size: 0.95rem;
+                background: #2a2a2a;
+                color: #fff;
+                box-sizing: border-box;
+              " onchange="atualizarProdutoEdicao(${index})">
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+              <div class="form-group">
+                <label style="font-weight: 600; color: #fff; display: block; margin-bottom: 8px;"><i class="fas fa-boxes" style="color: #10b981;"></i> Qtd</label>
+                <input type="number" class="product-qty" value="${product.qty || 1}" placeholder="1" min="1" step="1" style="
+                  width: 100%;
+                  padding: 10px;
+                  border: 1px solid #333;
+                  border-radius: 6px;
+                  font-size: 0.95rem;
+                  background: #2a2a2a;
+                  color: #fff;
+                  box-sizing: border-box;
+                " onchange="atualizarProdutoEdicao(${index})">
+              </div>
+              <div class="form-group">
+                <label style="font-weight: 600; color: #fff; display: block; margin-bottom: 8px;"><i class="fas fa-tag" style="color: #10b981;"></i> Preço (R$)</label>
+                <input type="number" class="product-price" value="${product.price || 0}" placeholder="0.00" step="0.01" style="
+                  width: 100%;
+                  padding: 10px;
+                  border: 1px solid #333;
+                  border-radius: 6px;
+                  font-size: 0.95rem;
+                  background: #2a2a2a;
+                  color: #fff;
+                  box-sizing: border-box;
+                " onchange="atualizarProdutoEdicao(${index})">
+              </div>
+            </div>
+
+            <div style="display: flex; gap: 8px; justify-content: flex-end; border-top: 1px solid #333; padding-top: 12px;">
+              <button class="btn btn-danger" onclick="apagarProdutoEdicao(${index})" style="
+                padding: 8px 16px;
+                font-size: 0.9rem;
+                background: #ef4444;
+                color: white;
+                border: none;
+                border-radius: 6px;
+                cursor: pointer;
+                transition: background 0.3s ease;
+              " onmouseover="this.style.background='#dc2626'" onmouseout="this.style.background='#ef4444'">
+                <i class="fas fa-trash"></i> Apagar
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+    container.insertAdjacentHTML('beforeend', prodHtml);
+  });
+
+  // Adicionar CSS para animação
+  if (!document.getElementById('product-animation-style')) {
+    const style = document.createElement('style');
+    style.id = 'product-animation-style';
+    style.textContent = `
+      @keyframes slideDown {
+        from {
+          opacity: 0;
+          max-height: 0;
+        }
+        to {
+          opacity: 1;
+          max-height: 1000px;
+        }
+      }
+
+      @keyframes slideUp {
+        from {
+          opacity: 1;
+          max-height: 1000px;
+        }
+        to {
+          opacity: 0;
+          max-height: 0;
+        }
+      }
+
+      @media (max-width: 768px) {
+        .product-header-collapsed {
+          flex-direction: column;
+          gap: 8px;
+          align-items: flex-start !important;
+        }
+        .product-header-collapsed > div {
+          width: 100%;
+        }
+        .product-header-collapsed button {
+          align-self: flex-end;
+        }
+      }
+    `;
+    document.head.appendChild(style);
+  }
+}
+
+function toggleProdutoEdicao(index) {
+  const content = document.querySelector(`.product-content-${index}`);
+  const btn = document.querySelector(`.toggle-btn-${index}`);
+
+  if (!content || !btn) return;
+
+  if (content.style.display === 'none') {
+    content.style.display = 'block';
+    content.style.animation = 'slideDown 0.3s ease';
+    btn.style.transform = 'rotate(0deg)';
+  } else {
+    content.style.animation = 'slideUp 0.3s ease';
+    setTimeout(() => {
+      content.style.display = 'none';
+    }, 300);
+    btn.style.transform = 'rotate(-90deg)';
+  }
+}
+
+function apagarProdutoEdicao(index) {
+  // Criar confirmação inline ao invés de usar confirm()
+  const container = document.getElementById('editProductsContainer');
+  const productElement = container.querySelector(`[data-prod-index="${index}"]`);
+
+  if (!productElement) return;
+
+  const confirmHtml = `
+    <div style="
+      background: rgba(239, 68, 68, 0.1);
+      border: 2px solid #ef4444;
+      border-radius: 8px;
+      padding: 12px;
+      margin: 8px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    ">
+      <span style="color: #ef4444; font-weight: 600;">
+        <i class="fas fa-exclamation-triangle"></i> Confirmar exclusão?
+      </span>
+      <div style="display: flex; gap: 8px;">
+        <button onclick="confirmarExclusaoProduto(${index})" style="
+          padding: 6px 12px;
+          background: #ef4444;
+          color: white;
+          border: none;
+          border-radius: 6px;
+          cursor: pointer;
+          font-weight: 600;
+        ">Sim</button>
+        <button onclick="cancelarExclusaoProduto(${index})" style="
+          padding: 6px 12px;
+          background: #333;
+          color: white;
+          border: none;
+          border-radius: 6px;
+          cursor: pointer;
+        ">Não</button>
+      </div>
+    </div>
+  `;
+
+  productElement.insertAdjacentHTML('beforebegin', confirmHtml);
+}
+
+function confirmarExclusaoProduto(index) {
+  editingProducts.splice(index, 1);
+  renderizarProdutosEdicao();
+  atualizarTotaisEdicao();
+  showToast('Produto removido', 'info');
+}
+
+function cancelarExclusaoProduto(index) {
+  renderizarProdutosEdicao();
+}
+
+function atualizarProdutoEdicao(index) {
+  const element = document.querySelector(`[data-prod-index="${index}"]`);
+  if (!element) return;
+
+  const nomeEl = element.querySelector('.product-name');
+  const qtyEl = element.querySelector('.product-qty');
+  const precoEl = element.querySelector('.product-price');
+
+  if (!nomeEl || !qtyEl || !precoEl) {
+    showToast('Erro ao localizar campos do produto', 'error');
+    return;
+  }
+
+  const nome = nomeEl.value;
+  const qty = parseInt(qtyEl.value) || 1;
+  const preco = parseFloat(precoEl.value) || 0;
+
+  if (!nome.trim()) {
+    showToast('Nome do produto é obrigatório', 'error');
+    return;
+  }
+
+  editingProducts[index] = {
+    ...editingProducts[index],
+    name: nome,
+    description: editingProducts[index].description || '',
+    qty: qty,
+    price: preco,
+    id: editingProducts[index]?.id || ''
+  };
+
+  atualizarTotaisEdicao();
+  showToast('Produto atualizado', 'success');
+}
+
+function atualizarTotaisEdicao() {
+  let subtotal = 0;
+  editingProducts.forEach(prod => {
+    subtotal += (prod.price || 0) * (prod.qty || 1);
+  });
+
+  const profitPercentEl = document.getElementById('editProfitPercent');
+  const profitPercent = profitPercentEl ? (parseFloat(profitPercentEl.value) || 30) : 30;
+  const profitValue = (subtotal * profitPercent) / 100;
+  const total = subtotal + profitValue;
+
+  const subtotalEl = document.getElementById('editSubtotal');
+  const totalEl = document.getElementById('editTotalComLucro');
+
+  if (subtotalEl) subtotalEl.value = subtotal.toFixed(2);
+  if (totalEl) totalEl.value = total.toFixed(2);
+
+  // Atualizar lista para refletir novos totais
+  renderizarProdutosEdicao();
+}
+
 async function salvarEdicaoOS() {
   if (!editingOSId) return;
 
   try {
+    // BUSCAR A OS ORIGINAL ANTES DA EDIÇÃO
+    const osOriginalSnapshot = await database.ref(`orders/${editingOSId}`).once('value');
+    const osOriginal = osOriginalSnapshot.val();
+
+    if (!osOriginal) {
+      showToast('Ordem de serviço não encontrada', 'error');
+      return;
+    }
+
+    // Atualizar todos os produtos com as alterações
+    editingProducts.forEach((_, index) => {
+      const element = document.querySelector(`[data-prod-index="${index}"]`);
+      if (element) {
+        const nomeEl = element.querySelector('.product-name');
+        const qtyEl = element.querySelector('.product-qty');
+        const precoEl = element.querySelector('.product-price');
+
+        editingProducts[index] = {
+          ...editingProducts[index],
+          name: nomeEl ? nomeEl.value : (editingProducts[index].name || ''),
+          description: editingProducts[index].description || '',
+          qty: qtyEl ? (parseInt(qtyEl.value) || 1) : (editingProducts[index].qty || 1),
+          price: precoEl ? (parseFloat(precoEl.value) || 0) : (editingProducts[index].price || 0)
+        };
+      }
+    });
+
+    // Limpar produtos para garantir que não há undefined
+    const produtosLimpos = editingProducts.map(prod => ({
+      id: prod.id || '',
+      name: prod.name || '',
+      description: prod.description || '',
+      qty: prod.qty || 1,
+      price: prod.price || 0
+    }));
+
+    // ============ GESTÃO DE ESTOQUE ============
+
+    // 1. RESTAURAR ESTOQUE DOS PRODUTOS ANTIGOS
+    if (osOriginal.products && osOriginal.products.length > 0) {
+      for (const oldProd of osOriginal.products) {
+        if (oldProd.id) {
+          const produtoSnapshot = await database.ref(`products/${oldProd.id}`).once('value');
+          const produtoNoEstoque = produtoSnapshot.val();
+          
+          if (produtoNoEstoque) {
+            const novaQuantidade = (produtoNoEstoque.quantity || 0) + (oldProd.qty || 0);
+            await database.ref(`products/${oldProd.id}`).update({
+              quantity: novaQuantidade
+            });
+          }
+        }
+      }
+    }
+
+    // 2. DIMINUIR ESTOQUE DOS PRODUTOS NOVOS
+    for (const newProd of produtosLimpos) {
+      if (newProd.id) {
+        const produtoSnapshot = await database.ref(`products/${newProd.id}`).once('value');
+        const produtoNoEstoque = produtoSnapshot.val();
+        
+        if (produtoNoEstoque) {
+          const novaQuantidade = (produtoNoEstoque.quantity || 0) - (newProd.qty || 0);
+          
+          // Garantir que não fique negativo
+          await database.ref(`products/${newProd.id}`).update({
+            quantity: novaQuantidade < 0 ? 0 : novaQuantidade
+          });
+        }
+      }
+    }
+
+    // ============ FIM DA GESTÃO DE ESTOQUE ============
+
+    // Calcular totais
+    let subtotal = 0;
+    produtosLimpos.forEach(prod => {
+      subtotal += (prod.price || 0) * (prod.qty || 1);
+    });
+
+    const profitPercentEl = document.getElementById('editProfitPercent');
+    const profitPercent = profitPercentEl ? (parseFloat(profitPercentEl.value) || 30) : 30;
+    const profitValue = (subtotal * profitPercent) / 100;
+    const total = subtotal + profitValue;
+
+    const clienteEl = document.getElementById('editCliente');
+    const cnpjEl = document.getElementById('editCNPJ');
+    const enderecoEl = document.getElementById('editEndereco');
+    const servicoEl = document.getElementById('editServico');
+    const tecnicoEl = document.getElementById('editTecnico');
+    const pagamentoEl = document.getElementById('editPagamento');
+    const dataEl = document.getElementById('editData');
+
     const dadosAtualizados = {
-      cliente: document.getElementById('editCliente').value,
-      cnpj: document.getElementById('editCNPJ').value,
-      endereco: document.getElementById('editEndereco').value,
-      servico: document.getElementById('editServico').value,
-      tecnico: document.getElementById('editTecnico').value,
-      payment_method: document.getElementById('editPagamento').value,
-      formaPagamento: document.getElementById('editPagamento').value,
-      data: document.getElementById('editData').value
-        ? new Date(document.getElementById('editData').value).toISOString()
-        : null
+      cliente: clienteEl ? (clienteEl.value || '') : '',
+      cnpj: cnpjEl ? (cnpjEl.value || '') : '',
+      endereco: enderecoEl ? (enderecoEl.value || '') : '',
+      servico: servicoEl ? (servicoEl.value || '') : '',
+      tecnico: tecnicoEl ? (tecnicoEl.value || '') : '',
+      payment_method: pagamentoEl ? (pagamentoEl.value || '') : '',
+      formaPagamento: pagamentoEl ? (pagamentoEl.value || '') : '',
+      data: dataEl && dataEl.value
+        ? new Date(dataEl.value).toISOString()
+        : new Date().toISOString(),
+      products: produtosLimpos,
+      subtotal: Math.round(subtotal * 100) / 100,
+      profitPercent: profitPercent,
+      profitValue: Math.round(profitValue * 100) / 100,
+      total: Math.round(total * 100) / 100,
+      preco: Math.round(total * 100) / 100
     };
 
     await database.ref(`orders/${editingOSId}`).update(dadosAtualizados);
@@ -4948,17 +6403,468 @@ async function salvarEdicaoOS() {
 
   } catch (err) {
     console.error(err);
-    showToast('Erro ao salvar edição', 'error');
+    showToast('Erro ao salvar edição: ' + err.message, 'error');
   }
 }
 
-function closeEditOSModal() {
-  document.getElementById('editOSModal').style.display = 'none';
+// ============================ FUNÇÕES PARA ADICIONAR PRODUTO ============================
+
+function abrirModalSelecionarProdutoEditOS() {
+  // Ocultar TODOS os elementos do body temporariamente (exceto o novo modal)
+  document.body.style.overflow = 'hidden';
+
+  // Fechar modal de edição temporariamente
+  const editModal = document.getElementById('editOSModal');
+  if (editModal) editModal.style.display = 'none';
+
+  const modalHtml = `
+    <div id="selectProductEditOSModal" style="
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.98);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      padding: 12px;
+      backdrop-filter: blur(10px);
+      z-index: 2147483647;
+      overflow: auto;
+    ">
+      <div style="
+        background: linear-gradient(145deg, #1f1f1f 0%, #1a1a1a 100%);
+        border: 2px solid #10b981;
+        border-radius: 12px;
+        width: 100%;
+        max-width: 450px;
+        max-height: 85vh;
+        color: #f5f5f5;
+        box-shadow: 0 25px 80px rgba(0, 0, 0, 0.9), 0 0 50px rgba(16, 185, 129, 0.2);
+        display: flex;
+        flex-direction: column;
+        position: relative;
+        margin: auto;
+      ">
+        <style>
+          #productEditOSModalList::-webkit-scrollbar {
+            width: 6px;
+          }
+          #productEditOSModalList::-webkit-scrollbar-track {
+            background: #0d0d0d;
+            border-radius: 10px;
+          }
+          #productEditOSModalList::-webkit-scrollbar-thumb {
+            background: #10b981;
+            border-radius: 10px;
+          }
+          #productEditOSModalList::-webkit-scrollbar-thumb:hover {
+            background: #0d9668;
+          }
+          @media (max-width: 480px) {
+            #selectProductEditOSModal {
+              padding: 8px !important;
+            }
+            #selectProductEditOSModal > div {
+              max-height: 92vh !important;
+              border-radius: 10px !important;
+            }
+          }
+        </style>
+
+        <div style="
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 16px 18px;
+          border-bottom: 2px solid #10b981;
+          background: linear-gradient(135deg, #2a2a2a 0%, #1f1f1f 100%);
+          border-radius: 10px 10px 0 0;
+          flex-shrink: 0;
+        ">
+          <h3 style="
+            margin: 0;
+            font-size: 1.15rem;
+            color: #10b981;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            letter-spacing: 0.3px;
+          ">
+            <i class="fas fa-search" style="font-size: 1rem;"></i>
+            Adicionar Produto
+          </h3>
+          <button onclick="fecharModalSelecionarProdutoEditOS()" style="
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #ef4444;
+            font-size: 1.15rem;
+            cursor: pointer;
+            width: 34px;
+            height: 34px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+          " onmouseover="this.style.background='rgba(239, 68, 68, 0.2)'; this.style.borderColor='#ef4444'" onmouseout="this.style.background='rgba(239, 68, 68, 0.1)'; this.style.borderColor='rgba(239, 68, 68, 0.3)'">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+
+        <div style="padding: 16px 18px; border-bottom: 1px solid #2a2a2a; flex-shrink: 0; background: #1a1a1a;">
+          <div style="position: relative;">
+            <input type="text" id="searchProductEditOSInput" placeholder="Buscar produtos com estoque..." style="
+              width: 100%;
+              padding: 12px 14px 12px 42px;
+              background: #0d0d0d;
+              border: 2px solid #333;
+              border-radius: 10px;
+              color: #fff;
+              font-size: 0.9rem;
+              transition: all 0.3s ease;
+              box-sizing: border-box;
+              font-weight: 500;
+            " onfocus="this.style.borderColor='#10b981'; this.style.boxShadow='0 0 0 3px rgba(16, 185, 129, 0.1)'" onblur="this.style.borderColor='#333'; this.style.boxShadow='none'" oninput="filtrarProdutosEditOSModal()">
+            <i class="fas fa-search" style="
+              position: absolute;
+              left: 14px;
+              top: 50%;
+              transform: translateY(-50%);
+              color: #10b981;
+              font-size: 15px;
+            "></i>
+          </div>
+        </div>
+
+        <div id="productEditOSModalList" style="
+          flex: 1;
+          overflow-y: auto;
+          padding: 14px 18px;
+          background: #1a1a1a;
+          min-height: 200px;
+        ">
+        </div>
+
+      </div>
+    </div>
+  `;
+
+  document.body.insertAdjacentHTML('beforeend', modalHtml);
+  renderizarListaProdutosEditOSModal();
 }
 
-// ============================= 
-// FUNÇÃO EXCLUIR OS
-// ============================= 
+function fecharModalSelecionarProdutoEditOS() {
+  const modal = document.getElementById('selectProductEditOSModal');
+  if (modal) modal.remove();
+
+  // Restaurar overflow do body
+  document.body.style.overflow = '';
+
+  // Reabrir modal de edição
+  const editModal = document.getElementById('editOSModal');
+  if (editModal) editModal.style.display = 'flex';
+}
+
+function filtrarProdutosEditOSModal() {
+  const input = document.getElementById('searchProductEditOSInput');
+  if (!input) return;
+  renderizarListaProdutosEditOSModal(input.value);
+}
+
+function renderizarListaProdutosEditOSModal(filtro = '') {
+  const container = document.getElementById('productEditOSModalList');
+  if (!container) return;
+
+  const filtroLower = filtro.toLowerCase();
+  
+  // FILTRAR APENAS PRODUTOS COM ESTOQUE DISPONÍVEL (quantity > 0)
+  const produtosFiltrados = products.filter(p => {
+    const hasStock = (p.quantity || 0) > 0;
+    const matchesFilter = p.name.toLowerCase().includes(filtroLower) ||
+      (p.description && p.description.toLowerCase().includes(filtroLower));
+    
+    return hasStock && matchesFilter;
+  });
+
+  if (produtosFiltrados.length === 0) {
+    container.innerHTML = `
+      <div style="
+        padding: 50px 20px;
+        text-align: center;
+        color: #666;
+      ">
+        <i class="fas fa-box-open" style="font-size: 3.5rem; margin-bottom: 14px; color: #10b981; opacity: 0.3;"></i>
+        <p style="margin: 0; font-size: 14px; font-weight: 500;">Nenhum produto disponível</p>
+        <p style="margin: 6px 0 0 0; font-size: 12px; color: #555;">
+          ${filtro ? 'Nenhum produto com estoque corresponde à busca' : 'Todos os produtos estão sem estoque'}
+        </p>
+      </div>
+    `;
+    return;
+  }
+
+  container.innerHTML = produtosFiltrados.map(prod => {
+    const stockQuantity = prod.quantity || 0;
+    
+    return `
+    <div style="
+      background: linear-gradient(135deg, #0d0d0d 0%, #121212 100%);
+      border: 2px solid #2a2a2a;
+      border-radius: 10px;
+      padding: 14px;
+      margin-bottom: 10px;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    " onmouseover="this.style.background='linear-gradient(135deg, #1a1a1a 0%, #1f1f1f 100%)'; this.style.borderColor='#10b981'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 18px rgba(16, 185, 129, 0.2)'" onmouseout="this.style.background='linear-gradient(135deg, #0d0d0d 0%, #121212 100%)'; this.style.borderColor='#2a2a2a'; this.style.transform='translateY(0)'; this.style.boxShadow='none'">
+      
+      <div style="
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 50px;
+        height: 50px;
+        background: radial-gradient(circle, rgba(16, 185, 129, 0.08) 0%, transparent 70%);
+        border-radius: 0 0 0 100%;
+      "></div>
+
+      <div style="
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 6px;
+      ">
+        <div style="
+          width: 7px;
+          height: 7px;
+          background: #10b981;
+          border-radius: 50%;
+          box-shadow: 0 0 6px rgba(16, 185, 129, 0.6);
+          flex-shrink: 0;
+        "></div>
+        <div style="
+          color: #fff;
+          font-weight: 700;
+          font-size: 15px;
+          letter-spacing: 0.2px;
+        ">
+          ${escapeHtml(prod.name)}
+        </div>
+      </div>
+
+      <div style="
+        color: #999;
+        font-size: 12px;
+        margin-bottom: 10px;
+        line-height: 1.4;
+        padding-left: 15px;
+      ">
+        ${escapeHtml(prod.description || 'Sem descrição disponível')}
+      </div>
+
+      <div style="
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-left: 15px;
+        gap: 10px;
+        flex-wrap: wrap;
+      ">
+        <div style="display: flex; flex-direction: column; gap: 5px;">
+          <div style="
+            color: #4ade80;
+            font-weight: 800;
+            font-size: 17px;
+            text-shadow: 0 0 8px rgba(74, 222, 128, 0.3);
+          ">
+            R$ ${prod.price.toFixed(2)}
+          </div>
+          <div style="
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            border-radius: 6px;
+            padding: 3px 7px;
+            color: #10b981;
+            font-size: 10px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+          ">
+            <i class="fas fa-boxes" style="font-size: 9px;"></i>
+            Estoque: ${stockQuantity}
+          </div>
+        </div>
+        
+        <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+          <div style="display: flex; align-items: center; gap: 5px; background: #0d0d0d; border: 2px solid #333; border-radius: 7px; padding: 3px;">
+            <button onclick="event.stopPropagation(); alterarQuantidadeEditModal(${prod.id}, -1)" style="
+              background: rgba(239, 68, 68, 0.1);
+              border: 1px solid rgba(239, 68, 68, 0.3);
+              color: #ef4444;
+              width: 26px;
+              height: 26px;
+              border-radius: 5px;
+              cursor: pointer;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              font-weight: 700;
+              transition: all 0.2s ease;
+            " onmouseover="this.style.background='rgba(239, 68, 68, 0.2)'" onmouseout="this.style.background='rgba(239, 68, 68, 0.1)'">
+              <i class="fas fa-minus" style="font-size: 10px;"></i>
+            </button>
+            
+            <input type="text" id="qty_edit_${prod.id}" value="1" readonly style="
+              width: 45px;
+              background: transparent;
+              border: none;
+              color: #fff;
+              text-align: center;
+              font-size: 13px;
+              font-weight: 700;
+              outline: none;
+              cursor: default;
+              user-select: none;
+            " onclick="event.stopPropagation()">
+            
+            <button onclick="event.stopPropagation(); alterarQuantidadeEditModal(${prod.id}, 1, ${stockQuantity})" style="
+              background: rgba(16, 185, 129, 0.15);
+              border: 1px solid rgba(16, 185, 129, 0.3);
+              color: #10b981;
+              width: 26px;
+              height: 26px;
+              border-radius: 5px;
+              cursor: pointer;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              font-weight: 700;
+              transition: all 0.2s ease;
+            " onmouseover="this.style.background='rgba(16, 185, 129, 0.25)'" onmouseout="this.style.background='rgba(16, 185, 129, 0.15)'">
+              <i class="fas fa-plus" style="font-size: 10px;"></i>
+            </button>
+          </div>
+          
+          <button onclick="event.stopPropagation(); selecionarProdutoEditOSModal(${prod.id})" style="
+            background: rgba(16, 185, 129, 0.15);
+            color: #10b981;
+            padding: 7px 14px;
+            border-radius: 18px;
+            font-size: 12px;
+            font-weight: 600;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+          " onmouseover="this.style.background='rgba(16, 185, 129, 0.25)'; this.style.transform='scale(1.05)'" onmouseout="this.style.background='rgba(16, 185, 129, 0.15)'; this.style.transform='scale(1)'">
+            <i class="fas fa-plus"></i>
+            Adicionar
+          </button>
+        </div>
+      </div>
+
+    </div>
+  `;
+  }).join('');
+}
+
+function alterarQuantidadeEditModal(productId, delta, maxStock) {
+  const input = document.getElementById(`qty_edit_${productId}`);
+  if (!input) return;
+
+  let currentValue = parseInt(input.value) || 1;
+  let newValue = currentValue + delta;
+
+  // Não permitir valores menores que 1
+  if (newValue < 1) newValue = 1;
+
+  // LIMITAR PELA QUANTIDADE EM ESTOQUE
+  if (maxStock && newValue > maxStock) {
+    showToast(`Estoque disponível: ${maxStock} unidades`, 'error');
+    newValue = maxStock;
+  }
+
+  input.value = newValue;
+}
+
+function selecionarProdutoEditOSModal(productId) {
+  const produto = products.find(p => p.id === productId);
+  if (!produto) {
+    showToast('Produto não encontrado', 'error');
+    return;
+  }
+
+  const qtyInput = document.getElementById(`qty_edit_${productId}`);
+  const qty = parseInt(qtyInput?.value) || 1;
+
+  if (qty <= 0) {
+    showToast('Quantidade inválida', 'error');
+    return;
+  }
+
+  // VALIDAR ESTOQUE DISPONÍVEL
+  const stockAvailable = produto.quantity || 0;
+  if (qty > stockAvailable) {
+    showToast('Quantidade maior que o estoque disponível!', 'error');
+    return;
+  }
+
+  // Adicionar produto ao array editingProducts
+  editingProducts.push({
+    id: produto.id || '',
+    name: produto.name || '',
+    description: produto.description || '',
+    qty: qty,
+    price: produto.price || 0
+  });
+
+  // Fechar modal de seleção
+  fecharModalSelecionarProdutoEditOS();
+
+  // Renderizar produtos novamente
+  renderizarProdutosEdicao();
+  atualizarTotaisEdicao();
+
+  showToast(`${produto.name} (${qty}x) adicionado com sucesso!`, 'success');
+}
+
+function escapeHtml(text) {
+  if (!text) return '';
+  const map = {
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#039;'
+  };
+  return text.toString().replace(/[&<>"']/g, m => map[m]);
+}
+
+// Event listener para o botão de adicionar produto
+document.addEventListener('DOMContentLoaded', function () {
+  document.addEventListener('click', function (e) {
+    if (e.target && (e.target.id === 'addProductToEditOSBtn' || e.target.closest('#addProductToEditOSBtn'))) {
+      e.preventDefault();
+      e.stopPropagation();
+      abrirModalSelecionarProdutoEditOS();
+    }
+  });
+});
+
+function closeEditOSModal() {
+  document.getElementById('editOSModal').style.display = 'none';
+  editingOSId = null;
+  editingProducts = [];
+}
+
 async function excluirOS(orderId) {
   const ordem = allOrders.find(o => o.id === orderId);
   if (!ordem) {
@@ -4980,9 +6886,69 @@ async function excluirOS(orderId) {
     await ordemRef.remove();
 
     showToast('Ordem excluída com sucesso!', 'success');
+
+    if (typeof loadOrders === 'function') {
+      loadOrders();
+    }
   } catch (error) {
     console.error('Erro ao excluir ordem:', error);
     showToast('Erro ao excluir: ' + error.message, 'error');
+  }
+}
+
+function switchEditTab(tabName) {
+  // Ocultar todas as abas
+  document.querySelectorAll('.tab-content').forEach(tab => {
+    tab.style.display = 'none';
+  });
+
+  // Remover classe active de todos os botões
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.classList.remove('active');
+    btn.style.borderBottomColor = 'transparent';
+    btn.style.color = '#999';
+  });
+
+  // Mostrar aba selecionada
+  document.getElementById(`tab-${tabName}`).style.display = 'block';
+
+  // Ativar botão selecionado
+  const activeBtn = document.querySelector(`[data-tab="${tabName}"]`);
+  activeBtn.classList.add('active');
+  activeBtn.style.borderBottomColor = '#10b981';
+  activeBtn.style.color = '#10b981';
+}
+
+function switchEditTab(tabName) {
+  // Esconde todas as abas
+  const tabs = document.querySelectorAll('.tab-content');
+  tabs.forEach(tab => tab.style.display = 'none');
+
+  // Remove ativo de todos os botões
+  const buttons = document.querySelectorAll('.tab-btn');
+  buttons.forEach(btn => {
+    btn.style.borderBottomColor = 'transparent';
+    btn.style.color = '#666';
+    btn.classList.remove('active');
+  });
+
+  // Mostra a aba selecionada
+  const selectedTab = document.getElementById(`tab-${tabName}`);
+  if (selectedTab) {
+    selectedTab.style.display = 'block';
+  }
+
+  // Marca o botão como ativo
+  const activeBtn = document.querySelector(`[data-tab="${tabName}"]`);
+  if (activeBtn) {
+    activeBtn.style.borderBottomColor = '#10b981';
+    activeBtn.style.color = '#10b981';
+    activeBtn.classList.add('active');
+  }
+
+  // Se está na aba de produtos, renderiza os produtos
+  if (tabName === 'produtos') {
+    renderizarProdutosEdicao();
   }
 }
 
@@ -5104,12 +7070,7 @@ if (!document.getElementById('modalAnimations')) {
   document.head.appendChild(style);
 }
 
-
-
 // Finalizar OS
-
-
-
 async function finalizarOS(orderId) {
   if (!confirm('Deseja finalizar esta Ordem de Serviço?')) return;
   try {
@@ -5124,7 +7085,6 @@ async function finalizarOS(orderId) {
     showToast('Erro ao finalizar OS', 'error');
   }
 }
-
 
 // Criar nova OS (handler seguro)
 document.getElementById('orderForm')?.addEventListener('submit', async (e) => {
@@ -5216,16 +7176,33 @@ document.getElementById('orderForm')?.addEventListener('submit', async (e) => {
       data: new Date().toISOString()
     };
 
+    /* ============================= */
+    /* DIMINUIR ESTOQUE DOS PRODUTOS */
+    /* ============================= */
+
+    for (const produto of osSelectedProducts) {
+      if (produto.id) {
+        const produtoSnapshot = await database.ref(`products/${produto.id}`).once('value');
+        const produtoNoEstoque = produtoSnapshot.val();
+        
+        if (produtoNoEstoque) {
+          const quantidadeAtual = produtoNoEstoque.quantity || 0;
+          const quantidadeUsada = produto.qty || 0;
+          const novaQuantidade = quantidadeAtual - quantidadeUsada;
+          
+          // Atualizar o estoque (garantir que não fique negativo)
+          await database.ref(`products/${produto.id}`).update({
+            quantity: novaQuantidade < 0 ? 0 : novaQuantidade
+          });
+        }
+      }
+    }
 
     /* ============================= */
     /* SALVAR NO FIREBASE */
     /* ============================= */
 
     await database.ref('orders').push(data);
-
-    /* ============================= */
-    /* RESET */
-    /* ============================= */
 
     form.reset();
     osSelectedProducts = [];
@@ -5246,12 +7223,6 @@ document.getElementById('orderForm')?.addEventListener('submit', async (e) => {
     showToast('Erro ao criar OS', 'error');
   }
 });
-
-
-
-
-
-
 
 // Busca em tempo real (se existir campo)
 document.getElementById('orderSearch')?.addEventListener('input', () => {
@@ -5399,6 +7370,7 @@ function closeViewOrderModal() {
   const modal = document.getElementById('viewOrderModal');
   if (modal) modal.remove();
 }
+
 function preencherTecnicoOS() {
   const tecnicoInput = document.getElementById('tecnicoInput');
 
@@ -5463,9 +7435,6 @@ function preencherDadosInspecaoFromObj(obj) {
   }
 }
 
-
-
-
 // Adicione esta função para alternar entre empresa e prédio
 function ajustarFormularioTipo(tipo) {
   const labelRazaoNome = document.getElementById('labelRazaoNome');
@@ -5507,11 +7476,6 @@ function preencherDadosInspecao(obj) {
     if (attempts >= maxAttempts) clearInterval(iv);
   }, 100);
 }
-
-
-
-
-
 
 // ---------- Função alternativa de preenchimento ----------
 function preencherDadosInspecaoAlt(data) {
@@ -5701,9 +7665,6 @@ document.querySelectorAll('.orders-tab').forEach(tab => {
 /* PRODUTOS - BASE GLOBAL */
 /* ============================= */
 
-let products = [];
-let osSelectedProducts = [];
-
 /* ============================= */
 /* SALVAR PRODUTO NO FIREBASE */
 /* ============================= */
@@ -5748,7 +7709,17 @@ function clearProductForm() {
 /* ============================= */
 /* CARREGAR PRODUTOS DO FIREBASE */
 /* ============================= */
+// ===========================
+// VARIÁVEIS GLOBAIS
+// ===========================
+let products = [];
+let osSelectedProducts = [];
+let currentPage = 1;
+let editingProductId = null;
 
+// ===========================
+// CARREGAR PRODUTOS DO FIREBASE
+// ===========================
 function loadProducts() {
   firebase.database().ref('products').on('value', snapshot => {
     products = [];
@@ -5757,182 +7728,1750 @@ function loadProducts() {
       products.push(child.val());
     });
 
+    // ORDENAR POR NOME (A-Z)
+    products.sort((a, b) => a.name.localeCompare(b.name));
+
     renderProducts();
     populateOSProductSelect();
   });
 }
 
-/* ============================= */
-/* RENDERIZAR LISTA DE PRODUTOS */
-/* ============================= */
-function renderProducts() {
-  const list = document.getElementById('productsList');
-  if (!list) return;
+// ===========================
+// RENDERIZAR LISTA DE PRODUTOS COM ESTOQUE
+// ===========================
+// ============================================
+// VARIÁVEIS GLOBAIS PARA FILTROS E VISUALIZAÇÃO
+// ============================================
 
-  list.innerHTML = '';
+let productViewMode = 'cards';
+let productSearchQuery = '';
+let filtersVisible = false;
+let productFilters = {
+  priceMin: '',
+  priceMax: '',
+  quantityMin: '',
+  quantityMax: '',
+  status: 'all'
+};
 
-  if (!products || products.length === 0) {
-    list.innerHTML = `
-      <p style="color:#777; text-align:center; margin-top:20px;">
-        Nenhum produto cadastrado.
+// ============================================
+// FUNÇÃO PARA ALTERNAR VISIBILIDADE DOS FILTROS
+// ============================================
+
+function toggleFiltersVisibility() {
+  filtersVisible = !filtersVisible;
+  const filtersRow = document.getElementById('filtersRow');
+  const toggleIcon = document.getElementById('toggleFiltersIcon');
+  
+  if (filtersRow && toggleIcon) {
+    if (filtersVisible) {
+      filtersRow.style.display = 'grid';
+      toggleIcon.className = 'fas fa-chevron-up';
+    } else {
+      filtersRow.style.display = 'none';
+      toggleIcon.className = 'fas fa-chevron-down';
+    }
+  }
+}
+
+// ============================================
+// FUNÇÃO PARA APLICAR BUSCA
+// ============================================
+
+function applyProductSearch() {
+  const searchInput = document.getElementById('productSearchInput');
+  if (searchInput) {
+    productSearchQuery = searchInput.value.toLowerCase().trim();
+  }
+  currentPage = 1;
+  renderProducts();
+}
+
+// ============================================
+// FUNÇÃO PARA APLICAR FILTROS
+// ============================================
+
+function applyProductFilters() {
+  const priceMinInput = document.getElementById('filterPriceMin');
+  const priceMaxInput = document.getElementById('filterPriceMax');
+  const qtyMinInput = document.getElementById('filterQtyMin');
+  const qtyMaxInput = document.getElementById('filterQtyMax');
+  const statusSelect = document.getElementById('filterStatus');
+  
+  productFilters.priceMin = priceMinInput ? priceMinInput.value : '';
+  productFilters.priceMax = priceMaxInput ? priceMaxInput.value : '';
+  productFilters.quantityMin = qtyMinInput ? qtyMinInput.value : '';
+  productFilters.quantityMax = qtyMaxInput ? qtyMaxInput.value : '';
+  productFilters.status = statusSelect ? statusSelect.value : 'all';
+  
+  currentPage = 1;
+  renderProducts();
+  showToast('Filtros aplicados!', 'success');
+}
+
+// ============================================
+// FUNÇÃO PARA LIMPAR FILTROS
+// ============================================
+
+function clearProductFilters() {
+  productSearchQuery = '';
+  productFilters = {
+    priceMin: '',
+    priceMax: '',
+    quantityMin: '',
+    quantityMax: '',
+    status: 'all'
+  };
+  
+  const searchInput = document.getElementById('productSearchInput');
+  const priceMinInput = document.getElementById('filterPriceMin');
+  const priceMaxInput = document.getElementById('filterPriceMax');
+  const qtyMinInput = document.getElementById('filterQtyMin');
+  const qtyMaxInput = document.getElementById('filterQtyMax');
+  const statusSelect = document.getElementById('filterStatus');
+  
+  if (searchInput) searchInput.value = '';
+  if (priceMinInput) priceMinInput.value = '';
+  if (priceMaxInput) priceMaxInput.value = '';
+  if (qtyMinInput) qtyMinInput.value = '';
+  if (qtyMaxInput) qtyMaxInput.value = '';
+  if (statusSelect) statusSelect.value = 'all';
+  
+  currentPage = 1;
+  renderProducts();
+  showToast('Filtros limpos!', 'success');
+}
+
+// ============================================
+// FUNÇÃO PARA FILTRAR PRODUTOS
+// ============================================
+
+function filterProductsClient(productsArray) {
+  return productsArray.filter(prod => {
+    if (productSearchQuery) {
+      const nameMatch = prod.name.toLowerCase().includes(productSearchQuery);
+      const descMatch = (prod.description || '').toLowerCase().includes(productSearchQuery);
+      if (!nameMatch && !descMatch) return false;
+    }
+    
+    if (productFilters.priceMin !== '') {
+      const minPrice = parseFloat(productFilters.priceMin);
+      if (prod.price < minPrice) return false;
+    }
+    
+    if (productFilters.priceMax !== '') {
+      const maxPrice = parseFloat(productFilters.priceMax);
+      if (prod.price > maxPrice) return false;
+    }
+    
+    if (productFilters.quantityMin !== '') {
+      const minQty = parseInt(productFilters.quantityMin);
+      if ((prod.quantity || 0) < minQty) return false;
+    }
+    
+    if (productFilters.quantityMax !== '') {
+      const maxQty = parseInt(productFilters.quantityMax);
+      if ((prod.quantity || 0) > maxQty) return false;
+    }
+    
+    if (productFilters.status !== 'all') {
+      const qty = prod.quantity || 0;
+      if (productFilters.status === 'out-of-stock' && qty !== 0) return false;
+      if (productFilters.status === 'low-stock' && (qty === 0 || qty > 5)) return false;
+      if (productFilters.status === 'in-stock' && qty <= 5) return false;
+    }
+    
+    return true;
+  });
+}
+
+// ============================================
+// FUNÇÃO PARA CRIAR BARRA DE FERRAMENTAS
+// ============================================
+
+function createProductToolbar() {
+  const toolbar = document.createElement('div');
+  toolbar.style.cssText = `
+    background: #1a1a1a;
+    border: 1px solid #2a2a2a;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  `;
+  
+  const topRow = document.createElement('div');
+  topRow.style.cssText = `
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    flex-wrap: wrap;
+  `;
+  
+  // BARRA DE BUSCA COM BOTÃO
+  const searchContainer = document.createElement('div');
+  searchContainer.style.cssText = `
+    flex: 1;
+    min-width: 250px;
+    display: flex;
+    gap: 8px;
+  `;
+  
+  const searchInputWrapper = document.createElement('div');
+  searchInputWrapper.style.cssText = `
+    flex: 1;
+    position: relative;
+  `;
+  searchInputWrapper.innerHTML = `
+    <input 
+      type="text" 
+      id="productSearchInput" 
+      placeholder="Buscar por nome ou descrição..."
+      style="
+        width: 100%;
+        padding: 12px 40px 12px 45px;
+        background: #0d0d0d;
+        border: 2px solid #333;
+        border-radius: 10px;
+        color: #fff;
+        font-size: 14px;
+        transition: all 0.3s ease;
+        box-sizing: border-box;
+      "
+      onfocus="this.style.borderColor='#10b981'; this.style.boxShadow='0 0 0 3px rgba(16, 185, 129, 0.1)'"
+      onblur="this.style.borderColor='#333'; this.style.boxShadow='none'"
+    />
+    <i class="fas fa-search" style="
+      position: absolute;
+      left: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #10b981;
+      font-size: 14px;
+    "></i>
+  `;
+  
+  // BOTÃO DE BUSCAR
+  const searchButton = document.createElement('button');
+  searchButton.innerHTML = '<i class="fas fa-search"></i><span style="margin-left: 8px;">Buscar</span>';
+  searchButton.style.cssText = `
+    background: rgba(16, 185, 129, 0.15);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    color: #10b981;
+    border-radius: 10px;
+    padding: 12px 20px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+  `;
+  searchButton.onmouseover = function() {
+    this.style.background = 'rgba(16, 185, 129, 0.25)';
+  };
+  searchButton.onmouseout = function() {
+    this.style.background = 'rgba(16, 185, 129, 0.15)';
+  };
+  searchButton.onclick = applyProductSearch;
+  
+  searchContainer.appendChild(searchInputWrapper);
+  searchContainer.appendChild(searchButton);
+  
+  // Adicionar Enter para buscar
+  setTimeout(() => {
+    const input = document.getElementById('productSearchInput');
+    if (input) {
+      input.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+          applyProductSearch();
+        }
+      });
+    }
+  }, 100);
+  
+  const toggleFiltersBtn = document.createElement('button');
+  toggleFiltersBtn.innerHTML = '<i id="toggleFiltersIcon" class="fas fa-chevron-down"></i><span style="margin-left: 8px;">Filtros</span>';
+  toggleFiltersBtn.style.cssText = `
+    background: rgba(59, 130, 246, 0.1);
+    border: 1px solid rgba(59, 130, 246, 0.3);
+    color: #3b82f6;
+    border-radius: 10px;
+    padding: 12px 18px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+  `;
+  toggleFiltersBtn.onmouseover = function() {
+    this.style.background = 'rgba(59, 130, 246, 0.2)';
+  };
+  toggleFiltersBtn.onmouseout = function() {
+    this.style.background = 'rgba(59, 130, 246, 0.1)';
+  };
+  toggleFiltersBtn.onclick = toggleFiltersVisibility;
+  
+  const viewButtonsContainer = document.createElement('div');
+  viewButtonsContainer.style.cssText = `
+    display: flex;
+    gap: 8px;
+    background: #0d0d0d;
+    padding: 4px;
+    border-radius: 10px;
+    border: 1px solid #333;
+  `;
+  
+  const cardsBtn = document.createElement('button');
+  cardsBtn.id = 'viewCardsBtn';
+  cardsBtn.innerHTML = '<i class="fas fa-th-large"></i><span style="margin-left: 6px;">Cards</span>';
+  cardsBtn.style.cssText = `
+    background: rgba(16, 185, 129, 0.2);
+    border: 1px solid #10b981;
+    color: #10b981;
+    border-radius: 8px;
+    padding: 10px 16px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    transition: all 0.2s ease;
+  `;
+  cardsBtn.onclick = () => toggleProductView('cards');
+  
+  const listBtn = document.createElement('button');
+  listBtn.id = 'viewListBtn';
+  listBtn.innerHTML = '<i class="fas fa-list"></i><span style="margin-left: 6px;">Lista</span>';
+  listBtn.style.cssText = `
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid #333;
+    color: #999;
+    border-radius: 8px;
+    padding: 10px 16px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    transition: all 0.2s ease;
+  `;
+  listBtn.onclick = () => toggleProductView('list');
+  
+  viewButtonsContainer.appendChild(cardsBtn);
+  viewButtonsContainer.appendChild(listBtn);
+  
+  topRow.appendChild(searchContainer);
+  topRow.appendChild(toggleFiltersBtn);
+  topRow.appendChild(viewButtonsContainer);
+  
+  // RESTO DO CÓDIGO DOS FILTROS... (mantém igual)
+  const filtersRow = document.createElement('div');
+  filtersRow.id = 'filtersRow';
+  filtersRow.style.cssText = `
+    display: none;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 12px;
+    align-items: end;
+    padding-top: 8px;
+    border-top: 1px solid #2a2a2a;
+  `;
+  
+  const priceMinContainer = document.createElement('div');
+  priceMinContainer.innerHTML = `
+    <label style="color: #999; font-size: 12px; display: block; margin-bottom: 6px; font-weight: 600;">
+      <i class="fas fa-dollar-sign" style="margin-right: 4px;"></i>Preço Mínimo
+    </label>
+    <input 
+      type="number" 
+      id="filterPriceMin" 
+      placeholder="0.00"
+      step="0.01"
+      style="
+        width: 100%;
+        padding: 10px 12px;
+        background: #0d0d0d;
+        border: 1px solid #333;
+        border-radius: 8px;
+        color: #fff;
+        font-size: 13px;
+        box-sizing: border-box;
+      "
+    />
+  `;
+  
+  const priceMaxContainer = document.createElement('div');
+  priceMaxContainer.innerHTML = `
+    <label style="color: #999; font-size: 12px; display: block; margin-bottom: 6px; font-weight: 600;">
+      <i class="fas fa-dollar-sign" style="margin-right: 4px;"></i>Preço Máximo
+    </label>
+    <input 
+      type="number" 
+      id="filterPriceMax" 
+      placeholder="999.99"
+      step="0.01"
+      style="
+        width: 100%;
+        padding: 10px 12px;
+        background: #0d0d0d;
+        border: 1px solid #333;
+        border-radius: 8px;
+        color: #fff;
+        font-size: 13px;
+        box-sizing: border-box;
+      "
+    />
+  `;
+  
+  const qtyMinContainer = document.createElement('div');
+  qtyMinContainer.innerHTML = `
+    <label style="color: #999; font-size: 12px; display: block; margin-bottom: 6px; font-weight: 600;">
+      <i class="fas fa-boxes" style="margin-right: 4px;"></i>Qtd Mínima
+    </label>
+    <input 
+      type="number" 
+      id="filterQtyMin" 
+      placeholder="0"
+      style="
+        width: 100%;
+        padding: 10px 12px;
+        background: #0d0d0d;
+        border: 1px solid #333;
+        border-radius: 8px;
+        color: #fff;
+        font-size: 13px;
+        box-sizing: border-box;
+      "
+    />
+  `;
+  
+  const qtyMaxContainer = document.createElement('div');
+  qtyMaxContainer.innerHTML = `
+    <label style="color: #999; font-size: 12px; display: block; margin-bottom: 6px; font-weight: 600;">
+      <i class="fas fa-boxes" style="margin-right: 4px;"></i>Qtd Máxima
+    </label>
+    <input 
+      type="number" 
+      id="filterQtyMax" 
+      placeholder="999"
+      style="
+        width: 100%;
+        padding: 10px 12px;
+        background: #0d0d0d;
+        border: 1px solid #333;
+        border-radius: 8px;
+        color: #fff;
+        font-size: 13px;
+        box-sizing: border-box;
+      "
+    />
+  `;
+  
+  const statusContainer = document.createElement('div');
+  statusContainer.innerHTML = `
+    <label style="color: #999; font-size: 12px; display: block; margin-bottom: 6px; font-weight: 600;">
+      <i class="fas fa-filter" style="margin-right: 4px;"></i>Status
+    </label>
+    <select 
+      id="filterStatus"
+      style="
+        width: 100%;
+        padding: 10px 12px;
+        background: #0d0d0d;
+        border: 1px solid #333;
+        border-radius: 8px;
+        color: #fff;
+        font-size: 13px;
+        cursor: pointer;
+        box-sizing: border-box;
+      "
+    >
+      <option value="all">Todos</option>
+      <option value="in-stock">Em Estoque</option>
+      <option value="low-stock">Estoque Baixo</option>
+      <option value="out-of-stock">Sem Estoque</option>
+    </select>
+  `;
+  
+  const filterActionsContainer = document.createElement('div');
+  filterActionsContainer.style.cssText = `
+    display: flex;
+    gap: 8px;
+    align-items: end;
+  `;
+  
+  const applyFiltersBtn = document.createElement('button');
+  applyFiltersBtn.innerHTML = '<i class="fas fa-check"></i>';
+  applyFiltersBtn.title = 'Aplicar filtros';
+  applyFiltersBtn.style.cssText = `
+    background: rgba(16, 185, 129, 0.15);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    color: #10b981;
+    border-radius: 8px;
+    padding: 10px 14px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.2s ease;
+  `;
+  applyFiltersBtn.onmouseover = function() {
+    this.style.background = 'rgba(16, 185, 129, 0.25)';
+  };
+  applyFiltersBtn.onmouseout = function() {
+    this.style.background = 'rgba(16, 185, 129, 0.15)';
+  };
+  applyFiltersBtn.onclick = applyProductFilters;
+  
+  const clearFiltersBtn = document.createElement('button');
+  clearFiltersBtn.innerHTML = '<i class="fas fa-times"></i>';
+  clearFiltersBtn.title = 'Limpar filtros';
+  clearFiltersBtn.style.cssText = `
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    color: #ef4444;
+    border-radius: 8px;
+    padding: 10px 14px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.2s ease;
+  `;
+  clearFiltersBtn.onmouseover = function() {
+    this.style.background = 'rgba(239, 68, 68, 0.2)';
+  };
+  clearFiltersBtn.onmouseout = function() {
+    this.style.background = 'rgba(239, 68, 68, 0.1)';
+  };
+  clearFiltersBtn.onclick = clearProductFilters;
+  
+  filterActionsContainer.appendChild(applyFiltersBtn);
+  filterActionsContainer.appendChild(clearFiltersBtn);
+  
+  filtersRow.appendChild(priceMinContainer);
+  filtersRow.appendChild(priceMaxContainer);
+  filtersRow.appendChild(qtyMinContainer);
+  filtersRow.appendChild(qtyMaxContainer);
+  filtersRow.appendChild(statusContainer);
+  filtersRow.appendChild(filterActionsContainer);
+  
+  toolbar.appendChild(topRow);
+  toolbar.appendChild(filtersRow);
+  
+  setTimeout(() => {
+    updateViewButtons();
+  }, 0);
+  
+  return toolbar;
+}
+
+// ============================================
+// FUNÇÃO PARA ALTERNAR VISUALIZAÇÃO
+// ============================================
+
+function toggleProductView(mode) {
+  productViewMode = mode;
+  updateViewButtons();
+  renderProducts();
+}
+
+// ============================================
+// FUNÇÃO PARA ATUALIZAR VISUAL DOS BOTÕES
+// ============================================
+
+function updateViewButtons() {
+  const cardsBtn = document.getElementById('viewCardsBtn');
+  const listBtn = document.getElementById('viewListBtn');
+  
+  if (!cardsBtn || !listBtn) return;
+  
+  if (productViewMode === 'cards') {
+    cardsBtn.style.background = 'rgba(16, 185, 129, 0.2)';
+    cardsBtn.style.borderColor = '#10b981';
+    cardsBtn.style.color = '#10b981';
+    
+    listBtn.style.background = 'rgba(255, 255, 255, 0.05)';
+    listBtn.style.borderColor = '#333';
+    listBtn.style.color = '#999';
+  } else {
+    listBtn.style.background = 'rgba(16, 185, 129, 0.2)';
+    listBtn.style.borderColor = '#10b981';
+    listBtn.style.color = '#10b981';
+    
+    cardsBtn.style.background = 'rgba(255, 255, 255, 0.05)';
+    cardsBtn.style.borderColor = '#333';
+    cardsBtn.style.color = '#999';
+  }
+}
+
+// ============================================
+// RENDERIZAR COMO CARDS
+// ============================================
+
+function renderProductsAsCards(container, productsArray) {
+  const gridContainer = document.createElement('div');
+  gridContainer.style.cssText = `
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 16px;
+    width: 100%;
+  `;
+
+  const updateGridLayout = () => {
+    if (window.innerWidth >= 1200) {
+      gridContainer.style.gridTemplateColumns = 'repeat(3, 1fr)';
+    } else if (window.innerWidth >= 768) {
+      gridContainer.style.gridTemplateColumns = 'repeat(2, 1fr)';
+    } else {
+      gridContainer.style.gridTemplateColumns = '1fr';
+    }
+  };
+
+  updateGridLayout();
+  window.addEventListener('resize', updateGridLayout);
+
+  productsArray.forEach(prod => {
+    const quantity = prod.quantity || 0;
+    
+    let status = '';
+    let statusColor = '';
+    let statusBg = '';
+    let borderColor = '';
+    let statusIcon = '';
+    
+    if (quantity === 0) {
+      status = 'SEM ESTOQUE';
+      statusColor = '#ef4444';
+      statusBg = 'rgba(239, 68, 68, 0.15)';
+      borderColor = 'rgba(239, 68, 68, 0.4)';
+      statusIcon = 'fa-times-circle';
+    } else if (quantity <= 5) {
+      status = 'ESTOQUE BAIXO';
+      statusColor = '#f59e0b';
+      statusBg = 'rgba(245, 158, 11, 0.15)';
+      borderColor = 'rgba(245, 158, 11, 0.4)';
+      statusIcon = 'fa-exclamation-triangle';
+    } else if (quantity <= 10) {
+      status = 'ATENÇÃO';
+      statusColor = '#eab308';
+      statusBg = 'rgba(234, 179, 8, 0.15)';
+      borderColor = 'rgba(234, 179, 8, 0.4)';
+      statusIcon = 'fa-exclamation-circle';
+    } else {
+      status = 'EM ESTOQUE';
+      statusColor = '#10b981';
+      statusBg = 'rgba(16, 185, 129, 0.15)';
+      borderColor = 'rgba(47, 47, 47, 0.6)';
+      statusIcon = 'fa-check-circle';
+    }
+
+    const card = document.createElement('div');
+    card.style.cssText = `
+      background: linear-gradient(145deg, #1f1f1f 0%, #1a1a1a 100%);
+      border: 2px solid ${borderColor};
+      border-radius: 16px;
+      padding: 20px;
+      position: relative;
+      overflow: hidden;
+      transition: all 0.3s ease;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      min-height: 280px;
+    `;
+
+    card.onmouseenter = function() {
+      this.style.transform = 'translateY(-4px)';
+      this.style.boxShadow = `0 12px 24px rgba(0, 0, 0, 0.4), 0 0 0 1px ${statusColor}40`;
+      this.style.borderColor = statusColor;
+    };
+
+    card.onmouseleave = function() {
+      this.style.transform = 'translateY(0)';
+      this.style.boxShadow = 'none';
+      this.style.borderColor = borderColor;
+    };
+
+    const statusBadge = document.createElement('div');
+    statusBadge.style.cssText = `
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      background: ${statusBg};
+      border: 1px solid ${statusColor};
+      color: ${statusColor};
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      z-index: 2;
+      text-transform: uppercase;
+    `;
+    statusBadge.innerHTML = `<i class="fas ${statusIcon}"></i> ${status}`;
+
+    const cardHeader = document.createElement('div');
+    cardHeader.style.cssText = `
+      padding-right: 120px;
+      flex-shrink: 0;
+    `;
+    cardHeader.innerHTML = `
+      <h3 style="
+        color: #f1f1f1;
+        font-weight: 700;
+        font-size: 17px;
+        margin: 0 0 8px 0;
+        line-height: 1.3;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      ">
+        ${escapeHtml(prod.name)}
+      </h3>
+      <p style="
+        color: #8b8b8b;
+        font-size: 13px;
+        margin: 0;
+        line-height: 1.5;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      ">
+        ${escapeHtml(prod.description || 'Sem descrição')}
       </p>
     `;
+
+    const infoSection = document.createElement('div');
+    infoSection.style.cssText = `
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      padding: 16px 0;
+      border-top: 1px solid #2a2a2a;
+      border-bottom: 1px solid #2a2a2a;
+      flex: 1;
+    `;
+
+    const priceDiv = document.createElement('div');
+    priceDiv.style.cssText = `
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    `;
+    priceDiv.innerHTML = `
+      <i class="fas fa-dollar-sign" style="color: #10b981; font-size: 14px;"></i>
+      <span style="color: #4ade80; font-weight: 700; font-size: 20px;">
+        R$ ${prod.price.toFixed(2)}
+      </span>
+    `;
+
+    const stockDiv = document.createElement('div');
+    stockDiv.style.cssText = `
+      background: #0d0d0d;
+      border: 1px solid ${borderColor};
+      border-radius: 10px;
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    `;
+    stockDiv.innerHTML = `
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <i class="fas fa-boxes" style="color: ${statusColor}; font-size: 14px;"></i>
+        <span style="color: #999; font-size: 13px; font-weight: 500;">Estoque</span>
+      </div>
+      <span style="
+        color: ${statusColor};
+        font-weight: 700;
+        font-size: 18px;
+        text-shadow: 0 0 10px ${statusColor}40;
+      ">
+        ${quantity}
+      </span>
+    `;
+
+    infoSection.appendChild(priceDiv);
+    infoSection.appendChild(stockDiv);
+
+    const actionsDiv = document.createElement('div');
+    actionsDiv.style.cssText = `
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+      margin-top: auto;
+    `;
+
+    const addStockBtn = document.createElement('button');
+    addStockBtn.innerHTML = '<i class="fas fa-plus"></i><span style="margin-left: 6px;">Adicionar</span>';
+    addStockBtn.style.cssText = `
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      color: #10b981;
+      border-radius: 10px;
+      padding: 10px 14px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+    `;
+    addStockBtn.onmouseover = function() {
+      this.style.background = 'rgba(16, 185, 129, 0.2)';
+      this.style.transform = 'scale(1.02)';
+    };
+    addStockBtn.onmouseout = function() {
+      this.style.background = 'rgba(16, 185, 129, 0.1)';
+      this.style.transform = 'scale(1)';
+    };
+    addStockBtn.onclick = function() {
+      openStockModal(prod.id, 'add');
+    };
+
+    const removeStockBtn = document.createElement('button');
+    removeStockBtn.innerHTML = '<i class="fas fa-minus"></i><span style="margin-left: 6px;">Remover</span>';
+    removeStockBtn.style.cssText = `
+      background: rgba(245, 158, 11, 0.1);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      color: #f59e0b;
+      border-radius: 10px;
+      padding: 10px 14px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+      ${quantity === 0 ? 'opacity: 0.5; cursor: not-allowed;' : ''}
+    `;
+    if (quantity > 0) {
+      removeStockBtn.onmouseover = function() {
+        this.style.background = 'rgba(245, 158, 11, 0.2)';
+        this.style.transform = 'scale(1.02)';
+      };
+      removeStockBtn.onmouseout = function() {
+        this.style.background = 'rgba(245, 158, 11, 0.1)';
+        this.style.transform = 'scale(1)';
+      };
+    }
+    removeStockBtn.onclick = function() {
+      if (quantity === 0) {
+        showToast('Não há estoque para remover!', 'error');
+        return;
+      }
+      openStockModal(prod.id, 'remove');
+    };
+
+    const editBtn = document.createElement('button');
+    editBtn.innerHTML = '<i class="fas fa-edit"></i><span style="margin-left: 6px;">Editar</span>';
+    editBtn.style.cssText = `
+      background: rgba(59, 130, 246, 0.1);
+      border: 1px solid rgba(59, 130, 246, 0.3);
+      color: #3b82f6;
+      border-radius: 10px;
+      padding: 10px 14px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+    `;
+    editBtn.onmouseover = function() {
+      this.style.background = 'rgba(59, 130, 246, 0.2)';
+      this.style.transform = 'scale(1.02)';
+    };
+    editBtn.onmouseout = function() {
+      this.style.background = 'rgba(59, 130, 246, 0.1)';
+      this.style.transform = 'scale(1)';
+    };
+    editBtn.onclick = function() {
+      openEditModal(prod.id);
+    };
+
+    const deleteBtn = document.createElement('button');
+    deleteBtn.innerHTML = '<i class="fas fa-trash"></i><span style="margin-left: 6px;">Excluir</span>';
+    deleteBtn.style.cssText = `
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      color: #ef4444;
+      border-radius: 10px;
+      padding: 10px 14px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+    `;
+    deleteBtn.onmouseover = function() {
+      this.style.background = 'rgba(239, 68, 68, 0.2)';
+      this.style.transform = 'scale(1.02)';
+    };
+    deleteBtn.onmouseout = function() {
+      this.style.background = 'rgba(239, 68, 68, 0.1)';
+      this.style.transform = 'scale(1)';
+    };
+    deleteBtn.onclick = function() {
+      deleteProduct(prod.id);
+    };
+
+    actionsDiv.appendChild(addStockBtn);
+    actionsDiv.appendChild(removeStockBtn);
+    actionsDiv.appendChild(editBtn);
+    actionsDiv.appendChild(deleteBtn);
+
+    card.appendChild(statusBadge);
+    card.appendChild(cardHeader);
+    card.appendChild(infoSection);
+    card.appendChild(actionsDiv);
+
+    gridContainer.appendChild(card);
+  });
+
+  container.appendChild(gridContainer);
+}
+
+// ============================================
+// RENDERIZAR COMO LISTA
+// ============================================
+
+function renderProductsAsList(container, productsArray) {
+  const listContainer = document.createElement('div');
+  listContainer.style.cssText = `
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+  `;
+
+  productsArray.forEach(prod => {
+    const quantity = prod.quantity || 0;
+    
+    let statusColor = '';
+    let statusBg = '';
+    let statusIcon = '';
+    let statusText = '';
+    
+    if (quantity === 0) {
+      statusText = 'SEM ESTOQUE';
+      statusColor = '#ef4444';
+      statusBg = 'rgba(239, 68, 68, 0.15)';
+      statusIcon = 'fa-times-circle';
+    } else if (quantity <= 5) {
+      statusText = 'ESTOQUE BAIXO';
+      statusColor = '#f59e0b';
+      statusBg = 'rgba(245, 158, 11, 0.15)';
+      statusIcon = 'fa-exclamation-triangle';
+    } else if (quantity <= 10) {
+      statusText = 'ATENÇÃO';
+      statusColor = '#eab308';
+      statusBg = 'rgba(234, 179, 8, 0.15)';
+      statusIcon = 'fa-exclamation-circle';
+    } else {
+      statusText = 'EM ESTOQUE';
+      statusColor = '#10b981';
+      statusBg = 'rgba(16, 185, 129, 0.15)';
+      statusIcon = 'fa-check-circle';
+    }
+
+    const row = document.createElement('div');
+    row.style.cssText = `
+      background: #1a1a1a;
+      border: 1px solid #2a2a2a;
+      border-radius: 12px;
+      padding: 16px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      transition: all 0.3s ease;
+      flex-wrap: wrap;
+    `;
+
+    row.onmouseenter = function() {
+      this.style.background = '#1f1f1f';
+      this.style.borderColor = statusColor;
+      this.style.transform = 'translateX(4px)';
+    };
+
+    row.onmouseleave = function() {
+      this.style.background = '#1a1a1a';
+      this.style.borderColor = '#2a2a2a';
+      this.style.transform = 'translateX(0)';
+    };
+
+    const infoCol = document.createElement('div');
+    infoCol.style.cssText = `
+      flex: 1;
+      min-width: 200px;
+    `;
+    infoCol.innerHTML = `
+      <div style="color: #f1f1f1; font-weight: 700; font-size: 15px; margin-bottom: 6px;">
+        ${escapeHtml(prod.name)}
+      </div>
+      <div style="color: #8b8b8b; font-size: 12px;">
+        ${escapeHtml(prod.description || 'Sem descrição')}
+      </div>
+    `;
+
+    const priceCol = document.createElement('div');
+    priceCol.style.cssText = `
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    `;
+    priceCol.innerHTML = `
+      <i class="fas fa-dollar-sign" style="color: #10b981; font-size: 12px;"></i>
+      <span style="color: #4ade80; font-weight: 700; font-size: 16px;">
+        R$ ${prod.price.toFixed(2)}
+      </span>
+    `;
+
+    const stockCol = document.createElement('div');
+    stockCol.style.cssText = `
+      background: ${statusBg};
+      border: 1px solid ${statusColor};
+      border-radius: 8px;
+      padding: 8px 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 140px;
+    `;
+    stockCol.innerHTML = `
+      <i class="fas ${statusIcon}" style="color: ${statusColor}; font-size: 12px;"></i>
+      <span style="color: ${statusColor}; font-size: 13px; font-weight: 700;">
+        ${quantity} un
+      </span>
+    `;
+
+    const actionsCol = document.createElement('div');
+    actionsCol.style.cssText = `
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    `;
+
+    const addBtn = document.createElement('button');
+    addBtn.innerHTML = '<i class="fas fa-plus"></i>';
+    addBtn.title = 'Adicionar estoque';
+    addBtn.style.cssText = `
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      color: #10b981;
+      border-radius: 8px;
+      padding: 8px 10px;
+      cursor: pointer;
+      font-size: 12px;
+      transition: all 0.2s ease;
+    `;
+    addBtn.onmouseover = function() {
+      this.style.background = 'rgba(16, 185, 129, 0.2)';
+    };
+    addBtn.onmouseout = function() {
+      this.style.background = 'rgba(16, 185, 129, 0.1)';
+    };
+    addBtn.onclick = function() {
+      openStockModal(prod.id, 'add');
+    };
+
+    const removeBtn = document.createElement('button');
+    removeBtn.innerHTML = '<i class="fas fa-minus"></i>';
+    removeBtn.title = 'Remover estoque';
+    removeBtn.style.cssText = `
+      background: rgba(245, 158, 11, 0.1);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      color: #f59e0b;
+      border-radius: 8px;
+      padding: 8px 10px;
+      cursor: pointer;
+      font-size: 12px;
+      transition: all 0.2s ease;
+      ${quantity === 0 ? 'opacity: 0.5; cursor: not-allowed;' : ''}
+    `;
+    if (quantity > 0) {
+      removeBtn.onmouseover = function() {
+        this.style.background = 'rgba(245, 158, 11, 0.2)';
+      };
+      removeBtn.onmouseout = function() {
+        this.style.background = 'rgba(245, 158, 11, 0.1)';
+      };
+    }
+    removeBtn.onclick = function() {
+      if (quantity === 0) {
+        showToast('Não há estoque para remover!', 'error');
+        return;
+      }
+      openStockModal(prod.id, 'remove');
+    };
+
+    const editBtn = document.createElement('button');
+    editBtn.innerHTML = '<i class="fas fa-edit"></i>';
+    editBtn.title = 'Editar produto';
+    editBtn.style.cssText = `
+      background: rgba(59, 130, 246, 0.1);
+      border: 1px solid rgba(59, 130, 246, 0.3);
+      color: #3b82f6;
+      border-radius: 8px;
+      padding: 8px 10px;
+      cursor: pointer;
+      font-size: 12px;
+      transition: all 0.2s ease;
+    `;
+    editBtn.onmouseover = function() {
+      this.style.background = 'rgba(59, 130, 246, 0.2)';
+    };
+    editBtn.onmouseout = function() {
+      this.style.background = 'rgba(59, 130, 246, 0.1)';
+    };
+    editBtn.onclick = function() {
+      openEditModal(prod.id);
+    };
+
+    const deleteBtn = document.createElement('button');
+    deleteBtn.innerHTML = '<i class="fas fa-trash"></i>';
+    deleteBtn.title = 'Excluir produto';
+    deleteBtn.style.cssText = `
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      color: #ef4444;
+      border-radius: 8px;
+      padding: 8px 10px;
+      cursor: pointer;
+      font-size: 12px;
+      transition: all 0.2s ease;
+    `;
+    deleteBtn.onmouseover = function() {
+      this.style.background = 'rgba(239, 68, 68, 0.2)';
+    };
+    deleteBtn.onmouseout = function() {
+      this.style.background = 'rgba(239, 68, 68, 0.1)';
+    };
+    deleteBtn.onclick = function() {
+      deleteProduct(prod.id);
+    };
+
+    actionsCol.appendChild(addBtn);
+    actionsCol.appendChild(removeBtn);
+    actionsCol.appendChild(editBtn);
+    actionsCol.appendChild(deleteBtn);
+
+    row.appendChild(infoCol);
+    row.appendChild(priceCol);
+    row.appendChild(stockCol);
+    row.appendChild(actionsCol);
+
+    listContainer.appendChild(row);
+  });
+
+  container.appendChild(listContainer);
+}
+
+// ============================================
+// FUNÇÃO PRINCIPAL: RENDERIZAR PRODUTOS
+// ============================================
+
+function renderProducts() {
+  const list = document.getElementById('productsList');
+  if (!list) {
+    console.log('Elemento productsList não encontrado!');
     return;
   }
 
-  products.forEach(prod => {
-    const item = document.createElement('div');
+  list.innerHTML = '';
+  
+  list.appendChild(createProductToolbar());
 
-    item.style.cssText = `
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  background:#1b1b1b;
-  border:1px solid #2f2f2f;
-  border-radius:12px;
-  padding:14px 16px;
-  margin-bottom:12px;
-  gap:14px;
-  transition:background 0.2s, border 0.2s;
-`;
+  if (!products || products.length === 0) {
+    const emptyState = document.createElement('div');
+    emptyState.style.cssText = `
+      text-align: center;
+      padding: 60px 20px;
+      color: #666;
+    `;
+    emptyState.innerHTML = `
+      <i class="fas fa-box-open" style="font-size: 4rem; margin-bottom: 20px; opacity: 0.3; color: #10b981;"></i>
+      <p style="font-size: 16px; font-weight: 600; margin: 0;">Nenhum produto cadastrado</p>
+      <p style="font-size: 14px; margin: 10px 0 0 0; opacity: 0.7;">Adicione seu primeiro produto para começar</p>
+    `;
+    list.appendChild(emptyState);
+    return;
+  }
 
-    item.onmouseover = () => {
-      item.style.background = '#202020';
-      item.style.borderColor = '#3a3a3a';
-    };
-    item.onmouseout = () => {
-      item.style.background = '#1b1b1b';
-      item.style.borderColor = '#2f2f2f';
-    };
+  const filteredProducts = filterProductsClient(products);
+  
+  if (filteredProducts.length === 0) {
+    const noResultsState = document.createElement('div');
+    noResultsState.style.cssText = `
+      text-align: center;
+      padding: 60px 20px;
+      color: #666;
+    `;
+    noResultsState.innerHTML = `
+      <i class="fas fa-search" style="font-size: 4rem; margin-bottom: 20px; opacity: 0.3;"></i>
+      <p style="font-size: 16px; font-weight: 600; margin: 0;">Nenhum produto encontrado</p>
+      <p style="font-size: 14px; margin: 10px 0 0 0; opacity: 0.7;">Tente ajustar os filtros de busca</p>
+    `;
+    list.appendChild(noResultsState);
+    return;
+  }
 
-    item.innerHTML = `
-  <div style="flex:1; min-width:0;">
-    
-    <div style="
-      color:#f1f1f1;
-      font-weight:600;
-      font-size:15px;
-      line-height:1.3;
-      white-space:nowrap;
-      overflow:hidden;
-      text-overflow:ellipsis;
-    ">
-      ${escapeHtml(prod.name)}
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedProducts = filteredProducts.slice(startIndex, endIndex);
+
+  if (productViewMode === 'cards') {
+    renderProductsAsCards(list, paginatedProducts);
+  } else {
+    renderProductsAsList(list, paginatedProducts);
+  }
+
+  renderPagination(filteredProducts.length);
+}
+
+// ===========================
+// MODAL DE CONTROLE DE ESTOQUE
+// ===========================
+function openStockModal(productId, action) {
+  const product = products.find(p => p.id == productId);
+  if (!product) return;
+
+  const isAdd = action === 'add';
+  const title = isAdd ? 'Adicionar ao Estoque' : 'Remover do Estoque';
+  const icon = isAdd ? 'fa-plus' : 'fa-minus';
+  const color = isAdd ? '#10b981' : '#f59e0b';
+  const buttonText = isAdd ? 'Adicionar' : 'Remover';
+
+  const overlay = document.createElement('div');
+  overlay.id = 'stockModalOverlay';
+  overlay.style.cssText = `
+    position:fixed;
+    top:0;
+    left:0;
+    width:100%;
+    height:100%;
+    background:rgba(0,0,0,0.8);
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    z-index:99999;
+  `;
+
+  const modal = document.createElement('div');
+  modal.style.cssText = `
+    background:#1a1a1a;
+    border:2px solid ${color};
+    border-radius:16px;
+    padding:30px;
+    width:90%;
+    max-width:400px;
+    box-shadow:0 10px 40px rgba(0,0,0,0.8);
+  `;
+
+  modal.innerHTML = `
+    <h2 style="color:#f1f1f1; font-size:22px; margin:0 0 20px 0;">
+      <i class="fas ${icon}" style="color:${color};"></i> ${title}
+    </h2>
+
+    <div style="margin-bottom:16px;">
+      <label style="display:block; color:#f1f1f1; margin-bottom:8px; font-weight:600;">Produto</label>
+      <div style="
+        background:#0f0f0f;
+        border:1px solid #333;
+        border-radius:8px;
+        padding:12px;
+        color:#aaa;
+        font-size:15px;
+      ">
+        ${escapeHtml(product.name)}
+      </div>
     </div>
 
-    <div style="
-      color:#8b8b8b;
-      font-size:13px;
-      margin-top:4px;
-      line-height:1.4;
-      white-space:nowrap;
-      overflow:hidden;
-      text-overflow:ellipsis;
-    ">
-      ${escapeHtml(prod.description || 'Sem descrição')}
+    <div style="margin-bottom:16px;">
+      <label style="display:block; color:#f1f1f1; margin-bottom:8px; font-weight:600;">Estoque Atual</label>
+      <div style="
+        background:#0f0f0f;
+        border:1px solid #333;
+        border-radius:8px;
+        padding:12px;
+        color:#10b981;
+        font-size:18px;
+        font-weight:700;
+      ">
+        ${product.quantity || 0} unidades
+      </div>
     </div>
 
-    <div style="
-      margin-top:8px;
-      font-size:13px;
-      color:#a3a3a3;
-      display:flex;
-      align-items:center;
-      gap:8px;
-    ">
-      <span style="
-        color:#4ade80;
+    <div style="margin-bottom:24px;">
+      <label style="display:block; color:#f1f1f1; margin-bottom:8px; font-weight:600;">Quantidade</label>
+      <input type="number" id="stockQuantity" value="1" min="1" ${!isAdd ? `max="${product.quantity || 0}"` : ''} style="
+        width:100%;
+        background:#0f0f0f;
+        border:1px solid #333;
+        border-radius:8px;
+        padding:12px;
+        color:#f1f1f1;
+        font-size:15px;
+        box-sizing:border-box;
+      ">
+    </div>
+
+    <div style="display:flex; gap:12px; justify-content:flex-end;">
+      <button id="cancelStockBtn" style="
+        background:#1f1f1f;
+        border:1px solid #333;
+        color:#ef4444;
+        border-radius:8px;
+        padding:12px 24px;
+        cursor:pointer;
+        font-size:15px;
         font-weight:600;
       ">
-        R$ ${prod.price.toFixed(2)}
-      </span>
+        Cancelar
+      </button>
+      <button id="confirmStockBtn" style="
+        background:${color};
+        border:none;
+        color:#fff;
+        border-radius:8px;
+        padding:12px 24px;
+        cursor:pointer;
+        font-size:15px;
+        font-weight:600;
+      ">
+        ${buttonText}
+      </button>
     </div>
+  `;
 
-  </div>
+  overlay.appendChild(modal);
+  document.body.appendChild(overlay);
 
-  <button
-    onclick="deleteProduct('${prod.id}')"
-    title="Excluir produto"
-    style="
-      background:#1f1f1f;
-      border:1px solid #333;
-      color:#ef4444;
-      border-radius:10px;
-      padding:8px 10px;
-      cursor:pointer;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      transition:background 0.2s, color 0.2s, border 0.2s;
-    "
-    onmouseover="
-      this.style.background='#2a2a2a';
-      this.style.color='#ff6b6b';
-      this.style.borderColor='#444';
-    "
-    onmouseout="
-      this.style.background='#1f1f1f';
-      this.style.color='#ef4444';
-      this.style.borderColor='#333';
-    "
-  >
-    <i class="fas fa-trash"></i>
-  </button>
-`;
+  document.getElementById('cancelStockBtn').onclick = () => {
+    overlay.remove();
+  };
 
-    list.appendChild(item);
-  });
+  document.getElementById('confirmStockBtn').onclick = () => {
+    const qty = parseInt(document.getElementById('stockQuantity').value);
+    
+    if (!qty || qty <= 0) {
+      showToast('Quantidade inválida!', 'error');
+      return;
+    }
+
+    if (!isAdd && qty > (product.quantity || 0)) {
+      showToast('Quantidade maior que o estoque disponível!', 'error');
+      return;
+    }
+
+    updateStock(productId, qty, isAdd);
+    overlay.remove();
+  };
+
+  overlay.onclick = (e) => {
+    if (e.target === overlay) {
+      overlay.remove();
+    }
+  };
 }
-async function deleteProduct(productId) {
-  if (!productId) return;
 
-  const confirmDelete = confirm('Deseja realmente excluir este produto?');
-  if (!confirmDelete) return;
-
+// ===========================
+// ATUALIZAR ESTOQUE NO FIREBASE
+// ===========================
+async function updateStock(productId, quantity, isAdd) {
   try {
-    await database.ref('products/' + productId).remove();
+    const product = products.find(p => p.id == productId);
+    if (!product) return;
 
-    // remove da lista local
-    products = products.filter(p => p.id !== productId);
+    const currentStock = product.quantity || 0;
+    const newStock = isAdd ? currentStock + quantity : currentStock - quantity;
 
-    renderProducts();
-    populateOSProductSelect();
+    if (newStock < 0) {
+      showToast('Estoque não pode ser negativo!', 'error');
+      return;
+    }
 
-    showToast('Produto removido com sucesso!');
+    await firebase.database().ref('products/' + productId).update({
+      quantity: newStock
+    });
+
+    const action = isAdd ? 'adicionado ao' : 'removido do';
+    showToast(`${quantity} unidade(s) ${action} estoque!`, 'success');
+
   } catch (err) {
-    console.error('Erro ao excluir produto:', err);
-    showToast('Erro ao excluir produto', 'error');
+    console.error('Erro ao atualizar estoque:', err);
+    showToast('Erro ao atualizar estoque', 'error');
   }
 }
 
+// ===========================
+// PAGINAÇÃO
+// ===========================
+function renderPagination() {
+  const totalPages = Math.ceil(products.length / itemsPerPage);
+  const paginationContainer = document.getElementById('pagination');
+  
+  if (!paginationContainer || totalPages <= 1) {
+    if (paginationContainer) paginationContainer.innerHTML = '';
+    return;
+  }
 
-/* ============================= */
-/* POPULAR SELECT DA OS */
-/* ============================= */
+  paginationContainer.innerHTML = '';
+  paginationContainer.style.cssText = `
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    gap:8px;
+    margin-top:20px;
+    padding:16px 0;
+  `;
 
+  const prevBtn = document.createElement('button');
+  prevBtn.innerHTML = '<i class="fas fa-chevron-left"></i>';
+  prevBtn.disabled = currentPage === 1;
+  prevBtn.style.cssText = `
+    background:#1f1f1f;
+    border:1px solid #333;
+    color:${currentPage === 1 ? '#555' : '#f1f1f1'};
+    border-radius:8px;
+    padding:8px 12px;
+    cursor:${currentPage === 1 ? 'not-allowed' : 'pointer'};
+  `;
+  prevBtn.onclick = () => {
+    if (currentPage > 1) {
+      currentPage--;
+      renderProducts();
+    }
+  };
+  paginationContainer.appendChild(prevBtn);
+
+  for (let i = 1; i <= totalPages; i++) {
+    const pageBtn = document.createElement('button');
+    pageBtn.textContent = i;
+    pageBtn.style.cssText = `
+      background:${i === currentPage ? '#3b82f6' : '#1f1f1f'};
+      border:1px solid ${i === currentPage ? '#3b82f6' : '#333'};
+      color:#f1f1f1;
+      border-radius:8px;
+      padding:8px 12px;
+      cursor:pointer;
+      min-width:36px;
+      font-weight:${i === currentPage ? '600' : '400'};
+    `;
+    pageBtn.onclick = () => {
+      currentPage = i;
+      renderProducts();
+    };
+    paginationContainer.appendChild(pageBtn);
+  }
+
+  const nextBtn = document.createElement('button');
+  nextBtn.innerHTML = '<i class="fas fa-chevron-right"></i>';
+  nextBtn.disabled = currentPage === totalPages;
+  nextBtn.style.cssText = `
+    background:#1f1f1f;
+    border:1px solid #333;
+    color:${currentPage === totalPages ? '#555' : '#f1f1f1'};
+    border-radius:8px;
+    padding:8px 12px;
+    cursor:${currentPage === totalPages ? 'not-allowed' : 'pointer'};
+  `;
+  nextBtn.onclick = () => {
+    if (currentPage < totalPages) {
+      currentPage++;
+      renderProducts();
+    }
+  };
+  paginationContainer.appendChild(nextBtn);
+}
+
+// ===========================
+// EDITAR PRODUTO
+// ===========================
+function openEditModal(id) {
+  const product = products.find(p => p.id == id);
+  if (!product) return;
+
+  editingProductId = id;
+
+  const overlay = document.createElement('div');
+  overlay.id = 'editModalOverlay';
+  overlay.style.cssText = `
+    position:fixed;
+    top:0;
+    left:0;
+    width:100%;
+    height:100%;
+    background:rgba(0,0,0,0.8);
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    z-index:99999;
+  `;
+
+  const modal = document.createElement('div');
+  modal.style.cssText = `
+    background:#1a1a1a;
+    border:2px solid #3b82f6;
+    border-radius:16px;
+    padding:30px;
+    width:90%;
+    max-width:500px;
+    box-shadow:0 10px 40px rgba(0,0,0,0.8);
+  `;
+
+  modal.innerHTML = `
+    <h2 style="color:#f1f1f1; font-size:24px; margin:0 0 20px 0;">
+      <i class="fas fa-edit" style="color:#3b82f6;"></i> Editar Produto
+    </h2>
+    
+    <div style="margin-bottom:16px;">
+      <label style="display:block; color:#f1f1f1; margin-bottom:8px; font-weight:600;">Nome</label>
+      <input type="text" id="editName" value="${escapeHtml(product.name)}" style="
+        width:100%;
+        background:#0f0f0f;
+        border:1px solid #333;
+        border-radius:8px;
+        padding:12px;
+        color:#f1f1f1;
+        font-size:15px;
+        box-sizing:border-box;
+      ">
+    </div>
+
+    <div style="margin-bottom:16px;">
+      <label style="display:block; color:#f1f1f1; margin-bottom:8px; font-weight:600;">Descrição</label>
+      <textarea id="editDesc" rows="3" style="
+        width:100%;
+        background:#0f0f0f;
+        border:1px solid #333;
+        border-radius:8px;
+        padding:12px;
+        color:#f1f1f1;
+        font-size:15px;
+        box-sizing:border-box;
+        font-family:inherit;
+        resize:vertical;
+      ">${escapeHtml(product.description || '')}</textarea>
+    </div>
+
+    <div style="margin-bottom:24px;">
+      <label style="display:block; color:#f1f1f1; margin-bottom:8px; font-weight:600;">Preço</label>
+      <input type="number" id="editPrice" value="${product.price}" step="0.01" min="0" style="
+        width:100%;
+        background:#0f0f0f;
+        border:1px solid #333;
+        border-radius:8px;
+        padding:12px;
+        color:#f1f1f1;
+        font-size:15px;
+        box-sizing:border-box;
+      ">
+    </div>
+
+    <div style="display:flex; gap:12px; justify-content:flex-end;">
+      <button id="cancelBtn" style="
+        background:#1f1f1f;
+        border:1px solid #333;
+        color:#ef4444;
+        border-radius:8px;
+        padding:12px 24px;
+        cursor:pointer;
+        font-size:15px;
+        font-weight:600;
+      ">
+        Cancelar
+      </button>
+      <button id="saveBtn" style="
+        background:#3b82f6;
+        border:none;
+        color:#fff;
+        border-radius:8px;
+        padding:12px 24px;
+        cursor:pointer;
+        font-size:15px;
+        font-weight:600;
+      ">
+        Salvar
+      </button>
+    </div>
+  `;
+
+  overlay.appendChild(modal);
+  document.body.appendChild(overlay);
+
+  document.getElementById('cancelBtn').onclick = () => {
+    overlay.remove();
+  };
+
+  document.getElementById('saveBtn').onclick = async () => {
+    const name = document.getElementById('editName').value.trim();
+    const description = document.getElementById('editDesc').value.trim();
+    const price = parseFloat(document.getElementById('editPrice').value);
+
+    if (!name || !price || price <= 0) {
+      showToast('Preencha todos os campos corretamente!', 'error');
+      return;
+    }
+
+    try {
+      await firebase.database().ref('products/' + editingProductId).update({
+        name,
+        description,
+        price
+      });
+
+      showToast('Produto atualizado com sucesso!', 'success');
+      overlay.remove();
+    } catch (err) {
+      console.error('Erro ao atualizar produto:', err);
+      showToast('Erro ao atualizar produto', 'error');
+    }
+  };
+
+  overlay.onclick = (e) => {
+    if (e.target === overlay) {
+      overlay.remove();
+    }
+  };
+}
+
+// ===========================
+// DELETAR PRODUTO
+// ===========================
+async function deleteProduct(productId) {
+  if (!productId) return;
+
+  const overlay = document.createElement('div');
+  overlay.style.cssText = `
+    position:fixed;
+    top:0;
+    left:0;
+    width:100%;
+    height:100%;
+    background:rgba(0,0,0,0.8);
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    z-index:99999;
+  `;
+
+  const modal = document.createElement('div');
+  modal.style.cssText = `
+    background:#1a1a1a;
+    border:2px solid #ef4444;
+    border-radius:16px;
+    padding:30px;
+    width:90%;
+    max-width:400px;
+    box-shadow:0 10px 40px rgba(0,0,0,0.8);
+  `;
+
+  modal.innerHTML = `
+    <h2 style="color:#ef4444; font-size:22px; margin:0 0 16px 0;">
+      <i class="fas fa-exclamation-triangle"></i> Confirmar Exclusão
+    </h2>
+    <p style="color:#f1f1f1; margin:0 0 24px 0; line-height:1.6;">
+      Deseja realmente excluir este produto? Esta ação não pode ser desfeita.
+    </p>
+    <div style="display:flex; gap:12px; justify-content:flex-end;">
+      <button id="cancelDeleteBtn" style="
+        background:#1f1f1f;
+        border:1px solid #333;
+        color:#f1f1f1;
+        border-radius:8px;
+        padding:12px 24px;
+        cursor:pointer;
+        font-size:15px;
+        font-weight:600;
+      ">
+        Cancelar
+      </button>
+      <button id="confirmDeleteBtn" style="
+        background:#ef4444;
+        border:none;
+        color:#fff;
+        border-radius:8px;
+        padding:12px 24px;
+        cursor:pointer;
+        font-size:15px;
+        font-weight:600;
+      ">
+        Excluir
+      </button>
+    </div>
+  `;
+
+  overlay.appendChild(modal);
+  document.body.appendChild(overlay);
+
+  document.getElementById('cancelDeleteBtn').onclick = () => {
+    overlay.remove();
+  };
+
+  document.getElementById('confirmDeleteBtn').onclick = async () => {
+    try {
+      await firebase.database().ref('products/' + productId).remove();
+
+      products = products.filter(p => p.id !== productId);
+
+      renderProducts();
+      populateOSProductSelect();
+
+      showToast('Produto removido com sucesso!', 'success');
+      overlay.remove();
+    } catch (err) {
+      console.error('Erro ao excluir produto:', err);
+      showToast('Erro ao excluir produto', 'error');
+    }
+  };
+
+  overlay.onclick = (e) => {
+    if (e.target === overlay) {
+      overlay.remove();
+    }
+  };
+}
+
+// ===========================
+// POPULAR SELECT DA OS
+// ===========================
 function populateOSProductSelect() {
   const select = document.getElementById('osProductSelect');
   if (!select) return;
 
   select.innerHTML = '<option value="">Selecione um produto</option>';
 
-  products.forEach(prod => {
+  const availableProducts = products.filter(p => (p.quantity || 0) > 0);
+
+  availableProducts.forEach(prod => {
     const opt = document.createElement('option');
     opt.value = prod.id;
-    opt.textContent = `${prod.name} - R$ ${prod.price.toFixed(2)}`;
+    opt.textContent = `${prod.name} - R$ ${prod.price.toFixed(2)} (Estoque: ${prod.quantity})`;
     select.appendChild(opt);
   });
 }
 
-/* ============================= */
-/* ADICIONAR PRODUTO À OS */
-/* ============================= */
-
+// ===========================
+// ADICIONAR PRODUTO À OS
+// ===========================
 document.addEventListener('click', function (e) {
   if (e.target && (e.target.id === 'addProductToOSBtn' || e.target.closest('#addProductToOSBtn'))) {
     abrirModalSelecionarProdutoOS();
   }
 });
+
 function abrirModalSelecionarProdutoOS() {
   const modalHtml = `
     <div id="selectProductOSModal" style="
@@ -5945,56 +9484,26 @@ function abrirModalSelecionarProdutoOS() {
       z-index: 9999;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       padding: 20px;
-      backdrop-filter: blur(4px);
     ">
       <div style="
-        background: linear-gradient(145deg, #1f1f1f 0%, #1a1a1a 100%);
+        background: #1f1f1f;
         border: 2px solid #10b981;
         border-radius: 16px;
         width: 100%;
         max-width: 520px;
         max-height: 85vh;
         color: #f5f5f5;
-        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8), 0 0 40px rgba(16, 185, 129, 0.1);
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
         display: flex;
         flex-direction: column;
-        animation: slideIn 0.3s ease-out;
       ">
-        <style>
-          @keyframes slideIn {
-            from {
-              opacity: 0;
-              transform: translateY(-20px) scale(0.95);
-            }
-            to {
-              opacity: 1;
-              transform: translateY(0) scale(1);
-            }
-          }
-          #productOSModalList::-webkit-scrollbar {
-            width: 8px;
-          }
-          #productOSModalList::-webkit-scrollbar-track {
-            background: #0d0d0d;
-            border-radius: 10px;
-          }
-          #productOSModalList::-webkit-scrollbar-thumb {
-            background: #10b981;
-            border-radius: 10px;
-          }
-          #productOSModalList::-webkit-scrollbar-thumb:hover {
-            background: #0d9668;
-          }
-        </style>
-
-        <!-- Header -->
         <div style="
           display: flex;
           justify-content: space-between;
           align-items: center;
           padding: 20px 22px;
           border-bottom: 2px solid #10b981;
-          background: linear-gradient(135deg, #2a2a2a 0%, #1f1f1f 100%);
+          background: #2a2a2a;
           border-radius: 14px 14px 0 0;
           flex-shrink: 0;
         ">
@@ -6006,9 +9515,8 @@ function abrirModalSelecionarProdutoOS() {
             display: flex;
             align-items: center;
             gap: 12px;
-            letter-spacing: 0.3px;
           ">
-            <i class="fas fa-search" style="font-size: 1.1rem;"></i>
+            <i class="fas fa-search"></i>
             Selecionar Produto
           </h3>
           <button onclick="fecharModalSelecionarProdutoOS()" style="
@@ -6017,19 +9525,17 @@ function abrirModalSelecionarProdutoOS() {
             color: #ef4444;
             font-size: 1.2rem;
             cursor: pointer;
-            transition: all 0.3s ease;
             width: 36px;
             height: 36px;
             display: flex;
             align-items: center;
             justify-content: center;
             border-radius: 8px;
-          " onmouseover="this.style.background='rgba(239, 68, 68, 0.2)'; this.style.borderColor='#ef4444'" onmouseout="this.style.background='rgba(239, 68, 68, 0.1)'; this.style.borderColor='rgba(239, 68, 68, 0.3)'">
+          ">
             <i class="fas fa-times"></i>
           </button>
         </div>
 
-        <!-- Campo de Busca -->
         <div style="padding: 20px 22px; border-bottom: 1px solid #2a2a2a; flex-shrink: 0; background: #1a1a1a;">
           <div style="position: relative;">
             <input type="text" id="searchProductOSInput" placeholder="Digite para buscar produtos..." style="
@@ -6040,10 +9546,9 @@ function abrirModalSelecionarProdutoOS() {
               border-radius: 10px;
               color: #fff;
               font-size: 0.95rem;
-              transition: all 0.3s ease;
               box-sizing: border-box;
               font-weight: 500;
-            " onfocus="this.style.borderColor='#10b981'; this.style.boxShadow='0 0 0 3px rgba(16, 185, 129, 0.1)'" onblur="this.style.borderColor='#333'; this.style.boxShadow='none'" oninput="filtrarProdutosOSModal()">
+            " oninput="filtrarProdutosOSModal()">
             <i class="fas fa-search" style="
               position: absolute;
               left: 16px;
@@ -6055,14 +9560,12 @@ function abrirModalSelecionarProdutoOS() {
           </div>
         </div>
 
-        <!-- Lista de Produtos -->
         <div id="productOSModalList" style="
           flex: 1;
           overflow-y: auto;
           padding: 16px 22px;
           background: #1a1a1a;
         ">
-          <!-- Produtos serão inseridos aqui -->
         </div>
 
       </div>
@@ -6072,12 +9575,12 @@ function abrirModalSelecionarProdutoOS() {
   document.body.insertAdjacentHTML('beforeend', modalHtml);
   renderizarListaProdutosOSModal();
 }
+
 function filtrarProdutosOSModal() {
   const input = document.getElementById('searchProductOSInput');
   if (!input) return;
   renderizarListaProdutosOSModal(input.value);
 }
-
 
 function fecharModalSelecionarProdutoOS() {
   const modal = document.getElementById('selectProductOSModal');
@@ -6089,10 +9592,14 @@ function renderizarListaProdutosOSModal(filtro = '') {
   if (!container) return;
 
   const filtroLower = filtro.toLowerCase();
-  const produtosFiltrados = products.filter(p => 
-    p.name.toLowerCase().includes(filtroLower) || 
-    (p.description && p.description.toLowerCase().includes(filtroLower))
-  );
+  
+  const produtosFiltrados = products.filter(p => {
+    const hasStock = (p.quantity || 0) > 0;
+    const matchesFilter = p.name.toLowerCase().includes(filtroLower) ||
+      (p.description && p.description.toLowerCase().includes(filtroLower));
+    
+    return hasStock && matchesFilter;
+  });
 
   if (produtosFiltrados.length === 0) {
     container.innerHTML = `
@@ -6102,35 +9609,26 @@ function renderizarListaProdutosOSModal(filtro = '') {
         color: #666;
       ">
         <i class="fas fa-box-open" style="font-size: 4rem; margin-bottom: 16px; color: #10b981; opacity: 0.3;"></i>
-        <p style="margin: 0; font-size: 15px; font-weight: 500;">Nenhum produto encontrado</p>
-        <p style="margin: 8px 0 0 0; font-size: 13px; color: #555;">Tente buscar com outros termos</p>
+        <p style="margin: 0; font-size: 15px; font-weight: 500;">Nenhum produto disponível</p>
+        <p style="margin: 8px 0 0 0; font-size: 13px; color: #555;">Todos os produtos estão sem estoque ou não correspondem à busca</p>
       </div>
     `;
     return;
   }
 
-  container.innerHTML = produtosFiltrados.map(prod => `
-    <div onclick="selecionarProdutoOSModal(${prod.id})" style="
-      background: linear-gradient(135deg, #0d0d0d 0%, #121212 100%);
+  container.innerHTML = produtosFiltrados.map(prod => {
+    const stockQuantity = prod.quantity || 0;
+    
+    return `
+    <div style="
+      background: #0d0d0d;
       border: 2px solid #2a2a2a;
       border-radius: 12px;
       padding: 16px;
       margin-bottom: 12px;
-      cursor: pointer;
-      transition: all 0.3s ease;
       position: relative;
       overflow: hidden;
-    " onmouseover="this.style.background='linear-gradient(135deg, #1a1a1a 0%, #1f1f1f 100%)'; this.style.borderColor='#10b981'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 20px rgba(16, 185, 129, 0.2)'" onmouseout="this.style.background='linear-gradient(135deg, #0d0d0d 0%, #121212 100%)'; this.style.borderColor='#2a2a2a'; this.style.transform='translateY(0)'; this.style.boxShadow='none'">
-      
-      <div style="
-        position: absolute;
-        top: 0;
-        right: 0;
-        width: 60px;
-        height: 60px;
-        background: radial-gradient(circle, rgba(16, 185, 129, 0.1) 0%, transparent 70%);
-        border-radius: 0 0 0 100%;
-      "></div>
+    ">
 
       <div style="
         display: flex;
@@ -6143,13 +9641,11 @@ function renderizarListaProdutosOSModal(filtro = '') {
           height: 8px;
           background: #10b981;
           border-radius: 50%;
-          box-shadow: 0 0 8px rgba(16, 185, 129, 0.6);
         "></div>
         <div style="
           color: #fff;
           font-weight: 700;
           font-size: 16px;
-          letter-spacing: 0.3px;
         ">
           ${escapeHtml(prod.name)}
         </div>
@@ -6170,63 +9666,154 @@ function renderizarListaProdutosOSModal(filtro = '') {
         justify-content: space-between;
         align-items: center;
         padding-left: 18px;
+        gap: 12px;
       ">
-        <div style="
-          color: #4ade80;
-          font-weight: 800;
-          font-size: 18px;
-          text-shadow: 0 0 10px rgba(74, 222, 128, 0.3);
-        ">
-          R$ ${prod.price.toFixed(2)}
+        <div style="display: flex; flex-direction: column; gap: 6px;">
+          <div style="
+            color: #4ade80;
+            font-weight: 800;
+            font-size: 18px;
+          ">
+            R$ ${prod.price.toFixed(2)}
+          </div>
+          <div style="
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            border-radius: 6px;
+            padding: 4px 8px;
+            color: #10b981;
+            font-size: 11px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+          ">
+            <i class="fas fa-boxes" style="font-size: 10px;"></i>
+            Estoque: ${stockQuantity}
+          </div>
         </div>
-        <div style="
-          background: rgba(16, 185, 129, 0.15);
-          color: #10b981;
-          padding: 6px 14px;
-          border-radius: 20px;
-          font-size: 12px;
-          font-weight: 600;
-          border: 1px solid rgba(16, 185, 129, 0.3);
-        ">
-          <i class="fas fa-plus" style="margin-right: 4px;"></i>
-          Adicionar
+        
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <div style="display: flex; align-items: center; gap: 6px; background: #0d0d0d; border: 2px solid #333; border-radius: 8px; padding: 4px;">
+            <button onclick="event.stopPropagation(); alterarQuantidadeModal(${prod.id}, -1)" style="
+              background: rgba(239, 68, 68, 0.1);
+              border: 1px solid rgba(239, 68, 68, 0.3);
+              color: #ef4444;
+              width: 28px;
+              height: 28px;
+              border-radius: 6px;
+              cursor: pointer;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              font-weight: 700;
+            ">
+              <i class="fas fa-minus" style="font-size: 11px;"></i>
+            </button>
+            
+            <input type="text" id="qty_${prod.id}" value="1" readonly style="
+              width: 50px;
+              background: transparent;
+              border: none;
+              color: #fff;
+              text-align: center;
+              font-size: 14px;
+              font-weight: 700;
+              outline: none;
+              cursor: default;
+            " onclick="event.stopPropagation()">
+            
+            <button onclick="event.stopPropagation(); alterarQuantidadeModal(${prod.id}, 1, ${stockQuantity})" style="
+              background: rgba(16, 185, 129, 0.15);
+              border: 1px solid rgba(16, 185, 129, 0.3);
+              color: #10b981;
+              width: 28px;
+              height: 28px;
+              border-radius: 6px;
+              cursor: pointer;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              font-weight: 700;
+            ">
+              <i class="fas fa-plus" style="font-size: 11px;"></i>
+            </button>
+          </div>
+          
+          <button onclick="event.stopPropagation(); selecionarProdutoOSModal(${prod.id})" style="
+            background: rgba(16, 185, 129, 0.15);
+            color: #10b981;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+          ">
+            <i class="fas fa-plus"></i>
+            Adicionar
+          </button>
         </div>
       </div>
 
     </div>
-  `).join('');
+  `;
+  }).join('');
 }
+
+function alterarQuantidadeModal(productId, delta, maxStock) {
+  const input = document.getElementById(`qty_${productId}`);
+  if (!input) return;
+
+  let currentValue = parseInt(input.value) || 1;
+  let newValue = currentValue + delta;
+
+  if (newValue < 1) newValue = 1;
+  
+  if (maxStock && newValue > maxStock) {
+    showToast('Quantidade maior que o estoque disponível!', 'error');
+    newValue = maxStock;
+  }
+
+  input.value = newValue;
+}
+
 function selecionarProdutoOSModal(productId) {
   const produto = products.find(p => p.id === productId);
   if (!produto) return;
 
-  const qtdInput = document.getElementById('osProductQty');
-  const qty = parseInt(qtdInput?.value) || 1;
-  
+  const qtyInput = document.getElementById(`qty_${productId}`);
+  const qty = parseInt(qtyInput?.value) || 1;
+
   if (qty <= 0) {
     showToast('Quantidade inválida', 'error');
     return;
   }
-  
-  osSelectedProducts.push({ 
-    id: produto.id, 
-    name: produto.name, 
+
+  const stockAvailable = produto.quantity || 0;
+  if (qty > stockAvailable) {
+    showToast('Quantidade maior que o estoque disponível!', 'error');
+    return;
+  }
+
+  osSelectedProducts.push({
+    id: produto.id,
+    name: produto.name,
     qty: qty,
-    price: produto.price 
+    price: produto.price
   });
-  
-  if (qtdInput) qtdInput.value = '1';
-  
+
   renderOSProducts();
   fecharModalSelecionarProdutoOS();
-  showToast(`${produto.name} adicionado com sucesso!`, 'success');
+  showToast(`${produto.name} (${qty}x) adicionado com sucesso!`, 'success');
 }
 
-
-/* ============================= */
-/* RENDER PRODUTOS DA OS */
-/* ============================= */
-
+// ===========================
+// RENDER PRODUTOS DA OS
+// ===========================
 function renderOSProducts() {
   const list = document.getElementById('osProductsList');
   if (!list) return;
@@ -6254,22 +9841,12 @@ function renderOSProducts() {
       display:flex;
       justify-content:space-between;
       align-items:center;
-      background: linear-gradient(135deg, #2a2a2a 0%, #242424 100%);
+      background: #2a2a2a;
       border:2px solid #333;
       border-radius:10px;
       padding:14px 16px;
       margin-bottom:10px;
-      transition: all 0.3s ease;
     `;
-
-    item.onmouseover = function() {
-      this.style.borderColor = '#10b981';
-      this.style.transform = 'translateX(4px)';
-    };
-    item.onmouseout = function() {
-      this.style.borderColor = '#333';
-      this.style.transform = 'translateX(0)';
-    };
 
     item.innerHTML = `
       <div style="flex: 1;">
@@ -6310,10 +9887,7 @@ function renderOSProducts() {
           display: flex;
           align-items: center;
           justify-content: center;
-          transition: all 0.3s ease;
         "
-        onmouseover="this.style.background='rgba(239, 68, 68, 0.2)'; this.style.borderColor='#ef4444'; this.style.transform='scale(1.1)'"
-        onmouseout="this.style.background='rgba(239, 68, 68, 0.1)'; this.style.borderColor='rgba(239, 68, 68, 0.3)'; this.style.transform='scale(1)'"
         title="Remover produto"
       >
         <i class="fas fa-trash-alt"></i>
@@ -6326,11 +9900,9 @@ function renderOSProducts() {
   updateOSProductTotals();
 }
 
-
-/* ============================= */
-/* REMOVER PRODUTO DA OS */
-/* ============================= */
-
+// ===========================
+// REMOVER PRODUTO DA OS
+// ===========================
 function removeProductFromOS(id) {
   const produtoRemovido = osSelectedProducts.find(p => p.id === id);
   osSelectedProducts = osSelectedProducts.filter(p => p.id !== id);
@@ -6340,8 +9912,7 @@ function removeProductFromOS(id) {
   }
 }
 
-
-document.addEventListener('click', function(e) {
+document.addEventListener('click', function (e) {
   const btn = e.target.closest('[data-remove-os-product]');
   if (btn) {
     const productId = parseInt(btn.getAttribute('data-remove-os-product'));
@@ -6349,10 +9920,9 @@ document.addEventListener('click', function(e) {
   }
 });
 
-/* ============================= */
-/* CALCULAR TOTAIS + LUCRO */
-/* ============================= */
-
+// ===========================
+// CALCULAR TOTAIS + LUCRO
+// ===========================
 function updateOSProductTotals() {
   const subtotal = osSelectedProducts.reduce((acc, p) => {
     return acc + (Number(p.price) * Number(p.qty));
@@ -6374,18 +9944,56 @@ function updateOSProductTotals() {
   if (totalEl) totalEl.textContent = `R$ ${totalFinal.toFixed(2)}`;
 }
 
-
-
-/* ============================= */
-/* LISTENER LUCRO (%) */
-/* ============================= */
-
-document.addEventListener('input', function(e) {
+// ===========================
+// LISTENER LUCRO (%)
+// ===========================
+document.addEventListener('input', function (e) {
   if (e.target && e.target.id === 'profitPercent') {
     updateOSProductTotals();
   }
 });
 
+// ===========================
+// FINALIZAR OS - BAIXA NO ESTOQUE
+// ===========================
+async function finalizarOS() {
+  if (osSelectedProducts.length === 0) {
+    showToast('Adicione produtos à OS antes de finalizar', 'error');
+    return;
+  }
+
+  try {
+    for (const osProd of osSelectedProducts) {
+      const product = products.find(p => p.id === osProd.id);
+      if (!product) continue;
+
+      const currentStock = product.quantity || 0;
+      const newStock = currentStock - osProd.qty;
+
+      if (newStock < 0) {
+        showToast(`Estoque insuficiente para ${product.name}`, 'error');
+        return;
+      }
+
+      await firebase.database().ref('products/' + osProd.id).update({
+        quantity: newStock
+      });
+    }
+
+    osSelectedProducts = [];
+    renderOSProducts();
+    
+    showToast('OS finalizada com sucesso! Estoque atualizado.', 'success');
+
+  } catch (err) {
+    console.error('Erro ao finalizar OS:', err);
+    showToast('Erro ao finalizar OS', 'error');
+  }
+}
+
+// ===========================
+// UTILS
+// ===========================
 function escapeHtml(text) {
   if (!text) return '';
   const div = document.createElement('div');
@@ -6393,15 +10001,76 @@ function escapeHtml(text) {
   return div.innerHTML;
 }
 
+function showToast(message, type = 'info') {
+  const toast = document.createElement('div');
+  
+  const colors = {
+    success: '#10b981',
+    error: '#B32117',
+    info: '#D4C29A'
+  };
+  
+  const icons = {
+    success: 'fa-check-circle',
+    error: 'fa-times-circle',
+    info: 'fa-info-circle'
+  };
 
-/* ============================= */
-/* INICIALIZA PRODUTOS */
-/* ============================= */
+  toast.style.cssText = `
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: #1a1a1a;
+    border: 2px solid ${colors[type]};
+    color: #F5F5F5;
+    padding: 16px 20px;
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    z-index: 999999;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    max-width: 400px;
+    animation: slideInToast 0.3s ease-out;
+  `;
 
-document.addEventListener('DOMContentLoaded', () => {
-  loadProducts();
-});
-/* Abrir modal de produto */
+  toast.innerHTML = `
+    <i class="fas ${icons[type]}" style="color: ${colors[type]}; font-size: 20px;"></i>
+    <span style="font-weight: 500; font-size: 14px; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;">${message}</span>
+  `;
+
+  document.body.appendChild(toast);
+
+  setTimeout(() => {
+    toast.style.animation = 'slideOutToast 0.3s ease-in';
+    setTimeout(() => toast.remove(), 300);
+  }, 3000);
+}
+
+
+// ===========================
+// BUSCA DE PRODUTOS
+// ===========================
+const searchInput = document.getElementById('productSearch');
+
+if (searchInput) {
+  searchInput.addEventListener('input', () => {
+    const search = searchInput.value.toLowerCase().trim();
+    const list = document.getElementById('productsList');
+    if (!list) return;
+
+    const items = list.children;
+
+    Array.from(items).forEach(item => {
+      const text = item.innerText.toLowerCase();
+      item.style.display = text.includes(search) ? '' : 'none';
+    });
+  });
+}
+
+// ===========================
+// MODAL DE PRODUTO
+// ===========================
 function openProductModal() {
   const modal = document.getElementById('productModal');
   if (modal) {
@@ -6409,13 +10078,40 @@ function openProductModal() {
   }
 }
 
-/* Fechar modal de produto */
 function closeProductModal() {
   const modal = document.getElementById('productModal');
   if (modal) {
     modal.classList.remove('active');
   }
 }
+
+// ===========================
+// VIEW MODE (LIST/CARD)
+// ===========================
+function toggleView(viewMode) {
+  const buttons = document.querySelectorAll('.view-btn');
+  buttons.forEach(btn => {
+    btn.classList.remove('active');
+    if (btn.dataset.view === viewMode) {
+      btn.classList.add('active');
+    }
+  });
+
+  const ordersList = document.getElementById('ordersList');
+  if (ordersList) {
+    if (viewMode === 'list') {
+      ordersList.classList.add('list-view');
+    } else {
+      ordersList.classList.remove('list-view');
+    }
+  }
+
+  localStorage.setItem('ordersViewMode', viewMode);
+}
+
+// ===========================
+// EXTINTORES
+// ===========================
 document.getElementById('addExtintorBtn')?.addEventListener('click', () => {
   const section = document.getElementById('extintoresSection');
   const items = section.querySelectorAll('.extintor-item');
@@ -6433,49 +10129,15 @@ document.getElementById('addExtintorBtn')?.addEventListener('click', () => {
 
   section.insertBefore(clone, document.getElementById('addExtintorBtn'));
 });
-// Função para alternar entre Card e Lista
-function toggleView(viewMode) {
-  const buttons = document.querySelectorAll('.view-btn');
-  buttons.forEach(btn => {
-    btn.classList.remove('active');
-    if (btn.dataset.view === viewMode) {
-      btn.classList.add('active');
-    }
-  });
 
-  const ordersList = document.getElementById('ordersList');
-  if (viewMode === 'list') {
-    ordersList.classList.add('list-view');
-  } else {
-    ordersList.classList.remove('list-view');
-  }
-
-  // Salva preferência no localStorage
-  localStorage.setItem('ordersViewMode', viewMode);
-}
-
-// Carregar preferência salva ao iniciar (cole no final do seu código de inicialização)
-window.addEventListener('DOMContentLoaded', () => {
+// ===========================
+// INICIALIZAÇÃO
+// ===========================
+document.addEventListener('DOMContentLoaded', () => {
+  loadProducts();
+  
   const savedView = localStorage.getItem('ordersViewMode') || 'card';
   toggleView(savedView);
-});
-
-const searchInput = document.getElementById('productSearch');
-
-searchInput.addEventListener('input', () => {
-  const search = searchInput.value.toLowerCase().trim();
-
-  // 👉 pega TODOS os filhos diretos da lista
-  const list = document.getElementById('productsList');
-  if (!list) return;
-
-  const items = list.children;
-
-  Array.from(items).forEach(item => {
-    const text = item.innerText.toLowerCase();
-
-    item.style.display = text.includes(search) ? '' : 'none';
-  });
 });
 
 // ========================================
@@ -6490,8 +10152,6 @@ let paginaAtual = 1;
 let itensPorPagina = 10;
 let empresasExpandidas = new Set();
 let inspecoesExpandidas = new Set();
-
-
 
 // ========================================
 // CRIAR MODAL DE EDIÇÃO
@@ -6743,10 +10403,6 @@ async function buscarAlertasVencimento() {
     showToast('Erro ao sincronizar alertas', 'error');
   });
 }
-
-
-
-
 
 // Função auxiliar para manter o código principal limpo
 function formatarTipoCampo(campo, inspecao) {
@@ -7441,9 +11097,6 @@ function formatarDataHora() {
   return `${agora.toLocaleDateString('pt-BR')} às ${agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
 }
 
-
-
-
 // ========================================
 // PAGINAÇÃO
 // ========================================
@@ -7686,7 +11339,6 @@ function toggleAlertsList() {
   });
 })();
 
-
 let allCompanies = [];
 
 // Carregar empresas e prédios do Firebase
@@ -7778,9 +11430,6 @@ function populateClientSelect() {
 
 }
 
-
-
-
 // Preencher campos automaticamente quando selecionar um cliente
 document.addEventListener('DOMContentLoaded', function () {
   const clienteSelect = document.getElementById('clienteSelect');
@@ -7839,9 +11488,6 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 });
-
-
-
 
 // JavaScript para troca de sub-abas dentro do modal
 function switchSubTab(tabName) {
@@ -7916,6 +11562,7 @@ if (!document.getElementById('subTabStyles')) {
 }
 // ========================================
 // CALENDÁRIO DE INSPEÇÕES - JAVASCRIPT COMPLETO
+// Design Mobile Otimizado + Modal Compacto
 // ========================================
 
 // Variáveis Globais
@@ -7941,9 +11588,9 @@ async function carregarInspecoesAgendadas() {
   try {
     const snapshot = await database.ref('scheduled_inspections').once('value');
     const data = snapshot.val();
-    
+
     calendarInspections = [];
-    
+
     if (data) {
       Object.keys(data).forEach(key => {
         calendarInspections.push({
@@ -7952,7 +11599,7 @@ async function carregarInspecoesAgendadas() {
         });
       });
     }
-    
+
   } catch (error) {
     console.error('Erro ao carregar inspeções:', error);
     showToast('Erro ao carregar inspeções agendadas', 'error');
@@ -7963,26 +11610,25 @@ async function carregarInspecoesAgendadas() {
 // RENDERIZAÇÃO DO CALENDÁRIO
 // ========================================
 
-
 function renderCalendar() {
   const year = currentCalendarDate.getFullYear();
   const month = currentCalendarDate.getMonth();
-  
+
   // Atualizar título
   const monthNames = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
     'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
-  
+
   const monthTitleElement = document.getElementById('currentMonthTitle');
   if (monthTitleElement) {
     monthTitleElement.textContent = `${monthNames[month]} ${year}`;
   }
-  
+
   // Limpar grid
   const grid = document.getElementById('calendarGrid');
   if (!grid) return;
-  
+
   grid.innerHTML = '';
-  
+
   // Adicionar cabeçalhos dos dias da semana
   const dayHeaders = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
   dayHeaders.forEach(day => {
@@ -7991,42 +11637,42 @@ function renderCalendar() {
     header.textContent = day;
     grid.appendChild(header);
   });
-  
+
   // Primeiro dia do mês
   const firstDay = new Date(year, month, 1).getDay();
-  
+
   // Último dia do mês
   const lastDate = new Date(year, month + 1, 0).getDate();
-  
+
   // Último dia do mês anterior
   const prevMonthDate = new Date(year, month, 0);
   const prevLastDate = prevMonthDate.getDate();
   const prevMonth = prevMonthDate.getMonth();
   const prevYear = prevMonthDate.getFullYear();
-  
+
   // Próximo mês
   const nextMonthDate = new Date(year, month + 1, 1);
   const nextMonth = nextMonthDate.getMonth();
   const nextYear = nextMonthDate.getFullYear();
-  
+
   // Hoje
   const today = new Date();
   const isCurrentMonth = today.getMonth() === month && today.getFullYear() === year;
   const todayDate = today.getDate();
-  
+
   // Dias do mês anterior
   for (let i = firstDay - 1; i >= 0; i--) {
     const dayDiv = createDayElement(prevLastDate - i, prevMonth, prevYear, true);
     grid.appendChild(dayDiv);
   }
-  
+
   // Dias do mês atual
   for (let day = 1; day <= lastDate; day++) {
     const isToday = isCurrentMonth && day === todayDate;
     const dayDiv = createDayElement(day, month, year, false, isToday);
     grid.appendChild(dayDiv);
   }
-  
+
   // Dias do próximo mês
   const remainingCells = 42 - (firstDay + lastDate);
   for (let day = 1; day <= remainingCells; day++) {
@@ -8039,151 +11685,440 @@ function createDayElement(day, month, year, isOtherMonth = false, isToday = fals
   const dayDiv = document.createElement('div');
   dayDiv.className = 'calendar-day';
   
-  if (isOtherMonth) {
-    dayDiv.classList.add('other-month');
-  }
+  const isMobile = window.innerWidth < 768;
   
-  if (isToday) {
-    dayDiv.classList.add('today');
-  }
-  
-  // Data completa (mês e ano já vêm ajustados)
-  const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-  
-  // Filtrar inspeções deste dia (proteção contra array undefined)
-  const dayInspections = (calendarInspections || []).filter(insp => insp.date === dateStr);
-  
-  if (dayInspections.length > 0) {
-    dayDiv.classList.add('has-inspections');
-  }
-  
-  // Número do dia
-  const dayNumber = document.createElement('div');
-  dayNumber.className = 'calendar-day-number';
-  dayNumber.textContent = day;
-  dayDiv.appendChild(dayNumber);
-  
-  // Container de inspeções
-  const inspectionsContainer = document.createElement('div');
-  inspectionsContainer.className = 'calendar-inspections';
-  
-  dayInspections.forEach(inspection => {
-    const tag = document.createElement('div');
-    tag.className = 'calendar-inspection-tag';
-    tag.innerHTML = `
-      <span class="calendar-inspection-time">${inspection.time || ''}</span>
-      <span>${inspection.clientName || 'Sem nome'}</span>
-    `;
-    tag.onclick = (e) => {
-      e.stopPropagation();
-      if (typeof abrirDetalhesInspecao === 'function') {
-        abrirDetalhesInspecao(inspection);
-      }
-    };
-    inspectionsContainer.appendChild(tag);
+  // Estilos base do dia - MOBILE OTIMIZADO
+  Object.assign(dayDiv.style, {
+    background: '#2a2a2a',
+    border: '1px solid #404040',
+    borderRadius: isMobile ? '6px' : '8px',
+    padding: isMobile ? '6px' : '15px',
+    minHeight: isMobile ? '65px' : '110px',
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'space-between',
+    alignItems: 'stretch',
+    gap: isMobile ? '3px' : '10px',
+    position: 'relative',
+    cursor: 'pointer',
+    transition: 'all 0.2s ease'
   });
-  
-  dayDiv.appendChild(inspectionsContainer);
-  
-  // Botão de adicionar inspeção
+
+  if (isOtherMonth) {
+    dayDiv.style.opacity = '0.3';
+    dayDiv.style.pointerEvents = 'none';
+  }
+
+  if (isToday) {
+    dayDiv.style.border = isMobile ? '1.5px solid #D4C29A' : '2px solid #D4C29A';
+    dayDiv.style.background = 'linear-gradient(135deg, #2a2a2a 0%, #3a3a2a 100%)';
+  }
+
+  // Hover effect (só desktop)
+  if (!isOtherMonth && !isMobile) {
+    dayDiv.addEventListener('mouseenter', () => {
+      dayDiv.style.borderColor = '#D4C29A';
+      dayDiv.style.boxShadow = '0 4px 12px rgba(212, 194, 154, 0.2)';
+      dayDiv.style.transform = 'translateY(-2px)';
+    });
+
+    dayDiv.addEventListener('mouseleave', () => {
+      if (!isToday) {
+        dayDiv.style.borderColor = '#404040';
+      }
+      dayDiv.style.boxShadow = 'none';
+      dayDiv.style.transform = 'translateY(0)';
+    });
+  }
+
+  const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+
+  // Filtrar e ordenar inspeções por horário
+  const dayInspections = (calendarInspections || []).filter(insp => insp.date === dateStr);
+  dayInspections.sort((a, b) => {
+    const timeA = a.time || '00:00';
+    const timeB = b.time || '00:00';
+    return timeA.localeCompare(timeB);
+  });
+
+  if (dayInspections.length > 0) {
+    dayDiv.style.background = 'linear-gradient(135deg, #2a2a2a 0%, #2a3a2a 100%)';
+  }
+
+  // ====================================
+  // LAYOUT MOBILE: Mais compacto
+  // ====================================
+  const topSection = document.createElement('div');
+  Object.assign(topSection.style, {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    flexShrink: '0'
+  });
+
+  const dayNumber = document.createElement('div');
+  dayNumber.textContent = day;
+  Object.assign(dayNumber.style, {
+    fontSize: isMobile ? '0.95rem' : '1.5rem',
+    fontWeight: '700',
+    color: '#D4C29A',
+    lineHeight: '1'
+  });
+
+  topSection.appendChild(dayNumber);
+
+  // Badge contador (se houver inspeções)
+  if (dayInspections.length > 0) {
+    const badge = document.createElement('div');
+    badge.textContent = dayInspections.length;
+    Object.assign(badge.style, {
+      background: '#D4C29A',
+      color: '#1a1a1a',
+      fontSize: isMobile ? '0.65rem' : '0.8rem',
+      fontWeight: '700',
+      padding: isMobile ? '2px 6px' : '5px 12px',
+      borderRadius: isMobile ? '8px' : '12px',
+      minWidth: isMobile ? '18px' : '30px',
+      textAlign: 'center',
+      boxShadow: '0 2px 6px rgba(212, 194, 154, 0.3)',
+      lineHeight: '1.2'
+    });
+    topSection.appendChild(badge);
+  }
+
+  dayDiv.appendChild(topSection);
+
+  // ====================================
+  // CENTRO: Ícone (só se tiver inspeções)
+  // ====================================
+  if (dayInspections.length > 0) {
+    const centerSection = document.createElement('div');
+    Object.assign(centerSection.style, {
+      flex: '1',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      minHeight: '0'
+    });
+
+    const icon = document.createElement('div');
+    icon.innerHTML = '<i class="fas fa-calendar-check"></i>';
+    Object.assign(icon.style, {
+      fontSize: isMobile ? '1rem' : '1.8rem',
+      color: '#D4C29A',
+      opacity: '0.6'
+    });
+    centerSection.appendChild(icon);
+
+    dayDiv.appendChild(centerSection);
+  }
+
+  // ====================================
+  // RODAPÉ: Botão + (mais compacto no mobile)
+  // ====================================
   if (!isOtherMonth) {
     const addBtn = document.createElement('button');
-    addBtn.className = 'calendar-add-btn';
-    addBtn.innerHTML = '<i class="fas fa-plus"></i> <span>Agendar</span>';
+    addBtn.innerHTML = '<i class="fas fa-plus"></i>';
+    addBtn.title = 'Agendar';
+    Object.assign(addBtn.style, {
+      background: 'rgba(212, 194, 154, 0.1)',
+      border: '1px dashed #D4C29A',
+      color: '#D4C29A',
+      padding: isMobile ? '4px' : '8px',
+      borderRadius: isMobile ? '4px' : '6px',
+      fontSize: isMobile ? '0.7rem' : '0.8rem',
+      cursor: 'pointer',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      transition: 'all 0.2s ease',
+      flexShrink: '0',
+      minHeight: isMobile ? '22px' : 'auto'
+    });
+
+    if (!isMobile) {
+      addBtn.addEventListener('mouseenter', () => {
+        addBtn.style.background = 'rgba(212, 194, 154, 0.2)';
+        addBtn.style.borderStyle = 'solid';
+      });
+
+      addBtn.addEventListener('mouseleave', () => {
+        addBtn.style.background = 'rgba(212, 194, 154, 0.1)';
+        addBtn.style.borderStyle = 'dashed';
+      });
+    }
+
     addBtn.onclick = (e) => {
       e.stopPropagation();
       if (typeof abrirModalAgendamentoComData === 'function') {
         abrirModalAgendamentoComData(dateStr);
       }
     };
+
     dayDiv.appendChild(addBtn);
   }
-  
-  // Click no dia (visualizar)
-  dayDiv.onclick = () => {
-    if (!isOtherMonth && typeof mostrarInspecoesDoDia === 'function') {
-      mostrarInspecoesDoDia(dateStr, day, month, year);
-    }
-  };
-  
+
+  // Click no dia abre modal
+  if (!isOtherMonth) {
+    dayDiv.onclick = () => {
+      abrirModalInspecoesDia(dateStr, day, month, year, dayInspections);
+    };
+  }
+
   return dayDiv;
 }
 
-
-
 // ========================================
-// EXIBIR INSPEÇÕES DO DIA
+// MODAL DE INSPEÇÕES DO DIA - MOBILE FRIENDLY
 // ========================================
 
-function mostrarInspecoesDoDia(dateStr, day, month, year) {
-  const dayInspections = calendarInspections.filter(insp => insp.date === dateStr);
-  
+function abrirModalInspecoesDia(dateStr, day, month, year, dayInspections) {
   const monthNames = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
     'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
-  
-  document.getElementById('selectedDayTitle').innerHTML = `
-    <i class="fas fa-calendar-day"></i> 
-    Inspeções de ${day} de ${monthNames[month]} de ${year}
-  `;
-  
-  const content = document.getElementById('dayInspectionsContent');
-  
-  if (dayInspections.length === 0) {
-    content.innerHTML = `
-      <div style="text-align: center; padding: 40px; color: #999;">
-        <i class="fas fa-calendar-times" style="font-size: 3rem; margin-bottom: 15px; color: #D4C29A;"></i>
-        <p style="margin-bottom: 20px;">Nenhuma inspeção agendada para este dia</p>
-        <button class="btn" onclick="abrirModalAgendamentoComData('${dateStr}')">
-          <i class="fas fa-plus"></i> Agendar Inspeção
+
+  const isMobile = window.innerWidth < 768;
+
+  // Criar modal se não existir
+  let modal = document.getElementById('modalInspecoesDia');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'modalInspecoesDia';
+    Object.assign(modal.style, {
+      display: 'none',
+      position: 'fixed',
+      top: '0',
+      left: '0',
+      width: '100%',
+      height: '100%',
+      background: 'rgba(0, 0, 0, 0.95)',
+      zIndex: '10000',
+      overflowY: 'auto',
+      padding: isMobile ? '10px' : '15px',
+      boxSizing: 'border-box'
+    });
+    document.body.appendChild(modal);
+  }
+
+  // Ordenar por horário
+  dayInspections.sort((a, b) => {
+    const timeA = a.time || '00:00';
+    const timeB = b.time || '00:00';
+    return timeA.localeCompare(timeB);
+  });
+
+  // Conteúdo do modal
+  modal.innerHTML = `
+    <div style="
+      background: #1a1a1a;
+      border: 2px solid #D4C29A;
+      border-radius: ${isMobile ? '10px' : '12px'};
+      padding: ${isMobile ? '15px' : '20px'};
+      max-width: ${isMobile ? '100%' : '600px'};
+      margin: ${isMobile ? '10px auto' : '20px auto'};
+    ">
+      <!-- Header -->
+      <div style="
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: ${isMobile ? '12px' : '20px'};
+        padding-bottom: ${isMobile ? '8px' : '12px'};
+        border-bottom: 1px solid #D4C29A;
+      ">
+        <div style="
+          font-size: ${isMobile ? '1.1rem' : '1.3rem'};
+          color: #D4C29A;
+          font-weight: 600;
+          display: flex;
+          align-items: center;
+          gap: ${isMobile ? '6px' : '8px'};
+        ">
+          <i class="fas fa-calendar-day"></i>
+          <span>${day} de ${monthNames[month]}</span>
+        </div>
+        <button onclick="fecharModalInspecoesDia()" style="
+          background: none;
+          border: none;
+          color: #D4C29A;
+          font-size: ${isMobile ? '1.3rem' : '1.5rem'};
+          cursor: pointer;
+          padding: 0;
+          width: ${isMobile ? '32px' : '36px'};
+          height: ${isMobile ? '32px' : '36px'};
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        ">
+          <i class="fas fa-times"></i>
         </button>
       </div>
-    `;
-  } else {
-    content.innerHTML = dayInspections.map(inspection => `
-      <div class="day-inspection-card">
-        <div class="day-inspection-header">
-          <div class="day-inspection-client">
-            <div class="day-inspection-client-name">${inspection.clientName}</div>
-            <div class="day-inspection-client-type">${inspection.clientType === 'predio' ? 'PRÉDIO' : 'EMPRESA'}</div>
-          </div>
-          <div class="day-inspection-actions">
-            <button class="btn-action-small" onclick='abrirDetalhesInspecao(${JSON.stringify(inspection).replace(/'/g, "&#39;")})'>
-              <i class="fas fa-eye"></i> Ver
-            </button>
-            <button class="btn-action-small btn-pdf" onclick='baixarPDFInspecao(${JSON.stringify(inspection).replace(/'/g, "&#39;")})'>
-              <i class="fas fa-file-pdf"></i> PDF
-            </button>
-            <button class="btn-action-small btn-delete" onclick="deletarInspecao('${inspection.id}')">
-              <i class="fas fa-trash"></i> Excluir
-            </button>
-          </div>
-        </div>
-        <div class="day-inspection-info">
-          <div class="day-inspection-info-item">
-            <i class="fas fa-clock"></i>
-            <span>${inspection.time}</span>
-          </div>
-          <div class="day-inspection-info-item">
-            <i class="fas fa-map-marker-alt"></i>
-            <span>${inspection.address || 'Endereço não informado'}</span>
-          </div>
-          ${inspection.notes ? `
-          <div class="day-inspection-info-item" style="grid-column: 1 / -1;">
-            <i class="fas fa-sticky-note"></i>
-            <span>${inspection.notes}</span>
-          </div>
-          ` : ''}
-        </div>
+
+      <!-- Badge contador -->
+      <div style="
+        background: rgba(212, 194, 154, 0.15);
+        border-left: 3px solid #D4C29A;
+        padding: ${isMobile ? '8px' : '10px'};
+        border-radius: ${isMobile ? '4px' : '6px'};
+        margin-bottom: ${isMobile ? '12px' : '15px'};
+        font-size: ${isMobile ? '0.85rem' : '0.95rem'};
+        color: #D4C29A;
+        font-weight: 600;
+      ">
+        <i class="fas fa-list"></i> ${dayInspections.length} inspeç${dayInspections.length !== 1 ? 'ões' : 'ão'} agendada${dayInspections.length !== 1 ? 's' : ''}
       </div>
-    `).join('');
+
+      <!-- Conteúdo -->
+      <div style="max-height: ${isMobile ? '60vh' : '50vh'}; overflow-y: auto; margin-bottom: ${isMobile ? '12px' : '15px'};">
+        ${dayInspections.length === 0 ? `
+          <div style="text-align: center; padding: ${isMobile ? '20px 10px' : '30px 20px'}; color: #999;">
+            <i class="fas fa-calendar-times" style="font-size: ${isMobile ? '2rem' : '2.5rem'}; margin-bottom: ${isMobile ? '10px' : '12px'}; color: #D4C29A;"></i>
+            <p style="margin-bottom: ${isMobile ? '12px' : '15px'}; font-size: ${isMobile ? '0.9rem' : '1rem'};">Nenhuma inspeção agendada</p>
+            <button onclick="fecharModalInspecoesDia(); abrirModalAgendamentoComData('${dateStr}');" style="
+              background: #D4C29A;
+              color: #1a1a1a;
+              border: none;
+              padding: ${isMobile ? '10px 16px' : '12px 20px'};
+              border-radius: ${isMobile ? '6px' : '8px'};
+              font-weight: 600;
+              cursor: pointer;
+              font-size: ${isMobile ? '0.85rem' : '0.95rem'};
+            ">
+              <i class="fas fa-plus"></i> Agendar
+            </button>
+          </div>
+        ` : dayInspections.map(inspection => `
+          <div style="
+            background: #2a2a2a;
+            border: 1px solid #404040;
+            border-left: 3px solid #D4C29A;
+            border-radius: ${isMobile ? '6px' : '8px'};
+            padding: ${isMobile ? '10px' : '12px'};
+            margin-bottom: ${isMobile ? '8px' : '10px'};
+          ">
+            <div style="
+              display: flex;
+              justify-content: space-between;
+              align-items: flex-start;
+              gap: 8px;
+              margin-bottom: ${isMobile ? '8px' : '10px'};
+            ">
+              <div style="flex: 1; min-width: 0;">
+                <div style="
+                  font-size: ${isMobile ? '0.95rem' : '1rem'};
+                  font-weight: 700;
+                  color: #D4C29A;
+                  margin-bottom: 4px;
+                  word-wrap: break-word;
+                  line-height: 1.3;
+                ">
+                  ${inspection.clientName}
+                </div>
+                <div style="
+                  font-size: ${isMobile ? '0.65rem' : '0.7rem'};
+                  color: #999;
+                  font-weight: 600;
+                  background: rgba(212, 194, 154, 0.1);
+                  padding: 2px 6px;
+                  border-radius: 3px;
+                  display: inline-block;
+                ">
+                  ${inspection.clientType === 'predio' ? 'PRÉDIO' : 'EMPRESA'}
+                </div>
+              </div>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: ${isMobile ? '6px' : '8px'}; margin-bottom: ${isMobile ? '8px' : '10px'};">
+              <div style="display: flex; align-items: center; gap: 6px; color: #fff; font-size: ${isMobile ? '0.8rem' : '0.85rem'};">
+                <i class="fas fa-clock" style="color: #D4C29A; width: 14px; font-size: ${isMobile ? '0.75rem' : '0.85rem'};"></i>
+                <span>${inspection.time}</span>
+              </div>
+              <div style="display: flex; align-items: flex-start; gap: 6px; color: #fff; font-size: ${isMobile ? '0.8rem' : '0.85rem'};">
+                <i class="fas fa-map-marker-alt" style="color: #D4C29A; width: 14px; margin-top: 2px; font-size: ${isMobile ? '0.75rem' : '0.85rem'}; flex-shrink: 0;"></i>
+                <span style="word-wrap: break-word; flex: 1; line-height: 1.4;">${inspection.address || 'Endereço não informado'}</span>
+              </div>
+              ${inspection.notes ? `
+              <div style="display: flex; align-items: flex-start; gap: 6px; color: #fff; font-size: ${isMobile ? '0.8rem' : '0.85rem'};">
+                <i class="fas fa-sticky-note" style="color: #D4C29A; width: 14px; margin-top: 2px; font-size: ${isMobile ? '0.75rem' : '0.85rem'}; flex-shrink: 0;"></i>
+                <span style="word-wrap: break-word; flex: 1; line-height: 1.4;">${inspection.notes}</span>
+              </div>
+              ` : ''}
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: ${isMobile ? '5px' : '6px'};">
+              <button onclick='fecharModalInspecoesDia(); abrirDetalhesInspecao(${JSON.stringify(inspection).replace(/'/g, "&#39;")});' style="
+                padding: ${isMobile ? '8px 4px' : '6px'};
+                font-size: ${isMobile ? '0.75rem' : '0.8rem'};
+                border: none;
+                border-radius: ${isMobile ? '5px' : '6px'};
+                cursor: pointer;
+                background: #D4C29A;
+                color: #1a1a1a;
+                font-weight: 600;
+              ">
+                <i class="fas fa-eye"></i>
+              </button>
+              <button onclick='baixarPDFInspecao(${JSON.stringify(inspection).replace(/'/g, "&#39;")});' style="
+                padding: ${isMobile ? '8px 4px' : '6px'};
+                font-size: ${isMobile ? '0.75rem' : '0.8rem'};
+                border: none;
+                border-radius: ${isMobile ? '5px' : '6px'};
+                cursor: pointer;
+                background: #4CAF50;
+                color: #fff;
+                font-weight: 600;
+              ">
+                <i class="fas fa-file-pdf"></i>
+              </button>
+              <button onclick="deletarInspecao('${inspection.id}')" style="
+                padding: ${isMobile ? '8px 4px' : '6px'};
+                font-size: ${isMobile ? '0.75rem' : '0.8rem'};
+                border: none;
+                border-radius: ${isMobile ? '5px' : '6px'};
+                cursor: pointer;
+                background: #B32117;
+                color: #fff;
+                font-weight: 600;
+              ">
+                <i class="fas fa-trash"></i>
+              </button>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+
+      <!-- Footer -->
+      ${dayInspections.length > 0 ? `
+      <button onclick="fecharModalInspecoesDia(); abrirModalAgendamentoComData('${dateStr}');" style="
+        width: 100%;
+        background: #D4C29A;
+        color: #1a1a1a;
+        border: none;
+        padding: ${isMobile ? '10px' : '12px'};
+        border-radius: ${isMobile ? '6px' : '8px'};
+        font-weight: 600;
+        cursor: pointer;
+        font-size: ${isMobile ? '0.85rem' : '0.95rem'};
+      ">
+        <i class="fas fa-plus"></i> Agendar Nova Inspeção
+      </button>
+      ` : ''}
+    </div>
+  `;
+
+  modal.style.display = 'block';
+
+  modal.onclick = (e) => {
+    if (e.target === modal) {
+      fecharModalInspecoesDia();
+    }
+  };
+}
+
+function fecharModalInspecoesDia() {
+  const modal = document.getElementById('modalInspecoesDia');
+  if (modal) {
+    modal.style.display = 'none';
   }
-  
-  document.getElementById('dayInspectionsList').style.display = 'block';
-  
-  // Scroll suave até a lista
-  setTimeout(() => {
-    document.getElementById('dayInspectionsList').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-  }, 100);
 }
 
 // ========================================
@@ -8192,7 +12127,7 @@ function mostrarInspecoesDoDia(dateStr, day, month, year) {
 
 function abrirDetalhesInspecao(inspection) {
   const content = document.getElementById('inspectionDetailContent');
-  
+
   content.innerHTML = `
     <div style="display: flex; flex-direction: column; gap: 20px;">
       <div style="background: #2a2a2a; padding: 20px; border-radius: 10px; border: 2px solid #D4C29A;">
@@ -8258,11 +12193,9 @@ function abrirDetalhesInspecao(inspection) {
       </div>
     </div>
   `;
-  
+
   document.getElementById('inspectionDetailModal').style.display = 'block';
 }
-
-
 
 function fecharModalDetalhes() {
   document.getElementById('inspectionDetailModal').style.display = 'none';
@@ -8275,32 +12208,32 @@ function fecharModalDetalhes() {
 async function abrirModalAgendamento() {
   selectedDateForSchedule = null;
   await loadClientsForSchedule();
-  
+
   document.getElementById('scheduleForm').reset();
   document.getElementById('scheduleClientId').value = '';
   document.getElementById('scheduleClientName').value = '';
   document.getElementById('scheduleClientType').value = '';
-  
+
   const today = new Date().toISOString().split('T')[0];
   document.getElementById('scheduleDate').setAttribute('min', today);
   document.getElementById('scheduleDate').value = '';
-  
+
   document.getElementById('scheduleModal').style.display = 'block';
 }
 
 async function abrirModalAgendamentoComData(dateStr) {
   selectedDateForSchedule = dateStr;
   await loadClientsForSchedule();
-  
+
   document.getElementById('scheduleForm').reset();
   document.getElementById('scheduleClientId').value = '';
   document.getElementById('scheduleClientName').value = '';
   document.getElementById('scheduleClientType').value = '';
-  
+
   const today = new Date().toISOString().split('T')[0];
   document.getElementById('scheduleDate').setAttribute('min', today);
   document.getElementById('scheduleDate').value = dateStr;
-  
+
   document.getElementById('scheduleModal').style.display = 'block';
 }
 
@@ -8313,14 +12246,13 @@ async function loadClientsForSchedule() {
   try {
     const companiesSnapshot = await database.ref('companies').once('value');
     const buildingsSnapshot = await database.ref('buildings').once('value');
-    
+
     const companies = companiesSnapshot.val() || {};
     const buildings = buildingsSnapshot.val() || {};
-    
+
     const select = document.getElementById('scheduleClientSelect');
     select.innerHTML = '<option value="">Selecione um cliente</option>';
-    
-    // Adicionar empresas
+
     Object.keys(companies).forEach(key => {
       const company = companies[key];
       const option = document.createElement('option');
@@ -8332,8 +12264,7 @@ async function loadClientsForSchedule() {
       option.dataset.endereco = `${company.endereco || ''}, ${company.numero_empresa || ''}`.trim();
       select.appendChild(option);
     });
-    
-    // Adicionar prédios
+
     Object.keys(buildings).forEach(key => {
       const building = buildings[key];
       const option = document.createElement('option');
@@ -8345,7 +12276,7 @@ async function loadClientsForSchedule() {
       option.dataset.endereco = `${building.endereco_predio || ''}, ${building.numero_predio || ''}`.trim();
       select.appendChild(option);
     });
-    
+
   } catch (error) {
     console.error('Erro ao carregar clientes:', error);
     showToast('Erro ao carregar lista de clientes', 'error');
@@ -8354,7 +12285,7 @@ async function loadClientsForSchedule() {
 
 async function salvarAgendamento(e) {
   e.preventDefault();
-  
+
   const scheduleData = {
     clientId: document.getElementById('scheduleClientId').value,
     clientName: document.getElementById('scheduleClientName').value,
@@ -8367,13 +12298,13 @@ async function salvarAgendamento(e) {
     createdAt: new Date().toISOString(),
     createdBy: currentUser?.nome || 'Sistema'
   };
-  
+
   try {
     await database.ref('scheduled_inspections').push(scheduleData);
-    
+
     showToast('Inspeção agendada com sucesso!', 'success');
     fecharModalAgendamento();
-    
+
     await carregarInspecoesAgendadas();
     renderCalendar();
   } catch (error) {
@@ -8383,20 +12314,32 @@ async function salvarAgendamento(e) {
 }
 
 // ========================================
-// DELETAR INSPEÇÃO
+// EVENT LISTENERS
 // ========================================
+
+
+
+// ========================================
+// FUNÇÕES AUXILIARES
+// ========================================
+
+function formatarDataBR(dateStr) {
+  if (!dateStr) return 'Data não informada';
+  const [year, month, day] = dateStr.split('-');
+  return `${day}/${month}/${year}`;
+}
 
 async function deletarInspecao(inspectionId) {
   if (!confirm('Tem certeza que deseja excluir esta inspeção?')) {
     return;
   }
-  
+
   try {
     await database.ref(`scheduled_inspections/${inspectionId}`).remove();
     showToast('Inspeção excluída com sucesso!', 'success');
     
     fecharModalDetalhes();
-    document.getElementById('dayInspectionsList').style.display = 'none';
+    fecharModalInspecoesDia();
     
     await carregarInspecoesAgendadas();
     renderCalendar();
@@ -8405,6 +12348,22 @@ async function deletarInspecao(inspectionId) {
     showToast('Erro ao excluir inspeção', 'error');
   }
 }
+
+// ========================================
+// INICIALIZAR
+// ========================================
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initCalendar);
+} else {
+  initCalendar();
+}
+
+// ========================================
+// DELETAR INSPEÇÃO
+// ========================================
+
+
 
 // ========================================
 // EXPORTAR PDF INDIVIDUAL
@@ -8416,14 +12375,14 @@ async function deletarInspecao(inspectionId) {
 async function baixarPDFInspecao(inspection) {
   try {
     showToast('Gerando PDF da inspeção...', 'info');
-    
+
     const { jsPDF } = window.jspdf;
     const pdf = new jsPDF({
       orientation: 'portrait',
       unit: 'mm',
       format: 'a4'
     });
-    
+
     const pdfHTML = `
       <!DOCTYPE html>
       <html>
@@ -8673,14 +12632,14 @@ async function baixarPDFInspecao(inspection) {
       </body>
       </html>
     `;
-    
+
     await renderizarPaginaNoPDF(pdf, pdfHTML);
-    
+
     const fileName = `Inspecao_${inspection.clientName.replace(/[^a-z0-9]/gi, '_')}_${inspection.date}.pdf`;
     pdf.save(fileName);
-    
+
     showToast('PDF gerado com sucesso!', 'success');
-    
+
   } catch (error) {
     console.error('Erro ao gerar PDF:', error);
     showToast('Erro ao gerar PDF', 'error');
@@ -8697,26 +12656,26 @@ async function exportarMesPDF() {
     const month = currentCalendarDate.getMonth();
     const monthNames = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
       'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
-    
+
     const monthInspections = calendarInspections.filter(insp => {
       const inspDate = new Date(insp.date);
       return inspDate.getMonth() === month && inspDate.getFullYear() === year;
     }).sort((a, b) => a.date.localeCompare(b.date) || a.time.localeCompare(b.time));
-    
+
     if (monthInspections.length === 0) {
       showToast('Nenhuma inspeção agendada neste mês', 'warning');
       return;
     }
-    
+
     showToast('Gerando PDF do calendário...', 'info');
-    
+
     const { jsPDF } = window.jspdf;
     const pdf = new jsPDF({
       orientation: 'portrait',
       unit: 'mm',
       format: 'a4'
     });
-    
+
     const itemsPerPage = 4;
     const totalPages = Math.ceil(monthInspections.length / itemsPerPage);
 
@@ -8879,13 +12838,13 @@ async function exportarMesPDF() {
         </body>
         </html>
       `;
-      
+
       await renderizarPaginaNoPDF(pdf, pdfHTML, i === 0);
     }
-    
+
     pdf.save(`Agenda_${monthNames[month]}_${year}.pdf`);
     showToast('PDF exportado com sucesso!', 'success');
-    
+
   } catch (error) {
     console.error('Erro ao exportar PDF:', error);
     showToast('Erro ao gerar PDF', 'error');
@@ -8907,15 +12866,36 @@ function formatarDataBR(dateStr) {
 
 function setupCalendarEventListeners() {
 
-  document.getElementById('prevMonthBtn').addEventListener('click', () => {
-    currentCalendarDate.setDate(1); // evita bug
-    currentCalendarDate.setMonth(currentCalendarDate.getMonth() - 1);
+  // 🔒 Remove listeners antigos clonando os botões
+  const prevBtn = document.getElementById('prevMonthBtn').cloneNode(true);
+  document.getElementById('prevMonthBtn').replaceWith(prevBtn);
+
+  const nextBtn = document.getElementById('nextMonthBtn').cloneNode(true);
+  document.getElementById('nextMonthBtn').replaceWith(nextBtn);
+
+  const addBtn = document.getElementById('addScheduleBtn').cloneNode(true);
+  document.getElementById('addScheduleBtn').replaceWith(addBtn);
+
+  const exportBtn = document.getElementById('exportMonthPDFBtn').cloneNode(true);
+  document.getElementById('exportMonthPDFBtn').replaceWith(exportBtn);
+
+  // ⬅️ Mês anterior
+  prevBtn.addEventListener('click', () => {
+    currentCalendarDate = new Date(
+      currentCalendarDate.getFullYear(),
+      currentCalendarDate.getMonth() - 1,
+      1
+    );
     renderCalendar();
   });
 
-  document.getElementById('nextMonthBtn').addEventListener('click', () => {
-    currentCalendarDate.setDate(1); // evita bug
-    currentCalendarDate.setMonth(currentCalendarDate.getMonth() + 1);
+  // ➡️ Próximo mês
+  nextBtn.addEventListener('click', () => {
+    currentCalendarDate = new Date(
+      currentCalendarDate.getFullYear(),
+      currentCalendarDate.getMonth() + 1,
+      1
+    );
     renderCalendar();
   });
 
@@ -8923,21 +12903,24 @@ function setupCalendarEventListeners() {
     document.getElementById('dayInspectionsList').style.display = 'none';
   });
 
-  document.getElementById('addScheduleBtn').addEventListener('click', abrirModalAgendamento);
+  addBtn.addEventListener('click', abrirModalAgendamento);
 
-  document.getElementById('scheduleForm').addEventListener('submit', salvarAgendamento);
+  document.getElementById('scheduleForm')
+    .addEventListener('submit', salvarAgendamento);
 
-  document.getElementById('scheduleClientSelect').addEventListener('change', function () {
-    const selectedOption = this.options[this.selectedIndex];
+  document.getElementById('scheduleClientSelect')
+    .addEventListener('change', function () {
+      const selectedOption = this.options[this.selectedIndex];
 
-    if (selectedOption.value) {
-      document.getElementById('scheduleClientId').value = selectedOption.value;
-      document.getElementById('scheduleClientName').value = selectedOption.dataset.nome || '';
-      document.getElementById('scheduleClientType').value = selectedOption.dataset.tipo || 'empresa';
-      document.getElementById('scheduleCNPJ').value = selectedOption.dataset.cnpj || '';
-      document.getElementById('scheduleAddress').value = selectedOption.dataset.endereco || '';
-    }
-  });
+      if (selectedOption.value) {
+        document.getElementById('scheduleClientId').value = selectedOption.value;
+        document.getElementById('scheduleClientName').value = selectedOption.dataset.nome || '';
+        document.getElementById('scheduleClientType').value = selectedOption.dataset.tipo || 'empresa';
+        document.getElementById('scheduleCNPJ').value = selectedOption.dataset.cnpj || '';
+        document.getElementById('scheduleAddress').value = selectedOption.dataset.endereco || '';
+      }
+    });
 
-  document.getElementById('exportMonthPDFBtn').addEventListener('click', exportarMesPDF);
+  exportBtn.addEventListener('click', exportarMesPDF);
 }
+
