@@ -570,7 +570,7 @@ function editCompany(key) {
     // Handler do formulário
     document.getElementById('editCompanyForm').onsubmit = (e) => {
       e.preventDefault();
-      
+
       const updatedData = {
         razao_social: document.getElementById('edit_razao_social').value.trim(),
         cnpj: document.getElementById('edit_cnpj').value.trim(),
@@ -835,7 +835,7 @@ function editBuilding(key) {
     // Handler do formulário
     document.getElementById('editBuildingForm').onsubmit = (e) => {
       e.preventDefault();
-      
+
       const updatedData = {
         razao_social_predio: document.getElementById('edit_razao_social_predio').value.trim(),
         cnpj_predio: document.getElementById('edit_cnpj_predio').value.trim(),
@@ -888,9 +888,9 @@ function showNotification(message, type = 'success') {
     <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
     ${message}
   `;
-  
+
   document.body.appendChild(notification);
-  
+
   setTimeout(() => {
     notification.style.animation = 'slideOut 0.3s ease';
     setTimeout(() => notification.remove(), 300);
@@ -3311,7 +3311,7 @@ async function loadInspections() {
 function deleteInspection(inspectionId) {
   database.ref('inspections/' + inspectionId).once('value').then(snapshot => {
     const insp = snapshot.val();
-    
+
     if (!insp) {
       alert(' Inspeção não encontrada!');
       return;
@@ -5219,37 +5219,37 @@ async function gerarPDFOrdem(orderId, tipoRelatorio = 'com_valores') {
 
     const qtdTotal = produtos.reduce((acc, p) => acc + p.qty, 0);
 
-   // ===== DIVIDE PRODUTOS EM MÚLTIPLAS COLUNAS =====
-function dividirEmColunas(array, itensPorColuna) {
-  const colunas = [];
-  for (let i = 0; i < array.length; i += itensPorColuna) {
-    colunas.push(array.slice(i, i + itensPorColuna));
-  }
-  return colunas;
-}
+    // ===== DIVIDE PRODUTOS EM MÚLTIPLAS COLUNAS =====
+    function dividirEmColunas(array, itensPorColuna) {
+      const colunas = [];
+      for (let i = 0; i < array.length; i += itensPorColuna) {
+        colunas.push(array.slice(i, i + itensPorColuna));
+      }
+      return colunas;
+    }
 
-const ITENS_POR_COLUNA = 9; // 🔥 AUMENTEI DE 9 PARA 15
-const colunasProdutos = dividirEmColunas(produtos, ITENS_POR_COLUNA);
+    const ITENS_POR_COLUNA = 9; // 🔥 AUMENTEI DE 9 PARA 15
+    const colunasProdutos = dividirEmColunas(produtos, ITENS_POR_COLUNA);
 
-// GRID AUTOMÁTICO
-let colunasGrid = 3;
-if (colunasProdutos.length >= 6) colunasGrid = 3;
-if (colunasProdutos.length >= 9) colunasGrid = 4;
+    // GRID AUTOMÁTICO
+    let colunasGrid = 3;
+    if (colunasProdutos.length >= 6) colunasGrid = 3;
+    if (colunasProdutos.length >= 9) colunasGrid = 4;
 
-// FUNÇÃO PARA TRUNCAR NOME DO PRODUTO
-const truncarNome = (nome, maxLength = 50) => { // 🔥 DIMINUÍ DE 30 PARA 18
-  if (!nome) return '-';
-  if (nome.length <= maxLength) return nome;
-  return nome.substring(0, maxLength) + '...';
-};
+    // FUNÇÃO PARA TRUNCAR NOME DO PRODUTO
+    const truncarNome = (nome, maxLength = 50) => { // 🔥 DIMINUÍ DE 30 PARA 18
+      if (!nome) return '-';
+      if (nome.length <= maxLength) return nome;
+      return nome.substring(0, maxLength) + '...';
+    };
 
-// ===== RENDERIZA TABELA DE PRODUTOS =====
-const renderizarTabelaProdutos = (lista, offset = 0) => {
-  if (!lista || !lista.length) return '';
+    // ===== RENDERIZA TABELA DE PRODUTOS =====
+    const renderizarTabelaProdutos = (lista, offset = 0) => {
+      if (!lista || !lista.length) return '';
 
-  // PDF COM VALORES DETALHADOS (Unit. + Total)
-  if (tipoRelatorio === 'valores_detalhados') {
-    return `
+      // PDF COM VALORES DETALHADOS (Unit. + Total)
+      if (tipoRelatorio === 'valores_detalhados') {
+        return `
       <table style="width: 100%; border-collapse: collapse; background: white; font-size: 7px; border: 1px solid #e5e7eb; border-radius: 4px; overflow: hidden;">
         <thead style="background: linear-gradient(135deg, #4b5563 0%, #6b7280 100%); color: white;">
           <tr>
@@ -5262,11 +5262,11 @@ const renderizarTabelaProdutos = (lista, offset = 0) => {
         </thead>
         <tbody>
           ${lista.map((p, idx) => {
-            const valorUn = (Number(p.price) || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-            const subtotal = ((Number(p.price) || 0) * p.qty).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-            const bgColor = idx % 2 === 0 ? '#ffffff' : '#f9fafb';
-            const nomeTruncado = truncarNome(p.name, 18);
-            return `
+          const valorUn = (Number(p.price) || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+          const subtotal = ((Number(p.price) || 0) * p.qty).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+          const bgColor = idx % 2 === 0 ? '#ffffff' : '#f9fafb';
+          const nomeTruncado = truncarNome(p.name, 18);
+          return `
               <tr style="background: ${bgColor};">
                 <td style="padding: 3px 4px; border-bottom: 1px solid #f3f4f6; color: #6b7280; text-align: center; font-weight: 700; font-size: 5px;">${offset + idx + 1}</td>
                 <td style="padding: 3px 4px; border-bottom: 1px solid #f3f4f6; color: #374151; text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 5px;" title="${p.name || '-'}">${nomeTruncado}</td>
@@ -5275,12 +5275,12 @@ const renderizarTabelaProdutos = (lista, offset = 0) => {
                 <td style="padding: 3px 4px; border-bottom: 1px solid #f3f4f6; color: #1f2937; text-align: right; font-weight: 700; font-size: 5px;">${subtotal}</td>
               </tr>
             `;
-          }).join('')}
+        }).join('')}
         </tbody>
       </table>
     `;
-  }
-      
+      }
+
       // PDF SEM VALORES ou COM VALORES (apenas Produto + Qtd)
 
       // PDF SEM VALORES ou COM VALORES (apenas Produto + Qtd)
@@ -5296,16 +5296,16 @@ const renderizarTabelaProdutos = (lista, offset = 0) => {
             </thead>
             <tbody>
               ${lista.map((p, idx) => {
-                const bgColor = idx % 2 === 0 ? '#ffffff' : '#f9fafb';
-                const nomeTruncado = truncarNome(p.name, 60);
-                return `
+          const bgColor = idx % 2 === 0 ? '#ffffff' : '#f9fafb';
+          const nomeTruncado = truncarNome(p.name, 60);
+          return `
                   <tr style="background: ${bgColor};">
                     <td style="padding: 3px 4px; border-bottom: 1px solid #f3f4f6; color: #6b7280; text-align: center; font-weight: 700; font-size: 6px;">${offset + idx + 1}</td>
                     <td style="padding: 3px 4px; border-bottom: 1px solid #f3f4f6; color: #374151; text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 6.5px;" title="${p.name || '-'}">${nomeTruncado}</td>
                     <td style="padding: 3px 4px; border-bottom: 1px solid #f3f4f6; color: #374151; text-align: center; font-weight: 600; font-size: 6px;">${p.qty}x</td>
                   </tr>
                 `;
-              }).join('')}
+        }).join('')}
             </tbody>
           </table>
         `;
@@ -5882,7 +5882,7 @@ const renderizarTabelaProdutos = (lista, offset = 0) => {
     document.body.appendChild(div);
 
     const container = div.querySelector('.pdf-nota-page');
-    
+
     // Aguardar carregamento de fontes e ícones
     await document.fonts.ready;
     await new Promise(resolve => setTimeout(resolve, 300));
@@ -5902,7 +5902,7 @@ const renderizarTabelaProdutos = (lista, offset = 0) => {
     const { jsPDF } = window.jspdf;
     const pdf = new jsPDF('p', 'mm', 'a4');
     const imgData = canvas.toDataURL('image/png', 1.0);
-    
+
     // ===== FORÇA TUDO EM UMA ÚNICA PÁGINA A4 =====
     const imgWidth = 210;  // Largura A4
     const imgHeight = 297; // Altura A4
@@ -5948,7 +5948,8 @@ async function editarOS(orderId) {
     document.getElementById('editTecnico').value = ordem.tecnico || '';
     document.getElementById('editPagamento').value =
       ordem.payment_method || ordem.formaPagamento || '';
-    document.getElementById('editProfitPercent').value = ordem.profitPercent || 30;
+    document.getElementById('editProfitPercent').value =
+      ordem.profitPercent ?? 0;
 
     if (ordem.data) {
       document.getElementById('editData').value =
@@ -6262,7 +6263,14 @@ function atualizarTotaisEdicao() {
   });
 
   const profitPercentEl = document.getElementById('editProfitPercent');
-  const profitPercent = profitPercentEl ? (parseFloat(profitPercentEl.value) || 30) : 30;
+  let profitPercent = 0;
+  if (profitPercentEl) {
+    const value = parseFloat(profitPercentEl.value);
+    if (!isNaN(value)) {
+      profitPercent = value;
+    }
+  }
+
   const profitValue = (subtotal * profitPercent) / 100;
   const total = subtotal + profitValue;
 
@@ -6275,6 +6283,7 @@ function atualizarTotaisEdicao() {
   // Atualizar lista para refletir novos totais
   renderizarProdutosEdicao();
 }
+
 
 async function salvarEdicaoOS() {
   if (!editingOSId) return;
@@ -6324,7 +6333,7 @@ async function salvarEdicaoOS() {
         if (oldProd.id) {
           const produtoSnapshot = await database.ref(`products/${oldProd.id}`).once('value');
           const produtoNoEstoque = produtoSnapshot.val();
-          
+
           if (produtoNoEstoque) {
             const novaQuantidade = (produtoNoEstoque.quantity || 0) + (oldProd.qty || 0);
             await database.ref(`products/${oldProd.id}`).update({
@@ -6340,10 +6349,10 @@ async function salvarEdicaoOS() {
       if (newProd.id) {
         const produtoSnapshot = await database.ref(`products/${newProd.id}`).once('value');
         const produtoNoEstoque = produtoSnapshot.val();
-        
+
         if (produtoNoEstoque) {
           const novaQuantidade = (produtoNoEstoque.quantity || 0) - (newProd.qty || 0);
-          
+
           // Garantir que não fique negativo
           await database.ref(`products/${newProd.id}`).update({
             quantity: novaQuantidade < 0 ? 0 : novaQuantidade
@@ -6361,7 +6370,11 @@ async function salvarEdicaoOS() {
     });
 
     const profitPercentEl = document.getElementById('editProfitPercent');
-    const profitPercent = profitPercentEl ? (parseFloat(profitPercentEl.value) || 30) : 30;
+    const profitPercent = profitPercentEl
+      ? (isNaN(parseFloat(profitPercentEl.value))
+        ? 0
+        : parseFloat(profitPercentEl.value))
+      : 0;
     const profitValue = (subtotal * profitPercent) / 100;
     const total = subtotal + profitValue;
 
@@ -6581,13 +6594,13 @@ function renderizarListaProdutosEditOSModal(filtro = '') {
   if (!container) return;
 
   const filtroLower = filtro.toLowerCase();
-  
+
   // FILTRAR APENAS PRODUTOS COM ESTOQUE DISPONÍVEL (quantity > 0)
   const produtosFiltrados = products.filter(p => {
     const hasStock = (p.quantity || 0) > 0;
     const matchesFilter = p.name.toLowerCase().includes(filtroLower) ||
       (p.description && p.description.toLowerCase().includes(filtroLower));
-    
+
     return hasStock && matchesFilter;
   });
 
@@ -6610,7 +6623,7 @@ function renderizarListaProdutosEditOSModal(filtro = '') {
 
   container.innerHTML = produtosFiltrados.map(prod => {
     const stockQuantity = prod.quantity || 0;
-    
+
     return `
     <div style="
       background: linear-gradient(135deg, #0d0d0d 0%, #121212 100%);
@@ -7184,12 +7197,12 @@ document.getElementById('orderForm')?.addEventListener('submit', async (e) => {
       if (produto.id) {
         const produtoSnapshot = await database.ref(`products/${produto.id}`).once('value');
         const produtoNoEstoque = produtoSnapshot.val();
-        
+
         if (produtoNoEstoque) {
           const quantidadeAtual = produtoNoEstoque.quantity || 0;
           const quantidadeUsada = produto.qty || 0;
           const novaQuantidade = quantidadeAtual - quantidadeUsada;
-          
+
           // Atualizar o estoque (garantir que não fique negativo)
           await database.ref(`products/${produto.id}`).update({
             quantity: novaQuantidade < 0 ? 0 : novaQuantidade
@@ -7762,7 +7775,7 @@ function toggleFiltersVisibility() {
   filtersVisible = !filtersVisible;
   const filtersRow = document.getElementById('filtersRow');
   const toggleIcon = document.getElementById('toggleFiltersIcon');
-  
+
   if (filtersRow && toggleIcon) {
     if (filtersVisible) {
       filtersRow.style.display = 'grid';
@@ -7797,13 +7810,13 @@ function applyProductFilters() {
   const qtyMinInput = document.getElementById('filterQtyMin');
   const qtyMaxInput = document.getElementById('filterQtyMax');
   const statusSelect = document.getElementById('filterStatus');
-  
+
   productFilters.priceMin = priceMinInput ? priceMinInput.value : '';
   productFilters.priceMax = priceMaxInput ? priceMaxInput.value : '';
   productFilters.quantityMin = qtyMinInput ? qtyMinInput.value : '';
   productFilters.quantityMax = qtyMaxInput ? qtyMaxInput.value : '';
   productFilters.status = statusSelect ? statusSelect.value : 'all';
-  
+
   currentPage = 1;
   renderProducts();
   showToast('Filtros aplicados!', 'success');
@@ -7822,21 +7835,21 @@ function clearProductFilters() {
     quantityMax: '',
     status: 'all'
   };
-  
+
   const searchInput = document.getElementById('productSearchInput');
   const priceMinInput = document.getElementById('filterPriceMin');
   const priceMaxInput = document.getElementById('filterPriceMax');
   const qtyMinInput = document.getElementById('filterQtyMin');
   const qtyMaxInput = document.getElementById('filterQtyMax');
   const statusSelect = document.getElementById('filterStatus');
-  
+
   if (searchInput) searchInput.value = '';
   if (priceMinInput) priceMinInput.value = '';
   if (priceMaxInput) priceMaxInput.value = '';
   if (qtyMinInput) qtyMinInput.value = '';
   if (qtyMaxInput) qtyMaxInput.value = '';
   if (statusSelect) statusSelect.value = 'all';
-  
+
   currentPage = 1;
   renderProducts();
   showToast('Filtros limpos!', 'success');
@@ -7853,34 +7866,34 @@ function filterProductsClient(productsArray) {
       const descMatch = (prod.description || '').toLowerCase().includes(productSearchQuery);
       if (!nameMatch && !descMatch) return false;
     }
-    
+
     if (productFilters.priceMin !== '') {
       const minPrice = parseFloat(productFilters.priceMin);
       if (prod.price < minPrice) return false;
     }
-    
+
     if (productFilters.priceMax !== '') {
       const maxPrice = parseFloat(productFilters.priceMax);
       if (prod.price > maxPrice) return false;
     }
-    
+
     if (productFilters.quantityMin !== '') {
       const minQty = parseInt(productFilters.quantityMin);
       if ((prod.quantity || 0) < minQty) return false;
     }
-    
+
     if (productFilters.quantityMax !== '') {
       const maxQty = parseInt(productFilters.quantityMax);
       if ((prod.quantity || 0) > maxQty) return false;
     }
-    
+
     if (productFilters.status !== 'all') {
       const qty = prod.quantity || 0;
       if (productFilters.status === 'out-of-stock' && qty !== 0) return false;
       if (productFilters.status === 'low-stock' && (qty === 0 || qty > 5)) return false;
       if (productFilters.status === 'in-stock' && qty <= 5) return false;
     }
-    
+
     return true;
   });
 }
@@ -7901,7 +7914,7 @@ function createProductToolbar() {
     flex-direction: column;
     gap: 16px;
   `;
-  
+
   const topRow = document.createElement('div');
   topRow.style.cssText = `
     display: flex;
@@ -7909,7 +7922,7 @@ function createProductToolbar() {
     align-items: center;
     flex-wrap: wrap;
   `;
-  
+
   // BARRA DE BUSCA COM BOTÃO
   const searchContainer = document.createElement('div');
   searchContainer.style.cssText = `
@@ -7918,7 +7931,7 @@ function createProductToolbar() {
     display: flex;
     gap: 8px;
   `;
-  
+
   const searchInputWrapper = document.createElement('div');
   searchInputWrapper.style.cssText = `
     flex: 1;
@@ -7952,7 +7965,7 @@ function createProductToolbar() {
       font-size: 14px;
     "></i>
   `;
-  
+
   // BOTÃO DE BUSCAR
   const searchButton = document.createElement('button');
   searchButton.innerHTML = '<i class="fas fa-search"></i><span style="margin-left: 8px;">Buscar</span>';
@@ -7970,17 +7983,17 @@ function createProductToolbar() {
     transition: all 0.2s ease;
     white-space: nowrap;
   `;
-  searchButton.onmouseover = function() {
+  searchButton.onmouseover = function () {
     this.style.background = 'rgba(16, 185, 129, 0.25)';
   };
-  searchButton.onmouseout = function() {
+  searchButton.onmouseout = function () {
     this.style.background = 'rgba(16, 185, 129, 0.15)';
   };
   searchButton.onclick = applyProductSearch;
-  
+
   searchContainer.appendChild(searchInputWrapper);
   searchContainer.appendChild(searchButton);
-  
+
   // Adicionar Enter para buscar
   setTimeout(() => {
     const input = document.getElementById('productSearchInput');
@@ -7992,7 +8005,7 @@ function createProductToolbar() {
       });
     }
   }, 100);
-  
+
   const toggleFiltersBtn = document.createElement('button');
   toggleFiltersBtn.innerHTML = '<i id="toggleFiltersIcon" class="fas fa-chevron-down"></i><span style="margin-left: 8px;">Filtros</span>';
   toggleFiltersBtn.style.cssText = `
@@ -8009,14 +8022,14 @@ function createProductToolbar() {
     transition: all 0.2s ease;
     white-space: nowrap;
   `;
-  toggleFiltersBtn.onmouseover = function() {
+  toggleFiltersBtn.onmouseover = function () {
     this.style.background = 'rgba(59, 130, 246, 0.2)';
   };
-  toggleFiltersBtn.onmouseout = function() {
+  toggleFiltersBtn.onmouseout = function () {
     this.style.background = 'rgba(59, 130, 246, 0.1)';
   };
   toggleFiltersBtn.onclick = toggleFiltersVisibility;
-  
+
   const viewButtonsContainer = document.createElement('div');
   viewButtonsContainer.style.cssText = `
     display: flex;
@@ -8026,7 +8039,7 @@ function createProductToolbar() {
     border-radius: 10px;
     border: 1px solid #333;
   `;
-  
+
   const cardsBtn = document.createElement('button');
   cardsBtn.id = 'viewCardsBtn';
   cardsBtn.innerHTML = '<i class="fas fa-th-large"></i><span style="margin-left: 6px;">Cards</span>';
@@ -8044,7 +8057,7 @@ function createProductToolbar() {
     transition: all 0.2s ease;
   `;
   cardsBtn.onclick = () => toggleProductView('cards');
-  
+
   const listBtn = document.createElement('button');
   listBtn.id = 'viewListBtn';
   listBtn.innerHTML = '<i class="fas fa-list"></i><span style="margin-left: 6px;">Lista</span>';
@@ -8062,14 +8075,14 @@ function createProductToolbar() {
     transition: all 0.2s ease;
   `;
   listBtn.onclick = () => toggleProductView('list');
-  
+
   viewButtonsContainer.appendChild(cardsBtn);
   viewButtonsContainer.appendChild(listBtn);
-  
+
   topRow.appendChild(searchContainer);
   topRow.appendChild(toggleFiltersBtn);
   topRow.appendChild(viewButtonsContainer);
-  
+
   // RESTO DO CÓDIGO DOS FILTROS... (mantém igual)
   const filtersRow = document.createElement('div');
   filtersRow.id = 'filtersRow';
@@ -8081,7 +8094,7 @@ function createProductToolbar() {
     padding-top: 8px;
     border-top: 1px solid #2a2a2a;
   `;
-  
+
   const priceMinContainer = document.createElement('div');
   priceMinContainer.innerHTML = `
     <label style="color: #999; font-size: 12px; display: block; margin-bottom: 6px; font-weight: 600;">
@@ -8104,7 +8117,7 @@ function createProductToolbar() {
       "
     />
   `;
-  
+
   const priceMaxContainer = document.createElement('div');
   priceMaxContainer.innerHTML = `
     <label style="color: #999; font-size: 12px; display: block; margin-bottom: 6px; font-weight: 600;">
@@ -8127,7 +8140,7 @@ function createProductToolbar() {
       "
     />
   `;
-  
+
   const qtyMinContainer = document.createElement('div');
   qtyMinContainer.innerHTML = `
     <label style="color: #999; font-size: 12px; display: block; margin-bottom: 6px; font-weight: 600;">
@@ -8149,7 +8162,7 @@ function createProductToolbar() {
       "
     />
   `;
-  
+
   const qtyMaxContainer = document.createElement('div');
   qtyMaxContainer.innerHTML = `
     <label style="color: #999; font-size: 12px; display: block; margin-bottom: 6px; font-weight: 600;">
@@ -8171,7 +8184,7 @@ function createProductToolbar() {
       "
     />
   `;
-  
+
   const statusContainer = document.createElement('div');
   statusContainer.innerHTML = `
     <label style="color: #999; font-size: 12px; display: block; margin-bottom: 6px; font-weight: 600;">
@@ -8197,14 +8210,14 @@ function createProductToolbar() {
       <option value="out-of-stock">Sem Estoque</option>
     </select>
   `;
-  
+
   const filterActionsContainer = document.createElement('div');
   filterActionsContainer.style.cssText = `
     display: flex;
     gap: 8px;
     align-items: end;
   `;
-  
+
   const applyFiltersBtn = document.createElement('button');
   applyFiltersBtn.innerHTML = '<i class="fas fa-check"></i>';
   applyFiltersBtn.title = 'Aplicar filtros';
@@ -8218,14 +8231,14 @@ function createProductToolbar() {
     font-size: 14px;
     transition: all 0.2s ease;
   `;
-  applyFiltersBtn.onmouseover = function() {
+  applyFiltersBtn.onmouseover = function () {
     this.style.background = 'rgba(16, 185, 129, 0.25)';
   };
-  applyFiltersBtn.onmouseout = function() {
+  applyFiltersBtn.onmouseout = function () {
     this.style.background = 'rgba(16, 185, 129, 0.15)';
   };
   applyFiltersBtn.onclick = applyProductFilters;
-  
+
   const clearFiltersBtn = document.createElement('button');
   clearFiltersBtn.innerHTML = '<i class="fas fa-times"></i>';
   clearFiltersBtn.title = 'Limpar filtros';
@@ -8239,31 +8252,31 @@ function createProductToolbar() {
     font-size: 14px;
     transition: all 0.2s ease;
   `;
-  clearFiltersBtn.onmouseover = function() {
+  clearFiltersBtn.onmouseover = function () {
     this.style.background = 'rgba(239, 68, 68, 0.2)';
   };
-  clearFiltersBtn.onmouseout = function() {
+  clearFiltersBtn.onmouseout = function () {
     this.style.background = 'rgba(239, 68, 68, 0.1)';
   };
   clearFiltersBtn.onclick = clearProductFilters;
-  
+
   filterActionsContainer.appendChild(applyFiltersBtn);
   filterActionsContainer.appendChild(clearFiltersBtn);
-  
+
   filtersRow.appendChild(priceMinContainer);
   filtersRow.appendChild(priceMaxContainer);
   filtersRow.appendChild(qtyMinContainer);
   filtersRow.appendChild(qtyMaxContainer);
   filtersRow.appendChild(statusContainer);
   filtersRow.appendChild(filterActionsContainer);
-  
+
   toolbar.appendChild(topRow);
   toolbar.appendChild(filtersRow);
-  
+
   setTimeout(() => {
     updateViewButtons();
   }, 0);
-  
+
   return toolbar;
 }
 
@@ -8284,14 +8297,14 @@ function toggleProductView(mode) {
 function updateViewButtons() {
   const cardsBtn = document.getElementById('viewCardsBtn');
   const listBtn = document.getElementById('viewListBtn');
-  
+
   if (!cardsBtn || !listBtn) return;
-  
+
   if (productViewMode === 'cards') {
     cardsBtn.style.background = 'rgba(16, 185, 129, 0.2)';
     cardsBtn.style.borderColor = '#10b981';
     cardsBtn.style.color = '#10b981';
-    
+
     listBtn.style.background = 'rgba(255, 255, 255, 0.05)';
     listBtn.style.borderColor = '#333';
     listBtn.style.color = '#999';
@@ -8299,7 +8312,7 @@ function updateViewButtons() {
     listBtn.style.background = 'rgba(16, 185, 129, 0.2)';
     listBtn.style.borderColor = '#10b981';
     listBtn.style.color = '#10b981';
-    
+
     cardsBtn.style.background = 'rgba(255, 255, 255, 0.05)';
     cardsBtn.style.borderColor = '#333';
     cardsBtn.style.color = '#999';
@@ -8334,13 +8347,13 @@ function renderProductsAsCards(container, productsArray) {
 
   productsArray.forEach(prod => {
     const quantity = prod.quantity || 0;
-    
+
     let status = '';
     let statusColor = '';
     let statusBg = '';
     let borderColor = '';
     let statusIcon = '';
-    
+
     if (quantity === 0) {
       status = 'SEM ESTOQUE';
       statusColor = '#ef4444';
@@ -8382,13 +8395,13 @@ function renderProductsAsCards(container, productsArray) {
       min-height: 280px;
     `;
 
-    card.onmouseenter = function() {
+    card.onmouseenter = function () {
       this.style.transform = 'translateY(-4px)';
       this.style.boxShadow = `0 12px 24px rgba(0, 0, 0, 0.4), 0 0 0 1px ${statusColor}40`;
       this.style.borderColor = statusColor;
     };
 
-    card.onmouseleave = function() {
+    card.onmouseleave = function () {
       this.style.transform = 'translateY(0)';
       this.style.boxShadow = 'none';
       this.style.borderColor = borderColor;
@@ -8524,15 +8537,15 @@ function renderProductsAsCards(container, productsArray) {
       justify-content: center;
       transition: all 0.2s ease;
     `;
-    addStockBtn.onmouseover = function() {
+    addStockBtn.onmouseover = function () {
       this.style.background = 'rgba(16, 185, 129, 0.2)';
       this.style.transform = 'scale(1.02)';
     };
-    addStockBtn.onmouseout = function() {
+    addStockBtn.onmouseout = function () {
       this.style.background = 'rgba(16, 185, 129, 0.1)';
       this.style.transform = 'scale(1)';
     };
-    addStockBtn.onclick = function() {
+    addStockBtn.onclick = function () {
       openStockModal(prod.id, 'add');
     };
 
@@ -8554,16 +8567,16 @@ function renderProductsAsCards(container, productsArray) {
       ${quantity === 0 ? 'opacity: 0.5; cursor: not-allowed;' : ''}
     `;
     if (quantity > 0) {
-      removeStockBtn.onmouseover = function() {
+      removeStockBtn.onmouseover = function () {
         this.style.background = 'rgba(245, 158, 11, 0.2)';
         this.style.transform = 'scale(1.02)';
       };
-      removeStockBtn.onmouseout = function() {
+      removeStockBtn.onmouseout = function () {
         this.style.background = 'rgba(245, 158, 11, 0.1)';
         this.style.transform = 'scale(1)';
       };
     }
-    removeStockBtn.onclick = function() {
+    removeStockBtn.onclick = function () {
       if (quantity === 0) {
         showToast('Não há estoque para remover!', 'error');
         return;
@@ -8587,15 +8600,15 @@ function renderProductsAsCards(container, productsArray) {
       justify-content: center;
       transition: all 0.2s ease;
     `;
-    editBtn.onmouseover = function() {
+    editBtn.onmouseover = function () {
       this.style.background = 'rgba(59, 130, 246, 0.2)';
       this.style.transform = 'scale(1.02)';
     };
-    editBtn.onmouseout = function() {
+    editBtn.onmouseout = function () {
       this.style.background = 'rgba(59, 130, 246, 0.1)';
       this.style.transform = 'scale(1)';
     };
-    editBtn.onclick = function() {
+    editBtn.onclick = function () {
       openEditModal(prod.id);
     };
 
@@ -8615,15 +8628,15 @@ function renderProductsAsCards(container, productsArray) {
       justify-content: center;
       transition: all 0.2s ease;
     `;
-    deleteBtn.onmouseover = function() {
+    deleteBtn.onmouseover = function () {
       this.style.background = 'rgba(239, 68, 68, 0.2)';
       this.style.transform = 'scale(1.02)';
     };
-    deleteBtn.onmouseout = function() {
+    deleteBtn.onmouseout = function () {
       this.style.background = 'rgba(239, 68, 68, 0.1)';
       this.style.transform = 'scale(1)';
     };
-    deleteBtn.onclick = function() {
+    deleteBtn.onclick = function () {
       deleteProduct(prod.id);
     };
 
@@ -8658,12 +8671,12 @@ function renderProductsAsList(container, productsArray) {
 
   productsArray.forEach(prod => {
     const quantity = prod.quantity || 0;
-    
+
     let statusColor = '';
     let statusBg = '';
     let statusIcon = '';
     let statusText = '';
-    
+
     if (quantity === 0) {
       statusText = 'SEM ESTOQUE';
       statusColor = '#ef4444';
@@ -8699,13 +8712,13 @@ function renderProductsAsList(container, productsArray) {
       flex-wrap: wrap;
     `;
 
-    row.onmouseenter = function() {
+    row.onmouseenter = function () {
       this.style.background = '#1f1f1f';
       this.style.borderColor = statusColor;
       this.style.transform = 'translateX(4px)';
     };
 
-    row.onmouseleave = function() {
+    row.onmouseleave = function () {
       this.style.background = '#1a1a1a';
       this.style.borderColor = '#2a2a2a';
       this.style.transform = 'translateX(0)';
@@ -8776,13 +8789,13 @@ function renderProductsAsList(container, productsArray) {
       font-size: 12px;
       transition: all 0.2s ease;
     `;
-    addBtn.onmouseover = function() {
+    addBtn.onmouseover = function () {
       this.style.background = 'rgba(16, 185, 129, 0.2)';
     };
-    addBtn.onmouseout = function() {
+    addBtn.onmouseout = function () {
       this.style.background = 'rgba(16, 185, 129, 0.1)';
     };
-    addBtn.onclick = function() {
+    addBtn.onclick = function () {
       openStockModal(prod.id, 'add');
     };
 
@@ -8801,14 +8814,14 @@ function renderProductsAsList(container, productsArray) {
       ${quantity === 0 ? 'opacity: 0.5; cursor: not-allowed;' : ''}
     `;
     if (quantity > 0) {
-      removeBtn.onmouseover = function() {
+      removeBtn.onmouseover = function () {
         this.style.background = 'rgba(245, 158, 11, 0.2)';
       };
-      removeBtn.onmouseout = function() {
+      removeBtn.onmouseout = function () {
         this.style.background = 'rgba(245, 158, 11, 0.1)';
       };
     }
-    removeBtn.onclick = function() {
+    removeBtn.onclick = function () {
       if (quantity === 0) {
         showToast('Não há estoque para remover!', 'error');
         return;
@@ -8829,13 +8842,13 @@ function renderProductsAsList(container, productsArray) {
       font-size: 12px;
       transition: all 0.2s ease;
     `;
-    editBtn.onmouseover = function() {
+    editBtn.onmouseover = function () {
       this.style.background = 'rgba(59, 130, 246, 0.2)';
     };
-    editBtn.onmouseout = function() {
+    editBtn.onmouseout = function () {
       this.style.background = 'rgba(59, 130, 246, 0.1)';
     };
-    editBtn.onclick = function() {
+    editBtn.onclick = function () {
       openEditModal(prod.id);
     };
 
@@ -8852,13 +8865,13 @@ function renderProductsAsList(container, productsArray) {
       font-size: 12px;
       transition: all 0.2s ease;
     `;
-    deleteBtn.onmouseover = function() {
+    deleteBtn.onmouseover = function () {
       this.style.background = 'rgba(239, 68, 68, 0.2)';
     };
-    deleteBtn.onmouseout = function() {
+    deleteBtn.onmouseout = function () {
       this.style.background = 'rgba(239, 68, 68, 0.1)';
     };
-    deleteBtn.onclick = function() {
+    deleteBtn.onclick = function () {
       deleteProduct(prod.id);
     };
 
@@ -8890,7 +8903,7 @@ function renderProducts() {
   }
 
   list.innerHTML = '';
-  
+
   list.appendChild(createProductToolbar());
 
   if (!products || products.length === 0) {
@@ -8910,7 +8923,7 @@ function renderProducts() {
   }
 
   const filteredProducts = filterProductsClient(products);
-  
+
   if (filteredProducts.length === 0) {
     const noResultsState = document.createElement('div');
     noResultsState.style.cssText = `
@@ -9064,7 +9077,7 @@ function openStockModal(productId, action) {
 
   document.getElementById('confirmStockBtn').onclick = () => {
     const qty = parseInt(document.getElementById('stockQuantity').value);
-    
+
     if (!qty || qty <= 0) {
       showToast('Quantidade inválida!', 'error');
       return;
@@ -9121,7 +9134,7 @@ async function updateStock(productId, quantity, isAdd) {
 function renderPagination() {
   const totalPages = Math.ceil(products.length / itemsPerPage);
   const paginationContainer = document.getElementById('pagination');
-  
+
   if (!paginationContainer || totalPages <= 1) {
     if (paginationContainer) paginationContainer.innerHTML = '';
     return;
@@ -9592,12 +9605,12 @@ function renderizarListaProdutosOSModal(filtro = '') {
   if (!container) return;
 
   const filtroLower = filtro.toLowerCase();
-  
+
   const produtosFiltrados = products.filter(p => {
     const hasStock = (p.quantity || 0) > 0;
     const matchesFilter = p.name.toLowerCase().includes(filtroLower) ||
       (p.description && p.description.toLowerCase().includes(filtroLower));
-    
+
     return hasStock && matchesFilter;
   });
 
@@ -9618,7 +9631,7 @@ function renderizarListaProdutosOSModal(filtro = '') {
 
   container.innerHTML = produtosFiltrados.map(prod => {
     const stockQuantity = prod.quantity || 0;
-    
+
     return `
     <div style="
       background: #0d0d0d;
@@ -9772,7 +9785,7 @@ function alterarQuantidadeModal(productId, delta, maxStock) {
   let newValue = currentValue + delta;
 
   if (newValue < 1) newValue = 1;
-  
+
   if (maxStock && newValue > maxStock) {
     showToast('Quantidade maior que o estoque disponível!', 'error');
     newValue = maxStock;
@@ -9982,7 +9995,7 @@ async function finalizarOS() {
 
     osSelectedProducts = [];
     renderOSProducts();
-    
+
     showToast('OS finalizada com sucesso! Estoque atualizado.', 'success');
 
   } catch (err) {
@@ -10003,13 +10016,13 @@ function escapeHtml(text) {
 
 function showToast(message, type = 'info') {
   const toast = document.createElement('div');
-  
+
   const colors = {
     success: '#10b981',
     error: '#B32117',
     info: '#D4C29A'
   };
-  
+
   const icons = {
     success: 'fa-check-circle',
     error: 'fa-times-circle',
@@ -10135,7 +10148,7 @@ document.getElementById('addExtintorBtn')?.addEventListener('click', () => {
 // ===========================
 document.addEventListener('DOMContentLoaded', () => {
   loadProducts();
-  
+
   const savedView = localStorage.getItem('ordersViewMode') || 'card';
   toggleView(savedView);
 });
@@ -11684,9 +11697,9 @@ function renderCalendar() {
 function createDayElement(day, month, year, isOtherMonth = false, isToday = false) {
   const dayDiv = document.createElement('div');
   dayDiv.className = 'calendar-day';
-  
+
   const isMobile = window.innerWidth < 768;
-  
+
   // Estilos base do dia - MOBILE OTIMIZADO
   Object.assign(dayDiv.style, {
     background: '#2a2a2a',
@@ -12337,10 +12350,10 @@ async function deletarInspecao(inspectionId) {
   try {
     await database.ref(`scheduled_inspections/${inspectionId}`).remove();
     showToast('Inspeção excluída com sucesso!', 'success');
-    
+
     fecharModalDetalhes();
     fecharModalInspecoesDia();
-    
+
     await carregarInspecoesAgendadas();
     renderCalendar();
   } catch (error) {
