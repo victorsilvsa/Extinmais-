@@ -1574,11 +1574,286 @@ document.getElementById('addCompanyBtn').addEventListener('click', () => {
 });
 
 // Manual Inspection
+// Cria o modal de seleção dinamicamente
+ function criarModalSelecao() {
+    const modalHTML = `
+      <div id="selectionModal" class="modal">
+        <div class="modal-content" style="max-width: 800px;">
+          <div class="modal-header">
+            <h2><i class="fas fa-search"></i> Selecionar Cliente</h2>
+            <span class="close" onclick="closeModal('selectionModal')" style="cursor: pointer;">×</span>
+          </div>
+          <div class="modal-body">
+            <!-- Abas de Empresas e Prédios -->
+            <div style="display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 2px solid #D4C29A;">
+              <button id="tabEmpresas" class="tab-button active" onclick="switchTab('empresas')" style="flex: 1; padding: 12px 24px; background: transparent; border: none; color: #D4C29A; font-size: 16px; font-weight: bold; cursor: pointer; transition: all 0.3s; border-bottom: 3px solid #D4C29A;">
+                <i class="fas fa-briefcase"></i> Empresas
+              </button>
+              <button id="tabPredios" class="tab-button" onclick="switchTab('predios')" style="flex: 1; padding: 12px 24px; background: transparent; border: none; color: #888; font-size: 16px; font-weight: bold; cursor: pointer; transition: all 0.3s; border-bottom: 3px solid transparent;">
+                <i class="fas fa-building"></i> Prédios
+              </button>
+            </div>
+
+            <!-- Campo de Busca -->
+            <div style="margin-bottom: 20px;">
+              <input 
+                type="text" 
+                id="searchSelection" 
+                placeholder="Buscar por nome, CNPJ ou responsável..."
+                style="width: 100%; padding: 12px; border: 2px solid #D4C29A; border-radius: 8px; background: #2a2a2a; color: #fff; font-size: 14px;"
+                onkeyup="filtrarSelecao()"
+              >
+            </div>
+
+            <!-- Lista de Empresas -->
+            <div id="listaEmpresas" style="max-height: 400px; overflow-y: auto; padding: 10px;">
+              <div style="text-align: center; color: #D4C29A; padding: 40px; font-size: 18px;">
+                <i class="fas fa-spinner fa-spin"></i> Carregando empresas...
+              </div>
+            </div>
+
+            <!-- Lista de Prédios -->
+            <div id="listaPredios" style="max-height: 400px; overflow-y: auto; padding: 10px; display: none;">
+              <div style="text-align: center; color: #D4C29A; padding: 40px; font-size: 18px;">
+                <i class="fas fa-spinner fa-spin"></i> Carregando prédios...
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    // Adiciona o modal ao body se ainda não existir
+    if (!document.getElementById('selectionModal')) {
+      document.body.insertAdjacentHTML('beforeend', modalHTML);
+    }
+  }
+
+
+// Variável para controlar qual aba está ativa
+let todasEmpresas = [];
+let todosPredios = [];
+let abaAtiva = 'empresas';
+
+// Cria o modal de seleção
+function criarModalSelecao() {
+    const modalHTML = `
+      <div id="selectionModal" class="modal">
+        <div class="modal-content" style="max-width: 600px; background: linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%);">
+          <div class="modal-header" style="background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%); border-bottom: 2px solid #D4C29A; padding: 20px;">
+            <h2 style="color: #D4C29A; font-size: 20px; margin: 0;"><i class="fas fa-search"></i> Selecionar Cliente</h2>
+            <span class="close" onclick="closeModal('selectionModal')" style="cursor: pointer; color: #D4C29A; font-size: 28px; font-weight: bold; transition: all 0.3s;" onmouseover="this.style.color='#fff'; this.style.transform='rotate(90deg)'" onmouseout="this.style.color='#D4C29A'; this.style.transform='rotate(0deg)'">×</span>
+          </div>
+          <div class="modal-body" style="padding: 20px;">
+            <!-- Abas de Empresas e Prédios -->
+            <div style="display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 3px solid #D4C29A; padding-bottom: 5px;">
+              <button id="tabEmpresas" class="tab-button active" onclick="switchTab('empresas')" style="flex: 1; padding: 12px 20px; background: linear-gradient(135deg, #D4C29A 0%, #b8a676 100%); border: none; color: #1a1a1a; font-size: 15px; font-weight: bold; cursor: pointer; transition: all 0.3s; border-radius: 8px 8px 0 0; box-shadow: 0 4px 15px rgba(212, 194, 154, 0.3);">
+                <i class="fas fa-briefcase"></i> Empresas
+              </button>
+              <button id="tabPredios" class="tab-button" onclick="switchTab('predios')" style="flex: 1; padding: 12px 20px; background: transparent; border: 2px solid #444; color: #888; font-size: 15px; font-weight: bold; cursor: pointer; transition: all 0.3s; border-radius: 8px 8px 0 0;">
+                <i class="fas fa-building"></i> Prédios
+              </button>
+            </div>
+
+            <!-- Campo de Busca -->
+            <div style="margin-bottom: 20px; position: relative;">
+              <i class="fas fa-search" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #D4C29A; font-size: 14px;"></i>
+              <input 
+                type="text" 
+                id="searchSelection" 
+                placeholder="Buscar por nome, CNPJ ou responsável..."
+                style="width: 100%; padding: 12px 12px 12px 40px; border: 2px solid #D4C29A; border-radius: 8px; background: #2a2a2a; color: #fff; font-size: 14px; transition: all 0.3s; box-shadow: 0 2px 10px rgba(212, 194, 154, 0.1);"
+                onkeyup="filtrarSelecao()"
+                onfocus="this.style.borderColor='#fff'; this.style.boxShadow='0 4px 20px rgba(212, 194, 154, 0.3)'"
+                onblur="this.style.borderColor='#D4C29A'; this.style.boxShadow='0 2px 10px rgba(212, 194, 154, 0.1)'"
+              >
+            </div>
+
+            <!-- Lista de Empresas -->
+            <div id="listaEmpresas" style="max-height: 350px; overflow-y: auto; padding: 5px; scrollbar-width: thin; scrollbar-color: #D4C29A #1a1a1a;">
+              <div style="text-align: center; color: #D4C29A; padding: 40px 20px; font-size: 16px;">
+                <i class="fas fa-spinner fa-spin" style="font-size: 28px; margin-bottom: 12px;"></i>
+                <div>Carregando empresas...</div>
+              </div>
+            </div>
+
+            <!-- Lista de Prédios -->
+            <div id="listaPredios" style="max-height: 350px; overflow-y: auto; padding: 5px; display: none; scrollbar-width: thin; scrollbar-color: #D4C29A #1a1a1a;">
+              <div style="text-align: center; color: #D4C29A; padding: 40px 20px; font-size: 16px;">
+                <i class="fas fa-spinner fa-spin" style="font-size: 28px; margin-bottom: 12px;"></i>
+                <div>Carregando prédios...</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    // Adiciona o modal ao body se ainda não existir
+    if (!document.getElementById('selectionModal')) {
+      document.body.insertAdjacentHTML('beforeend', modalHTML);
+    }
+}
+
+// Abre o modal de seleção
+async function abrirModalSelecao() {
+  criarModalSelecao();
+  openModal('selectionModal');
+  await carregarDadosSelecao();
+}
+
+// Carrega empresas e prédios do Firebase
+async function carregarDadosSelecao() {
+  try {
+    const [companiesSnapshot, buildingsSnapshot] = await Promise.all([
+      database.ref('companies').once('value'),
+      database.ref('buildings').once('value')
+    ]);
+
+    const companies = companiesSnapshot.val() || {};
+    const buildings = buildingsSnapshot.val() || {};
+
+    todasEmpresas = Object.entries(companies).map(([id, data]) => ({ id, ...data, tipo: 'empresa' }));
+    todosPredios = Object.entries(buildings).map(([id, data]) => ({ id, ...data, tipo: 'predio' }));
+
+    renderizarLista();
+  } catch (error) {
+    console.error('Erro ao carregar dados:', error);
+    showToast('Erro ao carregar dados', 'error');
+  }
+}
+
+// Alterna entre abas
+function switchTab(aba) {
+  abaAtiva = aba;
+  
+  const tabEmpresas = document.getElementById('tabEmpresas');
+  const tabPredios = document.getElementById('tabPredios');
+  
+  if (aba === 'empresas') {
+    tabEmpresas.style.background = 'linear-gradient(135deg, #D4C29A 0%, #b8a676 100%)';
+    tabEmpresas.style.color = '#1a1a1a';
+    tabEmpresas.style.border = 'none';
+    tabEmpresas.style.boxShadow = '0 4px 15px rgba(212, 194, 154, 0.3)';
+    
+    tabPredios.style.background = 'transparent';
+    tabPredios.style.color = '#888';
+    tabPredios.style.border = '2px solid #444';
+    tabPredios.style.boxShadow = 'none';
+  } else {
+    tabPredios.style.background = 'linear-gradient(135deg, #D4C29A 0%, #b8a676 100%)';
+    tabPredios.style.color = '#1a1a1a';
+    tabPredios.style.border = 'none';
+    tabPredios.style.boxShadow = '0 4px 15px rgba(212, 194, 154, 0.3)';
+    
+    tabEmpresas.style.background = 'transparent';
+    tabEmpresas.style.color = '#888';
+    tabEmpresas.style.border = '2px solid #444';
+    tabEmpresas.style.boxShadow = 'none';
+  }
+  
+  document.getElementById('listaEmpresas').style.display = aba === 'empresas' ? 'block' : 'none';
+  document.getElementById('listaPredios').style.display = aba === 'predios' ? 'block' : 'none';
+  
+  document.getElementById('searchSelection').value = '';
+  renderizarLista();
+}
+
+// Renderiza a lista baseada na aba ativa
+function renderizarLista(filtro = '') {
+  const listaEmpresas = document.getElementById('listaEmpresas');
+  const listaPredios = document.getElementById('listaPredios');
+
+  const empresasFiltradas = todasEmpresas.filter(emp => {
+    if (!filtro) return true;
+    const searchTerm = filtro.toLowerCase();
+    return (
+      (emp.razao_social || '').toLowerCase().includes(searchTerm) ||
+      (emp.cnpj || '').toLowerCase().includes(searchTerm) ||
+      (emp.responsavel || '').toLowerCase().includes(searchTerm)
+    );
+  });
+
+  const prediosFiltrados = todosPredios.filter(pred => {
+    if (!filtro) return true;
+    const searchTerm = filtro.toLowerCase();
+    return (
+      (pred.razao_social_predio || '').toLowerCase().includes(searchTerm) ||
+      (pred.cnpj_predio || '').toLowerCase().includes(searchTerm) ||
+      (pred.responsavel_predio || '').toLowerCase().includes(searchTerm)
+    );
+  });
+
+  if (empresasFiltradas.length === 0) {
+    listaEmpresas.innerHTML = '<div style="text-align: center; color: #888; padding: 40px 20px; font-size: 15px; background: #2a2a2a; border-radius: 8px; border: 2px dashed #444;"><i class="fas fa-inbox" style="font-size: 36px; margin-bottom: 10px; color: #D4C29A; display: block;"></i>Nenhuma empresa encontrada</div>';
+  } else {
+    listaEmpresas.innerHTML = empresasFiltradas.map(emp => `
+      <div onclick="selecionarCliente('${emp.id}', 'empresa')" style="background: linear-gradient(135deg, #2a2a2a 0%, #1f1f1f 100%); border: 2px solid #D4C29A; border-radius: 10px; padding: 15px; margin-bottom: 12px; cursor: pointer; transition: all 0.3s;" onmouseover="this.style.transform='translateX(5px)'; this.style.boxShadow='0 6px 20px rgba(212, 194, 154, 0.4)'; this.style.borderColor='#D4C29A';" onmouseout="this.style.transform='translateX(0)'; this.style.boxShadow='none'; this.style.borderColor='#D4C29A';">
+        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 10px;">
+          <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #D4C29A 0%, #b8a676 100%); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 18px; color: #1a1a1a; flex-shrink: 0;">
+            <i class="fas fa-briefcase"></i>
+          </div>
+          <div style="flex: 1; min-width: 0;">
+            <div style="color: #D4C29A; font-size: 16px; font-weight: bold; margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${emp.razao_social}</div>
+            <div style="color: #888; font-size: 13px;"><i class="fas fa-id-card"></i> ${emp.cnpj}</div>
+          </div>
+        </div>
+        <div style="color: #ccc; font-size: 12px; display: flex; gap: 15px; flex-wrap: wrap; padding-top: 10px; border-top: 1px solid #444;">
+          <span><i class="fas fa-user" style="color: #D4C29A;"></i> ${emp.responsavel || 'Não informado'}</span>
+          <span><i class="fas fa-building" style="color: #D4C29A;"></i> Nº ${emp.numero_empresa || '-'}</span>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  if (prediosFiltrados.length === 0) {
+    listaPredios.innerHTML = '<div style="text-align: center; color: #888; padding: 40px 20px; font-size: 15px; background: #2a2a2a; border-radius: 8px; border: 2px dashed #444;"><i class="fas fa-inbox" style="font-size: 36px; margin-bottom: 10px; color: #D4C29A; display: block;"></i>Nenhum prédio encontrado</div>';
+  } else {
+    listaPredios.innerHTML = prediosFiltrados.map(pred => `
+      <div onclick="selecionarCliente('${pred.id}', 'predio')" style="background: linear-gradient(135deg, #2a2a2a 0%, #1f1f1f 100%); border: 2px solid #D4C29A; border-radius: 10px; padding: 15px; margin-bottom: 12px; cursor: pointer; transition: all 0.3s;" onmouseover="this.style.transform='translateX(5px)'; this.style.boxShadow='0 6px 20px rgba(212, 194, 154, 0.4)'; this.style.borderColor='#D4C29A';" onmouseout="this.style.transform='translateX(0)'; this.style.boxShadow='none'; this.style.borderColor='#D4C29A';">
+        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 10px;">
+          <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #D4C29A 0%, #b8a676 100%); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 18px; color: #1a1a1a; flex-shrink: 0;">
+            <i class="fas fa-building"></i>
+          </div>
+          <div style="flex: 1; min-width: 0;">
+            <div style="color: #D4C29A; font-size: 16px; font-weight: bold; margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${pred.razao_social_predio}</div>
+            <div style="color: #888; font-size: 13px;"><i class="fas fa-id-card"></i> ${pred.cnpj_predio}</div>
+          </div>
+        </div>
+        <div style="color: #ccc; font-size: 12px; display: flex; gap: 15px; flex-wrap: wrap; padding-top: 10px; border-top: 1px solid #444;">
+          <span><i class="fas fa-user" style="color: #D4C29A;"></i> ${pred.responsavel_predio || 'Não informado'}</span>
+          <span><i class="fas fa-building" style="color: #D4C29A;"></i> Nº ${pred.numero_predio || '-'}</span>
+        </div>
+      </div>
+    `).join('');
+  }
+}
+
+// Filtrar ao digitar
+function filtrarSelecao() {
+  const filtro = document.getElementById('searchSelection').value;
+  renderizarLista(filtro);
+}
+
+// Seleciona cliente e abre inspeção
+async function selecionarCliente(id, tipo) {
+  closeModal('selectionModal');
+  
+  if (tipo === 'empresa') {
+    await startInspection(id);
+  } else {
+    await startInspectionBuilding(id);
+  }
+}
+
+// Atualiza o botão de inspeção manual
 document.getElementById('manualInspectionBtn').addEventListener('click', () => {
-  openModal('inspectionFormModal');
-  // Clear form for manual entry
-  document.getElementById('inspectionForm').reset();
+  abrirModalSelecao();
 });
+
+
+
+
 
 document.getElementById('addCompanyForm').addEventListener('submit', async (e) => {
   e.preventDefault();
@@ -1595,39 +1870,6 @@ document.getElementById('addCompanyForm').addEventListener('submit', async (e) =
   loadDashboard();
 });
 
-// Start Inspection
-async function startInspection(companyId) {
-  const snapshot = await database.ref(`companies/${companyId}`).once('value');
-  const company = snapshot.val();
-
-  openModal('inspectionFormModal');
-
-  setTimeout(() => {
-    // Preenche dados da empresa
-    document.querySelector('input[name="razao_social"]').value = company.razao_social;
-    document.querySelector('input[name="cnpj"]').value = company.cnpj;
-    document.querySelector('input[name="telefone"]').value = company.telefone || '';
-    document.querySelector('input[name="cep"]').value = company.cep || '';
-    document.querySelector('input[name="endereco"]').value = company.endereco || '';
-    document.querySelector('input[name="responsavel"]').value = company.responsavel || '';
-
-    // EXIBE o número da empresa e OCULTA o do prédio
-    const rowEmpresa = document.getElementById('rowNumeroEmpresa');
-    const rowPredio = document.getElementById('rowNumeroPredio');
-
-    if (rowEmpresa) rowEmpresa.style.display = 'flex';
-    if (rowPredio) rowPredio.style.display = 'none';
-
-    // Garante que o valor apareça no input
-    document.querySelector('input[name="numero_empresa"]').value = company.numero_empresa || '';
-    // Limpa o campo do prédio para não misturar
-    const inputPredio = document.querySelector('input[name="numero_predio"]');
-    if (inputPredio) inputPredio.value = '';
-
-    // Define o tipo explicitamente
-    window.currentInspectionType = 'empresa';
-  }, 200);
-}
 
 // Add Building Form Submit
 document.getElementById('addBuildingForm').addEventListener('submit', async (e) => {
@@ -1649,36 +1891,7 @@ document.getElementById('addBuildingForm').addEventListener('submit', async (e) 
   loadDashboard();
 });
 
-// Start Inspection for Building
-async function startInspectionBuilding(buildingId) {
-  const snapshot = await database.ref(`buildings/${buildingId}`).once('value');
-  const building = snapshot.val();
 
-  openModal('inspectionFormModal');
-
-  setTimeout(() => {
-    document.querySelector('input[name="razao_social"]').value = building.razao_social_predio;
-    document.querySelector('input[name="cnpj"]').value = building.cnpj_predio;
-    document.querySelector('input[name="telefone"]').value = building.telefone_predio || '';
-    document.querySelector('input[name="cep"]').value = building.cep_predio || '';
-    document.querySelector('input[name="endereco"]').value = building.endereco_predio || '';
-    document.querySelector('input[name="responsavel"]').value = building.responsavel_predio || '';
-
-    // OCULTA o número da empresa e EXIBE o do prédio
-    const rowEmpresa = document.getElementById('rowNumeroEmpresa');
-    const rowPredio = document.getElementById('rowNumeroPredio');
-
-    if (rowEmpresa) rowEmpresa.style.display = 'none';
-    if (rowPredio) rowPredio.style.display = 'flex';
-
-    document.querySelector('input[name="numero_predio"]').value = building.numero_predio || '';
-    // Limpa o campo da empresa
-    const inputEmpresa = document.querySelector('input[name="numero_empresa"]');
-    if (inputEmpresa) inputEmpresa.value = '';
-
-    window.currentInspectionType = 'predio';
-  }, 200);
-}
 
 // Inspection Tabs
 document.querySelectorAll('.inspection-tab').forEach(tab => {
@@ -1765,6 +1978,7 @@ function generateCompletePDF(data) {
       html += `<div class="pdf-page">`;
       html += generatePDFHeader('RELATÓRIO COMPLETO DE INSPEÇÃO');
       html += generateHidrantesSection(data);
+      html += generateAlarmeSection(data);
       html += generatePDFFooter();
       html += `</div>`;
     }
@@ -1776,7 +1990,6 @@ function generateCompletePDF(data) {
     if (data.has_alarme) {
       html += `<div class="pdf-page">`;
       html += generatePDFHeader('RELATÓRIO COMPLETO DE INSPEÇÃO');
-      html += generateAlarmeSection(data);
       html += generatePDFFooter();
       html += `</div>`;
     }
@@ -1856,6 +2069,10 @@ function generateCompletePDF(data) {
         html += generateHidrantesSection(data);
       }
 
+      if (data.has_alarme) {
+        html += generateAlarmeSection(data);
+
+      }
       html += generatePDFFooter();
       html += `</div>`;
     }
@@ -1864,13 +2081,7 @@ function generateCompletePDF(data) {
     // -------------------------------------
     // Página 3 - Alarme (somente se existir)
     // -------------------------------------
-    if (data.has_alarme) {
-      html += `<div class="pdf-page">`;
-      html += generatePDFHeader('RELATÓRIO COMPLETO DE INSPEÇÃO');
-      html += generateAlarmeSection(data);
-      html += generatePDFFooter();
-      html += `</div>`;
-    }
+
 
 
     // -------------------------------------
@@ -2066,25 +2277,41 @@ function generateSinalizacaoPDF(data) {
 function generatePDFHeader(title) {
   return `
     <div class="pdf-header">
-      <div class="pdf-logo">
-        ${currentLogoUrl ? `<img src="${currentLogoUrl}" alt="">` : '<div class="pdf-logo-text">EXTINMAIS</div>'}
+      <div class="header-top">
+  
+        <div class="header-title">
+          <h1><i class="fas fa-file-alt"></i>ExtinMais ${title}</h1>
+        </div>
       </div>
-      <div class="pdf-title-section">
-        <div class="pdf-main-title">${title}</div>
-        <div class="pdf-subtitle">Sistema de Prevenção e Combate a Incêndio</div>
-        <div style="font-size: 10px; color: #666; margin-top: 4px; font-weight: normal;">CNPJ: 52.026.476/001-3</div>
-                <div style="font-size: 10px; color: #666; margin-top: 4px; font-weight: normal;">Tel: 15 99137-1232</div>
-
+      <div class="header-divider"></div>
+      <div class="header-info">
+        <div class="header-info-left">
+          <div class="header-info-item">
+            <i class="fas fa-id-card"></i>
+            <span>CNPJ: 52.026.476/0001-03</span>
+          </div>
+          <div class="header-info-item">
+            <i class="fas fa-phone"></i>
+            <span>(15) 99137-1232</span>
+          </div>
+          <div class="header-info-item">
+            <i class="fas fa-envelope"></i>
+            <span>extinmaiss@outlook.com</span>
+          </div>
+        </div>
+        <div class="header-info-item">
+          <i class="far fa-clock"></i>
+          <span>${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}</span>
+        </div>
       </div>
     </div>
   `;
 }
 
+
 function generateClientSection(data) {
-  // Verifica se é prédio ou empresa
   const isPredio = data.tipo === 'predio' || !!data.razao_social_predio;
 
-  // Define os valores com fallback
   const razaoSocial = isPredio
     ? (data.razao_social_predio || data.razao_social || '-')
     : (data.razao_social || '-');
@@ -2110,264 +2337,278 @@ function generateClientSection(data) {
   const icone = isPredio ? 'fa-building' : 'fa-briefcase';
 
   return `
-    <div class="pdf-section">
-      <div class="pdf-section-title">
-        <i class="fas ${icone}"></i> Dados do Cliente
+    <div style="margin-bottom: 15px; background: white; border-radius: 6px; border: 2px solid #e5e7eb; overflow: hidden; box-shadow: 0 2px 6px rgba(0,0,0,0.06);">
+      <div style="font-size: 11px; color: white; font-weight: 800; margin: 0; padding: 8px 12px; background: linear-gradient(135deg, #b32117 0%, #dc2626 100%); display: flex; align-items: center; gap: 8px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid #991b12;">
+        <i class="fas ${icone}" style="font-size: 13px;"></i> Dados do Cliente
       </div>
 
-      <div class="pdf-field">
-        <div class="pdf-field-label">${labelRazao}:</div>
-        <div class="pdf-field-value">${razaoSocial}</div>
-      </div>
-
-      <div class="pdf-field">
-        <div class="pdf-field-label">CNPJ:</div>
-        <div class="pdf-field-value">${cnpj}</div>
-      </div>
-
-      <div class="pdf-field">
-        <div class="pdf-field-label">Telefone:</div>
-        <div class="pdf-field-value">${telefone}</div>
-      </div>
-
-      <div class="pdf-field">
-        <div class="pdf-field-label">CEP:</div>
-        <div class="pdf-field-value">${cep}</div>
-      </div>
-
-      <div class="pdf-field">
-        <div class="pdf-field-label">Endereço:</div>
-        <div class="pdf-field-value">${endereco}</div>
-      </div>
-
-      ${isPredio && numeroPredio ? `
-        <div class="pdf-field">
-          <div class="pdf-field-label">Número do Prédio:</div>
-          <div class="pdf-field-value">${numeroPredio}</div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0;">
+        <div style="border-right: 1px solid #e5e7eb;">
+          <div style="padding: 7px 10px; border-bottom: 1px solid #e5e7eb;">
+            <div style="font-weight: 700; color: #6b7280; font-size: 8px; text-transform: uppercase; margin-bottom: 2px; letter-spacing: 0.3px;">${labelRazao}</div>
+            <div style="color: #1f2937; font-weight: 600; font-size: 9px;">${razaoSocial}</div>
+          </div>
+          <div style="padding: 7px 10px; border-bottom: 1px solid #e5e7eb;">
+            <div style="font-weight: 700; color: #6b7280; font-size: 8px; text-transform: uppercase; margin-bottom: 2px; letter-spacing: 0.3px;">CNPJ</div>
+            <div style="color: #1f2937; font-weight: 600; font-size: 9px;">${cnpj}</div>
+          </div>
+          <div style="padding: 7px 10px;">
+            <div style="font-weight: 700; color: #6b7280; font-size: 8px; text-transform: uppercase; margin-bottom: 2px; letter-spacing: 0.3px;">Telefone</div>
+            <div style="color: #1f2937; font-weight: 600; font-size: 9px;">${telefone}</div>
+          </div>
         </div>
-      ` : ''}
 
-      ${!isPredio && numeroEmpresa ? `
-        <div class="pdf-field">
-          <div class="pdf-field-label">Número da Empresa:</div>
-          <div class="pdf-field-value">${numeroEmpresa}</div>
+        <div>
+          <div style="padding: 7px 10px; border-bottom: 1px solid #e5e7eb;">
+            <div style="font-weight: 700; color: #6b7280; font-size: 8px; text-transform: uppercase; margin-bottom: 2px; letter-spacing: 0.3px;">CEP</div>
+            <div style="color: #1f2937; font-weight: 600; font-size: 9px;">${cep}</div>
+          </div>
+          <div style="padding: 7px 10px; border-bottom: 1px solid #e5e7eb;">
+            <div style="font-weight: 700; color: #6b7280; font-size: 8px; text-transform: uppercase; margin-bottom: 2px; letter-spacing: 0.3px;">Endereço</div>
+            <div style="color: #1f2937; font-weight: 600; font-size: 9px;">${endereco}</div>
+          </div>
+          <div style="padding: 7px 10px;">
+            <div style="font-weight: 700; color: #6b7280; font-size: 8px; text-transform: uppercase; margin-bottom: 2px; letter-spacing: 0.3px;">${isPredio && numeroPredio ? 'Nº Prédio' : !isPredio && numeroEmpresa ? 'Nº Empresa' : 'Responsável'}</div>
+            <div style="color: #1f2937; font-weight: 600; font-size: 9px;">${isPredio && numeroPredio ? numeroPredio : !isPredio && numeroEmpresa ? numeroEmpresa : responsavel}</div>
+          </div>
         </div>
-      ` : ''}
-
-      <div class="pdf-field">
-        <div class="pdf-field-label">Responsável:</div>
-        <div class="pdf-field-value">${responsavel}</div>
       </div>
+
+      ${((isPredio && numeroPredio) || (!isPredio && numeroEmpresa)) ? `
+      <div style="padding: 7px 10px; border-top: 1px solid #e5e7eb;">
+        <div style="font-weight: 700; color: #6b7280; font-size: 8px; text-transform: uppercase; margin-bottom: 2px; letter-spacing: 0.3px;">Responsável</div>
+        <div style="color: #1f2937; font-weight: 600; font-size: 9px;">${responsavel}</div>
+      </div>
+      ` : ''}
     </div>
   `;
 }
 
 function generateCertificateSection(data) {
   return `
-    <div class="pdf-section">
-      <div class="pdf-section-title">
-        <i class="fas fa-certificate"></i> Certificado AVCB/CLCB
+    <div style="margin-bottom: 15px; background: white; border-radius: 6px; border: 2px solid #e5e7eb; overflow: hidden; box-shadow: 0 2px 6px rgba(0,0,0,0.06);">
+      <div style="font-size: 11px; color: white; font-weight: 800; margin: 0; padding: 8px 12px; background: linear-gradient(135deg, #b32117 0%, #dc2626 100%); display: flex; align-items: center; gap: 8px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid #991b12;">
+        <i class="fas fa-certificate" style="font-size: 13px;"></i> Certificado AVCB/CLCB
       </div>
-      <div class="pdf-field">
-        <div class="pdf-field-label">Tipo:</div>
-        <div class="pdf-field-value">${data.cert_tipo || '-'}</div>
-      </div>
-      <div class="pdf-field">
-        <div class="pdf-field-label">Número:</div>
-        <div class="pdf-field-value">${data.cert_numero || '-'}</div>
-      </div>
-      <div class="pdf-field">
-        <div class="pdf-field-label">Data de Início da Validade:</div>
-        <div class="pdf-field-value">${data.cert_inicio_validade ? new Date(data.cert_inicio_validade).toLocaleDateString('pt-BR') : '-'}</div>
-      </div>
-      <div class="pdf-field">
-        <div class="pdf-field-label">Validade:</div>
-        <div class="pdf-field-value">${data.cert_validade ? new Date(data.cert_validade).toLocaleDateString('pt-BR') : '-'}</div>
+      
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0;">
+        <div style="border-right: 1px solid #e5e7eb;">
+          <div style="padding: 7px 10px; border-bottom: 1px solid #e5e7eb;">
+            <div style="font-weight: 700; color: #6b7280; font-size: 8px; text-transform: uppercase; margin-bottom: 2px; letter-spacing: 0.3px;">Tipo</div>
+            <div style="color: #1f2937; font-weight: 600; font-size: 9px;">${data.cert_tipo || '-'}</div>
+          </div>
+          <div style="padding: 7px 10px;">
+            <div style="font-weight: 700; color: #6b7280; font-size: 8px; text-transform: uppercase; margin-bottom: 2px; letter-spacing: 0.3px;">Número</div>
+            <div style="color: #1f2937; font-weight: 600; font-size: 9px;">${data.cert_numero || '-'}</div>
+          </div>
+        </div>
+        
+        <div>
+          <div style="padding: 7px 10px; border-bottom: 1px solid #e5e7eb;">
+            <div style="font-weight: 700; color: #6b7280; font-size: 8px; text-transform: uppercase; margin-bottom: 2px; letter-spacing: 0.3px;">Início Validade</div>
+            <div style="color: #1f2937; font-weight: 600; font-size: 9px;">${data.cert_inicio_validade ? new Date(data.cert_inicio_validade).toLocaleDateString('pt-BR') : '-'}</div>
+          </div>
+          <div style="padding: 7px 10px;">
+            <div style="font-weight: 700; color: #6b7280; font-size: 8px; text-transform: uppercase; margin-bottom: 2px; letter-spacing: 0.3px;">Validade</div>
+            <div style="color: #1f2937; font-weight: 600; font-size: 9px;">${data.cert_validade ? new Date(data.cert_validade).toLocaleDateString('pt-BR') : '-'}</div>
+          </div>
+        </div>
       </div>
     </div>
   `;
 }
 
 function generateBombasSection(data) {
-  let html = `
-        <div class="pdf-section">
-          <div class="pdf-section-title">
-            <i class="fas fa-water"></i> Sistema de Bombas
-          </div>
-          <div class="pdf-field">
-            <div class="pdf-field-label">Reservatório (L):</div>
-            <div class="pdf-field-value">${data.reservatorio_tamanho || '-'}</div>
-          </div>
-          <div class="pdf-field">
-            <div class="pdf-field-label">Bomba Principal - Potência:</div>
-            <div class="pdf-field-value">${data.bomba_principal_potencia || '-'}</div>
-          </div>
-          <div class="pdf-field">
-            <div class="pdf-field-label">Teste de Partida:</div>
-            <div class="pdf-field-value">${data.bomba_principal_teste === 'Sim' ? '<span class="checkmark">✓</span>' : '<span class="crossmark">✗</span>'}</div>
-          </div>
-          <div class="pdf-field">
-            <div class="pdf-field-label">Estado Geral:</div>
-            <div class="pdf-field-value">${data.bomba_principal_estado || '-'}</div>
-          </div>
-      `;
+  const campos = [
+    { label: 'Reservatório (L)', value: data.reservatorio_tamanho || '-' },
+    { label: 'Bomba Principal', value: data.bomba_principal_potencia || '-' },
+    { label: 'Teste Partida', value: data.bomba_principal_teste === 'Sim' ? '<span style="color: #10b981; font-weight: 900; font-size: 13px;">✓</span>' : '<span style="color: #ef4444; font-weight: 900; font-size: 13px;">✗</span>' },
+    { label: 'Estado Geral', value: data.bomba_principal_estado || '-' }
+  ];
 
   if (data.has_bomba_jockey) {
-    html += `
-          <div class="pdf-field">
-            <div class="pdf-field-label">Bomba Jockey - Potência:</div>
-            <div class="pdf-field-value">${data.jockey_potencia || '-'}</div>
-          </div>
-          <div class="pdf-field">
-            <div class="pdf-field-label">Partida Automática:</div>
-            <div class="pdf-field-value">${data.jockey_partida === 'Sim' ? '<span class="checkmark">✓</span>' : '<span class="crossmark">✗</span>'}</div>
-          </div>
-          <div class="pdf-field">
-            <div class="pdf-field-label">Pressostato Ajustado:</div>
-            <div class="pdf-field-value">${data.jockey_pressostato === 'Sim' ? '<span class="checkmark">✓</span>' : '<span class="crossmark">✗</span>'}</div>
-          </div>
-          <div class="pdf-field">
-            <div class="pdf-field-label">Sem Ruídos:</div>
-            <div class="pdf-field-value">${data.jockey_ruidos === 'Sim' ? '<span class="checkmark">✓</span>' : '<span class="crossmark">✗</span>'}</div>
-          </div>
-        `;
+    campos.push(
+      { label: 'Bomba Jockey', value: data.jockey_potencia || '-' },
+      { label: 'Partida Auto', value: data.jockey_partida === 'Sim' ? '<span style="color: #10b981; font-weight: 900; font-size: 13px;">✓</span>' : '<span style="color: #ef4444; font-weight: 900; font-size: 13px;">✗</span>' },
+      { label: 'Pressostato', value: data.jockey_pressostato === 'Sim' ? '<span style="color: #10b981; font-weight: 900; font-size: 13px;">✓</span>' : '<span style="color: #ef4444; font-weight: 900; font-size: 13px;">✗</span>' },
+      { label: 'Sem Ruídos', value: data.jockey_ruidos === 'Sim' ? '<span style="color: #10b981; font-weight: 900; font-size: 13px;">✓</span>' : '<span style="color: #ef4444; font-weight: 900; font-size: 13px;">✗</span>' }
+    );
   }
 
-  html += `</div>`;
-  return html;
-}
+  const coluna1 = campos.filter((_, i) => i % 2 === 0);
+  const coluna2 = campos.filter((_, i) => i % 2 === 1);
 
-function generateHidrantesSection(data) {
   return `
-    <div class="pdf-section">
-      <div class="pdf-section-title">
-        <i class="fas fa-truck-droplet"></i> Rede de Hidrantes
+    <div style="margin-bottom: 15px; background: white; border-radius: 6px; border: 2px solid #e5e7eb; overflow: hidden; box-shadow: 0 2px 6px rgba(0,0,0,0.06);">
+      <div style="font-size: 11px; color: white; font-weight: 800; margin: 0; padding: 8px 12px; background: linear-gradient(135deg, #b32117 0%, #dc2626 100%); display: flex; align-items: center; gap: 8px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid #991b12;">
+        <i class="fas fa-water" style="font-size: 13px;"></i> Sistema de Bombas
       </div>
-
-      <div class="pdf-columns">
-        <div class="pdf-column">
-          <div class="pdf-field">
-            <div class="pdf-field-label">Diâmetro da Tubulação:</div>
-            <div class="pdf-field-value">${data.hidrantes_diametro || '-'}</div>
-          </div>
-          <div class="pdf-field">
-            <div class="pdf-field-label">Quantidade de Pontos:</div>
-            <div class="pdf-field-value">${data.hidrantes_quantidade || '-'}</div>
-          </div>
-          <div class="pdf-field">
-            <div class="pdf-field-label">Suportes Firmes:</div>
-            <div class="pdf-field-value">${data.hidrantes_suportes === 'Sim' ? '<span class="checkmark">✓</span>' : '<span class="crossmark">✗</span>'}</div>
-          </div>
-          <div class="pdf-field">
-            <div class="pdf-field-label">Sem Vazamentos:</div>
-            <div class="pdf-field-value">${data.hidrantes_vazamentos === 'Sim' ? '<span class="checkmark">✓</span>' : '<span class="crossmark">✗</span>'}</div>
-          </div>
-          <div class="pdf-field">
-            <div class="pdf-field-label">Identificação Conforme Norma:</div>
-            <div class="pdf-field-value">${data.hidrantes_identificacao === 'Sim' ? '<span class="checkmark">✓</span>' : '<span class="crossmark">✗</span>'}</div>
-          </div>
-          <div class="pdf-field">
-            <div class="pdf-field-label">Adaptador Storz:</div>
-            <div class="pdf-field-value">${data.adaptador_storz || '-'}</div>
-          </div>
-          <div class="pdf-field">
-            <div class="pdf-field-label">Material do Adaptador:</div>
-            <div class="pdf-field-value">${data.adaptador_material || '-'}</div>
-          </div>
+      
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0;">
+        <div style="border-right: 1px solid #e5e7eb;">
+          ${coluna1.map((campo, idx) => `
+            <div style="padding: 7px 10px; ${idx < coluna1.length - 1 ? 'border-bottom: 1px solid #e5e7eb;' : ''}">
+              <div style="font-weight: 700; color: #6b7280; font-size: 8px; text-transform: uppercase; margin-bottom: 2px; letter-spacing: 0.3px;">${campo.label}</div>
+              <div style="color: #1f2937; font-weight: 600; font-size: 9px;">${campo.value}</div>
+            </div>
+          `).join('')}
         </div>
-
-        <div class="pdf-column">
-          <div class="pdf-field">
-            <div class="pdf-field-label">Esguicho:</div>
-            <div class="pdf-field-value">${data.esguicho_tipo || '-'}</div>
-          </div>
-          <div class="pdf-field">
-            <div class="pdf-field-label">Material do Esguicho:</div>
-            <div class="pdf-field-value">${data.esguicho_material || '-'}</div>
-          </div>
-          <div class="pdf-field">
-            <div class="pdf-field-label">Chave Storz:</div>
-            <div class="pdf-field-value">${data.chave_storz || '-'}</div>
-          </div>
-          <div class="pdf-field">
-            <div class="pdf-field-label">Material da Chave:</div>
-            <div class="pdf-field-value">${data.chave_material || '-'}</div>
-          </div>
-          <div class="pdf-field">
-            <div class="pdf-field-label">Tipo de Mangueira:</div>
-            <div class="pdf-field-value">${data.mangueira_tipo || '-'}</div>
-          </div>
-          <div class="pdf-field">
-            <div class="pdf-field-label">Diâmetro da Mangueira:</div>
-            <div class="pdf-field-value">${data.mangueira_diametro || '-'}</div>
-          </div>
-          <div class="pdf-field">
-            <div class="pdf-field-label">Comprimento da Mangueira:</div>
-            <div class="pdf-field-value">${data.mangueira_comprimento ? data.mangueira_comprimento + ' metros' : '-'}</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="pdf-columns">
-        <div class="pdf-column">
-          <div class="pdf-field">
-            <div class="pdf-field-label">Possui Hidrante RR:</div>
-            <div class="pdf-field-value">${data.hidrante_rr_possui || '-'}</div>
-          </div>
-          <div class="pdf-field">
-            <div class="pdf-field-label">Possui Adaptador:</div>
-            <div class="pdf-field-value">${data.hidrante_rr_adaptador || '-'}</div>
-          </div>
-        </div>
-        <div class="pdf-column">
-          <div class="pdf-field">
-            <div class="pdf-field-label">Medida do Adaptador:</div>
-            <div class="pdf-field-value">${data.hidrante_rr_medida || '-'}</div>
-          </div>
-          <div class="pdf-field">
-            <div class="pdf-field-label">Observações:</div>
-            <div class="pdf-field-value">${data.hidrante_rr_observacoes || '-'}</div>
-          </div>
+        
+        <div>
+          ${coluna2.map((campo, idx) => `
+            <div style="padding: 7px 10px; ${idx < coluna2.length - 1 ? 'border-bottom: 1px solid #e5e7eb;' : ''}">
+              <div style="font-weight: 700; color: #6b7280; font-size: 8px; text-transform: uppercase; margin-bottom: 2px; letter-spacing: 0.3px;">${campo.label}</div>
+              <div style="color: #1f2937; font-weight: 600; font-size: 9px;">${campo.value}</div>
+            </div>
+          `).join('')}
         </div>
       </div>
     </div>
   `;
 }
 
-function generateAlarmeSection(data) {
+function generateHidrantesSection(data) {
   return `
-        <div class="pdf-section">
-          <div class="pdf-section-title">
-            <i class="fas fa-bell"></i> Sistema de Alarme
+    <div style="margin-bottom: 15px; background: white; border-radius: 6px; border: 2px solid #e5e7eb; overflow: hidden; box-shadow: 0 2px 6px rgba(0,0,0,0.06);">
+      <div style="font-size: 11px; color: white; font-weight: 800; margin: 0; padding: 8px 12px; background: linear-gradient(135deg, #b32117 0%, #dc2626 100%); display: flex; align-items: center; gap: 8px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid #991b12;">
+        <i class="fas fa-truck-droplet" style="font-size: 13px;"></i> Rede de Hidrantes
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0;">
+        <div style="border-right: 1px solid #e5e7eb;">
+          <div style="padding: 7px 10px; border-bottom: 1px solid #e5e7eb;">
+            <div style="font-weight: 700; color: #6b7280; font-size: 8px; text-transform: uppercase; margin-bottom: 2px; letter-spacing: 0.3px;">Diâmetro Tubulação</div>
+            <div style="color: #1f2937; font-weight: 600; font-size: 9px;">${data.hidrantes_diametro || '-'}</div>
           </div>
-          <div class="pdf-field">
-            <div class="pdf-field-label">Quantidade de Pontos:</div>
-            <div class="pdf-field-value">${data.alarme_pontos || '-'}</div>
+          <div style="padding: 7px 10px; border-bottom: 1px solid #e5e7eb;">
+            <div style="font-weight: 700; color: #6b7280; font-size: 8px; text-transform: uppercase; margin-bottom: 2px; letter-spacing: 0.3px;">Qtd Pontos</div>
+            <div style="color: #1f2937; font-weight: 600; font-size: 9px;">${data.hidrantes_quantidade || '-'}</div>
           </div>
-          <div class="pdf-field">
-            <div class="pdf-field-label">Tipo de Central:</div>
-            <div class="pdf-field-value">${data.alarme_central_tipo || '-'}</div>
+          <div style="padding: 7px 10px; border-bottom: 1px solid #e5e7eb;">
+            <div style="font-weight: 700; color: #6b7280; font-size: 8px; text-transform: uppercase; margin-bottom: 2px; letter-spacing: 0.3px;">Suportes Firmes</div>
+            <div style="color: #1f2937; font-weight: 600; font-size: 9px;">${data.hidrantes_suportes === 'Sim' ? '<span style="color: #10b981; font-weight: 900; font-size: 13px;">✓</span>' : '<span style="color: #ef4444; font-weight: 900; font-size: 13px;">✗</span>'}</div>
           </div>
-          <div class="pdf-field">
-            <div class="pdf-field-label">Central Liga:</div>
-            <div class="pdf-field-value">${data.central_liga ? '<span class="checkmark">✓</span>' : '<span class="crossmark">✗</span>'}</div>
+          <div style="padding: 7px 10px; border-bottom: 1px solid #e5e7eb;">
+            <div style="font-weight: 700; color: #6b7280; font-size: 8px; text-transform: uppercase; margin-bottom: 2px; letter-spacing: 0.3px;">Sem Vazamentos</div>
+            <div style="color: #1f2937; font-weight: 600; font-size: 9px;">${data.hidrantes_vazamentos === 'Sim' ? '<span style="color: #10b981; font-weight: 900; font-size: 13px;">✓</span>' : '<span style="color: #ef4444; font-weight: 900; font-size: 13px;">✗</span>'}</div>
           </div>
-          <div class="pdf-field">
-            <div class="pdf-field-label">Sem Falhas:</div>
-            <div class="pdf-field-value">${data.central_sem_falhas ? '<span class="checkmark">✓</span>' : '<span class="crossmark">✗</span>'}</div>
-          </div>
-          <div class="pdf-field">
-            <div class="pdf-field-label">Baterias Testadas:</div>
-            <div class="pdf-field-value">${data.central_baterias_testadas ? '<span class="checkmark">✓</span>' : '<span class="crossmark">✗</span>'}</div>
-          </div>
-          <div class="pdf-field">
-            <div class="pdf-field-label">Detectores (Qtd):</div>
-            <div class="pdf-field-value">${data.detectores_quantidade || '-'}</div>
+          <div style="padding: 7px 10px;">
+            <div style="font-weight: 700; color: #6b7280; font-size: 8px; text-transform: uppercase; margin-bottom: 2px; letter-spacing: 0.3px;">Identificação</div>
+            <div style="color: #1f2937; font-weight: 600; font-size: 9px;">${data.hidrantes_identificacao === 'Sim' ? '<span style="color: #10b981; font-weight: 900; font-size: 13px;">✓</span>' : '<span style="color: #ef4444; font-weight: 900; font-size: 13px;">✗</span>'}</div>
           </div>
         </div>
-      `;
+
+        <div style="border-right: 1px solid #e5e7eb;">
+          <div style="padding: 7px 10px; border-bottom: 1px solid #e5e7eb;">
+            <div style="font-weight: 700; color: #6b7280; font-size: 8px; text-transform: uppercase; margin-bottom: 2px; letter-spacing: 0.3px;">Adaptador Storz</div>
+            <div style="color: #1f2937; font-weight: 600; font-size: 9px;">${data.adaptador_storz || '-'}</div>
+          </div>
+          <div style="padding: 7px 10px; border-bottom: 1px solid #e5e7eb;">
+            <div style="font-weight: 700; color: #6b7280; font-size: 8px; text-transform: uppercase; margin-bottom: 2px; letter-spacing: 0.3px;">Material Adaptador</div>
+            <div style="color: #1f2937; font-weight: 600; font-size: 9px;">${data.adaptador_material || '-'}</div>
+          </div>
+          <div style="padding: 7px 10px; border-bottom: 1px solid #e5e7eb;">
+            <div style="font-weight: 700; color: #6b7280; font-size: 8px; text-transform: uppercase; margin-bottom: 2px; letter-spacing: 0.3px;">Esguicho</div>
+            <div style="color: #1f2937; font-weight: 600; font-size: 9px;">${data.esguicho_tipo || '-'}</div>
+          </div>
+          <div style="padding: 7px 10px; border-bottom: 1px solid #e5e7eb;">
+            <div style="font-weight: 700; color: #6b7280; font-size: 8px; text-transform: uppercase; margin-bottom: 2px; letter-spacing: 0.3px;">Material Esguicho</div>
+            <div style="color: #1f2937; font-weight: 600; font-size: 9px;">${data.esguicho_material || '-'}</div>
+          </div>
+          <div style="padding: 7px 10px;">
+            <div style="font-weight: 700; color: #6b7280; font-size: 8px; text-transform: uppercase; margin-bottom: 2px; letter-spacing: 0.3px;">Chave Storz</div>
+            <div style="color: #1f2937; font-weight: 600; font-size: 9px;">${data.chave_storz || '-'}</div>
+          </div>
+        </div>
+
+        <div>
+          <div style="padding: 7px 10px; border-bottom: 1px solid #e5e7eb;">
+            <div style="font-weight: 700; color: #6b7280; font-size: 8px; text-transform: uppercase; margin-bottom: 2px; letter-spacing: 0.3px;">Material Chave</div>
+            <div style="color: #1f2937; font-weight: 600; font-size: 9px;">${data.chave_material || '-'}</div>
+          </div>
+          <div style="padding: 7px 10px; border-bottom: 1px solid #e5e7eb;">
+            <div style="font-weight: 700; color: #6b7280; font-size: 8px; text-transform: uppercase; margin-bottom: 2px; letter-spacing: 0.3px;">Tipo Mangueira</div>
+            <div style="color: #1f2937; font-weight: 600; font-size: 9px;">${data.mangueira_tipo || '-'}</div>
+          </div>
+          <div style="padding: 7px 10px; border-bottom: 1px solid #e5e7eb;">
+            <div style="font-weight: 700; color: #6b7280; font-size: 8px; text-transform: uppercase; margin-bottom: 2px; letter-spacing: 0.3px;">Diâmetro Mangueira</div>
+            <div style="color: #1f2937; font-weight: 600; font-size: 9px;">${data.mangueira_diametro || '-'}</div>
+          </div>
+          <div style="padding: 7px 10px; border-bottom: 1px solid #e5e7eb;">
+            <div style="font-weight: 700; color: #6b7280; font-size: 8px; text-transform: uppercase; margin-bottom: 2px; letter-spacing: 0.3px;">Comprimento</div>
+            <div style="color: #1f2937; font-weight: 600; font-size: 9px;">${data.mangueira_comprimento ? data.mangueira_comprimento + ' m' : '-'}</div>
+          </div>
+          <div style="padding: 7px 10px;">
+            <div style="font-weight: 700; color: #6b7280; font-size: 8px; text-transform: uppercase; margin-bottom: 2px; letter-spacing: 0.3px;">Hidrante RR</div>
+            <div style="color: #1f2937; font-weight: 600; font-size: 9px;">${data.hidrante_rr_possui || '-'}</div>
+          </div>
+        </div>
+      </div>
+
+      ${data.hidrante_rr_possui === 'Sim' ? `
+      <div style="border-top: 2px solid #e5e7eb; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0;">
+        <div style="padding: 7px 10px; border-right: 1px solid #e5e7eb;">
+          <div style="font-weight: 700; color: #6b7280; font-size: 8px; text-transform: uppercase; margin-bottom: 2px; letter-spacing: 0.3px;">Possui Adaptador</div>
+          <div style="color: #1f2937; font-weight: 600; font-size: 9px;">${data.hidrante_rr_adaptador || '-'}</div>
+        </div>
+        <div style="padding: 7px 10px; border-right: 1px solid #e5e7eb;">
+          <div style="font-weight: 700; color: #6b7280; font-size: 8px; text-transform: uppercase; margin-bottom: 2px; letter-spacing: 0.3px;">Medida Adaptador</div>
+          <div style="color: #1f2937; font-weight: 600; font-size: 9px;">${data.hidrante_rr_medida || '-'}</div>
+        </div>
+        <div style="padding: 7px 10px;">
+          <div style="font-weight: 700; color: #6b7280; font-size: 8px; text-transform: uppercase; margin-bottom: 2px; letter-spacing: 0.3px;">Observações</div>
+          <div style="color: #1f2937; font-weight: 600; font-size: 9px;">${data.hidrante_rr_observacoes || '-'}</div>
+        </div>
+      </div>
+      ` : ''}
+    </div>
+  `;
 }
 
+function generateAlarmeSection(data) {
+  return `
+    <div style="margin-bottom: 15px; background: white; border-radius: 6px; border: 2px solid #e5e7eb; overflow: hidden; box-shadow: 0 2px 6px rgba(0,0,0,0.06);">
+      <div style="font-size: 11px; color: white; font-weight: 800; margin: 0; padding: 8px 12px; background: linear-gradient(135deg, #b32117 0%, #dc2626 100%); display: flex; align-items: center; gap: 8px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid #991b12;">
+        <i class="fas fa-bell" style="font-size: 13px;"></i> Sistema de Alarme
+      </div>
+      
+      <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0;">
+        <div style="border-right: 1px solid #e5e7eb;">
+          <div style="padding: 7px 10px; border-bottom: 1px solid #e5e7eb;">
+            <div style="font-weight: 700; color: #6b7280; font-size: 8px; text-transform: uppercase; margin-bottom: 2px; letter-spacing: 0.3px;">Qtd Pontos</div>
+            <div style="color: #1f2937; font-weight: 600; font-size: 9px;">${data.alarme_pontos || '-'}</div>
+          </div>
+          <div style="padding: 7px 10px;">
+            <div style="font-weight: 700; color: #6b7280; font-size: 8px; text-transform: uppercase; margin-bottom: 2px; letter-spacing: 0.3px;">Tipo Central</div>
+            <div style="color: #1f2937; font-weight: 600; font-size: 9px;">${data.alarme_central_tipo || '-'}</div>
+          </div>
+        </div>
+        
+        <div style="border-right: 1px solid #e5e7eb;">
+          <div style="padding: 7px 10px; border-bottom: 1px solid #e5e7eb;">
+            <div style="font-weight: 700; color: #6b7280; font-size: 8px; text-transform: uppercase; margin-bottom: 2px; letter-spacing: 0.3px;">Central Liga</div>
+            <div style="color: #1f2937; font-weight: 600; font-size: 9px;">${data.central_liga ? '<span style="color: #10b981; font-weight: 900; font-size: 13px;">✓</span>' : '<span style="color: #ef4444; font-weight: 900; font-size: 13px;">✗</span>'}</div>
+          </div>
+          <div style="padding: 7px 10px;">
+            <div style="font-weight: 700; color: #6b7280; font-size: 8px; text-transform: uppercase; margin-bottom: 2px; letter-spacing: 0.3px;">Sem Falhas</div>
+            <div style="color: #1f2937; font-weight: 600; font-size: 9px;">${data.central_sem_falhas ? '<span style="color: #10b981; font-weight: 900; font-size: 13px;">✓</span>' : '<span style="color: #ef4444; font-weight: 900; font-size: 13px;">✗</span>'}</div>
+          </div>
+        </div>
+        
+        <div>
+          <div style="padding: 7px 10px; border-bottom: 1px solid #e5e7eb;">
+            <div style="font-weight: 700; color: #6b7280; font-size: 8px; text-transform: uppercase; margin-bottom: 2px; letter-spacing: 0.3px;">Baterias OK</div>
+            <div style="color: #1f2937; font-weight: 600; font-size: 9px;">${data.central_baterias_testadas ? '<span style="color: #10b981; font-weight: 900; font-size: 13px;">✓</span>' : '<span style="color: #ef4444; font-weight: 900; font-size: 13px;">✗</span>'}</div>
+          </div>
+          <div style="padding: 7px 10px;">
+            <div style="font-weight: 700; color: #6b7280; font-size: 8px; text-transform: uppercase; margin-bottom: 2px; letter-spacing: 0.3px;">Detectores</div>
+            <div style="color: #1f2937; font-weight: 600; font-size: 9px;">${data.detectores_quantidade || '-'}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+}
 // ========================================
 // FUNÇÃO AUXILIAR - COLETAR TODOS OS EXTINTORES
 // ========================================
@@ -2414,46 +2655,46 @@ function getAllExtintores(data) {
 // ========================================
 function generateExtintorCard(ext, numeroGlobal) {
   return `
-    <div class="pdf-section">
-      <div class="pdf-section-title">
-        <i class="fas fa-fire-extinguisher"></i> Extintor ${numeroGlobal} — ${ext.tipo || '-'}
+    <div style="margin-bottom: 15px; background: white; border-radius: 6px; border: 2px solid #d1d5db; overflow: hidden; box-shadow: 0 2px 6px rgba(0,0,0,0.06);">
+      <div style="font-size: 11px; color: white; font-weight: 800; margin: 0; padding: 8px 12px; background: linear-gradient(135deg, #4b5563 0%, #6b7280 100%); display: flex; align-items: center; gap: 8px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid #374151;">
+        <i class="fas fa-fire-extinguisher" style="font-size: 13px;"></i> Extintor ${numeroGlobal} — ${ext.tipo || '-'}
       </div>
 
-      <div class="pdf-field">
-        <div class="pdf-field-label">Quantidade:</div>
-        <div class="pdf-field-value">${ext.quantidade || '-'}</div>
+      <div style="padding: 7px 10px; border-bottom: 1px solid #e5e7eb;">
+        <div style="font-weight: 700; color: #6b7280; font-size: 8px; text-transform: uppercase; margin-bottom: 2px; letter-spacing: 0.3px;">Quantidade</div>
+        <div style="color: #1f2937; font-weight: 600; font-size: 9px;">${ext.quantidade || '-'}</div>
       </div>
 
-      <div class="pdf-field">
-        <div class="pdf-field-label">Peso:</div>
-        <div class="pdf-field-value">${ext.peso || '-'}</div>
+      <div style="padding: 7px 10px; border-bottom: 1px solid #e5e7eb;">
+        <div style="font-weight: 700; color: #6b7280; font-size: 8px; text-transform: uppercase; margin-bottom: 2px; letter-spacing: 0.3px;">Peso</div>
+        <div style="color: #1f2937; font-weight: 600; font-size: 9px;">${ext.peso || '-'}</div>
       </div>
 
-      <div class="pdf-field">
-        <div class="pdf-field-label">Validade:</div>
-        <div class="pdf-field-value">
+      <div style="padding: 7px 10px; border-bottom: 1px solid #e5e7eb;">
+        <div style="font-weight: 700; color: #6b7280; font-size: 8px; text-transform: uppercase; margin-bottom: 2px; letter-spacing: 0.3px;">Validade</div>
+        <div style="color: #1f2937; font-weight: 600; font-size: 9px;">
           ${ext.validade ? new Date(ext.validade).toLocaleDateString('pt-BR') : '-'}
         </div>
       </div>
 
-      <div class="pdf-field">
-        <div class="pdf-field-label">Lacres Intactos:</div>
-        <div class="pdf-field-value">
-          ${ext.lacres === 'Sim' ? '<span class="checkmark">✓</span>' : '<span class="crossmark">✗</span>'}
+      <div style="padding: 7px 10px; border-bottom: 1px solid #e5e7eb;">
+        <div style="font-weight: 700; color: #6b7280; font-size: 8px; text-transform: uppercase; margin-bottom: 2px; letter-spacing: 0.3px;">Lacres Intactos</div>
+        <div style="color: #1f2937; font-weight: 600; font-size: 9px;">
+          ${ext.lacres === 'Sim' ? '<span style="color: #10b981; font-weight: 900; font-size: 13px;">✓</span>' : '<span style="color: #ef4444; font-weight: 900; font-size: 13px;">✗</span>'}
         </div>
       </div>
 
-      <div class="pdf-field">
-        <div class="pdf-field-label">Manômetro OK:</div>
-        <div class="pdf-field-value">
-          ${ext.manometro === 'Sim' ? '<span class="checkmark">✓</span>' : '<span class="crossmark">✗</span>'}
+      <div style="padding: 7px 10px; border-bottom: 1px solid #e5e7eb;">
+        <div style="font-weight: 700; color: #6b7280; font-size: 8px; text-transform: uppercase; margin-bottom: 2px; letter-spacing: 0.3px;">Manômetro OK</div>
+        <div style="color: #1f2937; font-weight: 600; font-size: 9px;">
+          ${ext.manometro === 'Sim' ? '<span style="color: #10b981; font-weight: 900; font-size: 13px;">✓</span>' : '<span style="color: #ef4444; font-weight: 900; font-size: 13px;">✗</span>'}
         </div>
       </div>
 
-      <div class="pdf-field">
-        <div class="pdf-field-label">Fixação Adequada:</div>
-        <div class="pdf-field-value">
-          ${ext.fixacao === 'Sim' ? '<span class="checkmark">✓</span>' : '<span class="crossmark">✗</span>'}
+      <div style="padding: 7px 10px;">
+        <div style="font-weight: 700; color: #6b7280; font-size: 8px; text-transform: uppercase; margin-bottom: 2px; letter-spacing: 0.3px;">Fixação Adequada</div>
+        <div style="color: #1f2937; font-weight: 600; font-size: 9px;">
+          ${ext.fixacao === 'Sim' ? '<span style="color: #10b981; font-weight: 900; font-size: 13px;">✓</span>' : '<span style="color: #ef4444; font-weight: 900; font-size: 13px;">✗</span>'}
         </div>
       </div>
     </div>
@@ -2466,63 +2707,65 @@ function generateExtintorCard(ext, numeroGlobal) {
 function generateExtintoresGrid(extintores, startIndex) {
   if (extintores.length === 0) {
     return `
-      <div class="pdf-section">
-        <div class="pdf-section-title">
-          <i class="fas fa-fire-extinguisher"></i> Extintores de Incêndio
+      <div style="margin-bottom: 15px; background: white; border-radius: 6px; border: 2px solid #d1d5db; overflow: hidden; box-shadow: 0 2px 6px rgba(0,0,0,0.06);">
+        <div style="font-size: 11px; color: white; font-weight: 800; margin: 0; padding: 8px 12px; background: linear-gradient(135deg, #4b5563 0%, #6b7280 100%); display: flex; align-items: center; gap: 8px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid #374151;">
+          <i class="fas fa-fire-extinguisher" style="font-size: 13px;"></i> Extintores de Incêndio
         </div>
-        <div class="pdf-field-value">Nenhum extintor informado</div>
+        <div style="padding: 10px 12px; color: #6b7280; font-size: 9px;">Nenhum extintor informado</div>
       </div>
     `;
   }
 
   return `
-    <div class="pdf-section">
-      <div class="pdf-section-title">
-        <i class="fas fa-fire-extinguisher"></i> Extintores de Incêndio
+    <div style="margin-bottom: 15px; background: white; border-radius: 6px; border: 2px solid #d1d5db; overflow: hidden; box-shadow: 0 2px 6px rgba(0,0,0,0.06);">
+      <div style="font-size: 11px; color: white; font-weight: 800; margin: 0; padding: 8px 12px; background: linear-gradient(135deg, #4b5563 0%, #6b7280 100%); display: flex; align-items: center; gap: 8px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid #374151;">
+        <i class="fas fa-fire-extinguisher" style="font-size: 13px;"></i> Extintores de Incêndio
       </div>
 
-      <div class="pdf-extintores-grid">
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0;">
         ${extintores.map((ext, idx) => `
-          <div class="pdf-extintor-card">
-            <div class="pdf-extintor-title">
-              Extintor ${startIndex + idx + 1} — ${ext.tipo || '-'}
+          <div style="${idx === 0 ? 'border-right: 2px solid #d1d5db;' : ''}">
+            <div style="padding: 8px 10px; background: #f9fafb; border-bottom: 1px solid #e5e7eb;">
+              <div style="font-weight: 800; color: #4b5563; font-size: 9px; text-transform: uppercase; letter-spacing: 0.5px;">
+                Extintor ${startIndex + idx + 1} — ${ext.tipo || '-'}
+              </div>
             </div>
 
-            <div class="pdf-field">
-              <div class="pdf-field-label">Quantidade:</div>
-              <div class="pdf-field-value">${ext.quantidade || '-'}</div>
+            <div style="padding: 7px 10px; border-bottom: 1px solid #e5e7eb;">
+              <div style="font-weight: 700; color: #6b7280; font-size: 8px; text-transform: uppercase; margin-bottom: 2px; letter-spacing: 0.3px;">Quantidade</div>
+              <div style="color: #1f2937; font-weight: 600; font-size: 9px;">${ext.quantidade || '-'}</div>
             </div>
 
-            <div class="pdf-field">
-              <div class="pdf-field-label">Peso:</div>
-              <div class="pdf-field-value">${ext.peso || '-'}</div>
+            <div style="padding: 7px 10px; border-bottom: 1px solid #e5e7eb;">
+              <div style="font-weight: 700; color: #6b7280; font-size: 8px; text-transform: uppercase; margin-bottom: 2px; letter-spacing: 0.3px;">Peso</div>
+              <div style="color: #1f2937; font-weight: 600; font-size: 9px;">${ext.peso || '-'}</div>
             </div>
 
-            <div class="pdf-field">
-              <div class="pdf-field-label">Validade:</div>
-              <div class="pdf-field-value">
+            <div style="padding: 7px 10px; border-bottom: 1px solid #e5e7eb;">
+              <div style="font-weight: 700; color: #6b7280; font-size: 8px; text-transform: uppercase; margin-bottom: 2px; letter-spacing: 0.3px;">Validade</div>
+              <div style="color: #1f2937; font-weight: 600; font-size: 9px;">
                 ${ext.validade ? new Date(ext.validade).toLocaleDateString('pt-BR') : '-'}
               </div>
             </div>
 
-            <div class="pdf-field">
-              <div class="pdf-field-label">Lacres Intactos:</div>
-              <div class="pdf-field-value">
-                ${ext.lacres === 'Sim' ? '<span class="checkmark">✓</span>' : '<span class="crossmark">✗</span>'}
+            <div style="padding: 7px 10px; border-bottom: 1px solid #e5e7eb;">
+              <div style="font-weight: 700; color: #6b7280; font-size: 8px; text-transform: uppercase; margin-bottom: 2px; letter-spacing: 0.3px;">Lacres Intactos</div>
+              <div style="color: #1f2937; font-weight: 600; font-size: 9px;">
+                ${ext.lacres === 'Sim' ? '<span style="color: #10b981; font-weight: 900; font-size: 13px;">✓</span>' : '<span style="color: #ef4444; font-weight: 900; font-size: 13px;">✗</span>'}
               </div>
             </div>
 
-            <div class="pdf-field">
-              <div class="pdf-field-label">Manômetro OK:</div>
-              <div class="pdf-field-value">
-                ${ext.manometro === 'Sim' ? '<span class="checkmark">✓</span>' : '<span class="crossmark">✗</span>'}
+            <div style="padding: 7px 10px; border-bottom: 1px solid #e5e7eb;">
+              <div style="font-weight: 700; color: #6b7280; font-size: 8px; text-transform: uppercase; margin-bottom: 2px; letter-spacing: 0.3px;">Manômetro OK</div>
+              <div style="color: #1f2937; font-weight: 600; font-size: 9px;">
+                ${ext.manometro === 'Sim' ? '<span style="color: #10b981; font-weight: 900; font-size: 13px;">✓</span>' : '<span style="color: #ef4444; font-weight: 900; font-size: 13px;">✗</span>'}
               </div>
             </div>
 
-            <div class="pdf-field">
-              <div class="pdf-field-label">Fixação Adequada:</div>
-              <div class="pdf-field-value">
-                ${ext.fixacao === 'Sim' ? '<span class="checkmark">✓</span>' : '<span class="crossmark">✗</span>'}
+            <div style="padding: 7px 10px;">
+              <div style="font-weight: 700; color: #6b7280; font-size: 8px; text-transform: uppercase; margin-bottom: 2px; letter-spacing: 0.3px;">Fixação Adequada</div>
+              <div style="color: #1f2937; font-weight: 600; font-size: 9px;">
+                ${ext.fixacao === 'Sim' ? '<span style="color: #10b981; font-weight: 900; font-size: 13px;">✓</span>' : '<span style="color: #ef4444; font-weight: 900; font-size: 13px;">✗</span>'}
               </div>
             </div>
           </div>
@@ -2542,11 +2785,11 @@ function generateExtintoresSection(data) {
 
   if (todosExtintores.length === 0) {
     return `
-      <div class="pdf-section">
-        <div class="pdf-section-title">
-          <i class="fas fa-fire-extinguisher"></i> Extintores de Incêndio
+      <div style="margin-bottom: 15px; background: white; border-radius: 6px; border: 2px solid #d1d5db; overflow: hidden; box-shadow: 0 2px 6px rgba(0,0,0,0.06);">
+        <div style="font-size: 11px; color: white; font-weight: 800; margin: 0; padding: 8px 12px; background: linear-gradient(135deg, #4b5563 0%, #6b7280 100%); display: flex; align-items: center; gap: 8px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid #374151;">
+          <i class="fas fa-fire-extinguisher" style="font-size: 13px;"></i> Extintores de Incêndio
         </div>
-        <div class="pdf-field-value">Nenhum extintor informado</div>
+        <div style="padding: 10px 12px; color: #6b7280; font-size: 9px;">Nenhum extintor informado</div>
       </div>
     `;
   }
@@ -2632,84 +2875,109 @@ function generateExtintoresPDF(data) {
 
 // Função para DESKTOP - Sinalização completa em uma página
 function generateSinalizacaoSection(data) {
-  let html = `
-        <div class="pdf-section">
-          <div class="pdf-section-title">
-            <i class="fas fa-sign"></i> Sinalização
-          </div>
-          <div class="pdf-field">
-            <div class="pdf-field-label">Placas Fotoluminescentes:</div>
-            <div class="pdf-field-value">${data.placas_fotoluminescentes === 'Sim' ? '<span class="checkmark">✓</span>' : '<span class="crossmark">✗</span>'}</div>
-          </div>
-      `;
+  const campos = [];
+
+  // Placas Fotoluminescentes
+  campos.push({
+    label: 'Placas Fotoluminescentes',
+    value: data.placas_fotoluminescentes === 'Sim' ? '<span style="color: #10b981; font-weight: 900; font-size: 13px;">✓</span>' : '<span style="color: #ef4444; font-weight: 900; font-size: 13px;">✗</span>'
+  });
 
   // Rota de Fuga
   if (data.sinal_saida && parseInt(data.sinal_saida) > 0) {
-    html += `<div class="pdf-field"><div class="pdf-field-label">Saída:</div><div class="pdf-field-value">${data.sinal_saida}</div></div>`;
+    campos.push({ label: 'Saída', value: data.sinal_saida });
   }
   if (data.sinal_cam_direita && parseInt(data.sinal_cam_direita) > 0) {
-    html += `<div class="pdf-field"><div class="pdf-field-label">Caminhamento → Direita:</div><div class="pdf-field-value">${data.sinal_cam_direita}</div></div>`;
+    campos.push({ label: 'Caminhamento → Direita', value: data.sinal_cam_direita });
   }
   if (data.sinal_cam_esquerda && parseInt(data.sinal_cam_esquerda) > 0) {
-    html += `<div class="pdf-field"><div class="pdf-field-label">Caminhamento → Esquerda:</div><div class="pdf-field-value">${data.sinal_cam_esquerda}</div></div>`;
+    campos.push({ label: 'Caminhamento → Esquerda', value: data.sinal_cam_esquerda });
   }
   if (data.sinal_esc_up_direita && parseInt(data.sinal_esc_up_direita) > 0) {
-    html += `<div class="pdf-field"><div class="pdf-field-label">Escada ↑ Direita:</div><div class="pdf-field-value">${data.sinal_esc_up_direita}</div></div>`;
+    campos.push({ label: 'Escada ↑ Direita', value: data.sinal_esc_up_direita });
   }
   if (data.sinal_esc_up_esquerda && parseInt(data.sinal_esc_up_esquerda) > 0) {
-    html += `<div class="pdf-field"><div class="pdf-field-label">Escada ↑ Esquerda:</div><div class="pdf-field-value">${data.sinal_esc_up_esquerda}</div></div>`;
+    campos.push({ label: 'Escada ↑ Esquerda', value: data.sinal_esc_up_esquerda });
   }
   if (data.sinal_esc_down_direita && parseInt(data.sinal_esc_down_direita) > 0) {
-    html += `<div class="pdf-field"><div class="pdf-field-label">Escada ↓ Direita:</div><div class="pdf-field-value">${data.sinal_esc_down_direita}</div></div>`;
+    campos.push({ label: 'Escada ↓ Direita', value: data.sinal_esc_down_direita });
   }
   if (data.sinal_esc_down_esquerda && parseInt(data.sinal_esc_down_esquerda) > 0) {
-    html += `<div class="pdf-field"><div class="pdf-field-label">Escada ↓ Esquerda:</div><div class="pdf-field-value">${data.sinal_esc_down_esquerda}</div></div>`;
+    campos.push({ label: 'Escada ↓ Esquerda', value: data.sinal_esc_down_esquerda });
   }
 
   // Sinalização de Hidrantes
   if (data.sinal_hidrante && parseInt(data.sinal_hidrante) > 0) {
-    html += `<div class="pdf-field"><div class="pdf-field-label">Hidrante:</div><div class="pdf-field-value">${data.sinal_hidrante}</div></div>`;
+    campos.push({ label: 'Hidrante', value: data.sinal_hidrante });
   }
 
   // Sinalização de Acionadores
   if (data.sinal_acion_bomba && parseInt(data.sinal_acion_bomba) > 0) {
-    html += `<div class="pdf-field"><div class="pdf-field-label">Acionamento de Bomba:</div><div class="pdf-field-value">${data.sinal_acion_bomba}</div></div>`;
+    campos.push({ label: 'Acionamento de Bomba', value: data.sinal_acion_bomba });
   }
   if (data.sinal_acion_alarme && parseInt(data.sinal_acion_alarme) > 0) {
-    html += `<div class="pdf-field"><div class="pdf-field-label">Acionamento de Alarme:</div><div class="pdf-field-value">${data.sinal_acion_alarme}</div></div>`;
+    campos.push({ label: 'Acionamento de Alarme', value: data.sinal_acion_alarme });
   }
   if (data.sinal_central_alarme && parseInt(data.sinal_central_alarme) > 0) {
-    html += `<div class="pdf-field"><div class="pdf-field-label">Central de Alarme:</div><div class="pdf-field-value">${data.sinal_central_alarme}</div></div>`;
+    campos.push({ label: 'Central de Alarme', value: data.sinal_central_alarme });
   }
   if (data.sinal_bomba_incendio && parseInt(data.sinal_bomba_incendio) > 0) {
-    html += `<div class="pdf-field"><div class="pdf-field-label">Bomba de Incêndio:</div><div class="pdf-field-value">${data.sinal_bomba_incendio}</div></div>`;
+    campos.push({ label: 'Bomba de Incêndio', value: data.sinal_bomba_incendio });
   }
 
   // Placas Específicas
   if (data.placa_lotacao && parseInt(data.placa_lotacao) > 0) {
-    html += `<div class="pdf-field"><div class="pdf-field-label">Placa de Lotação (Nº Pessoas):</div><div class="pdf-field-value">${data.placa_lotacao}</div></div>`;
+    campos.push({ label: 'Placa de Lotação (Nº Pessoas)', value: data.placa_lotacao });
   }
   if (data.placa_m1 && parseInt(data.placa_m1) > 0) {
-    html += `<div class="pdf-field"><div class="pdf-field-label">Placa M1:</div><div class="pdf-field-value">${data.placa_m1}</div></div>`;
+    campos.push({ label: 'Placa M1', value: data.placa_m1 });
   }
   if (data.placa_extintor && parseInt(data.placa_extintor) > 0) {
-    html += `<div class="pdf-field"><div class="pdf-field-label">Extintor:</div><div class="pdf-field-value">${data.placa_extintor}</div></div>`;
+    campos.push({ label: 'Extintor', value: data.placa_extintor });
   }
   if (data.placa_ilum_emerg && parseInt(data.placa_ilum_emerg) > 0) {
-    html += `<div class="pdf-field"><div class="pdf-field-label">Iluminação de Emergência:</div><div class="pdf-field-value">${data.placa_ilum_emerg}</div></div>`;
+    campos.push({ label: 'Iluminação de Emergência', value: data.placa_ilum_emerg });
   }
   if (data.placa_sinal_emerg && parseInt(data.placa_sinal_emerg) > 0) {
-    html += `<div class="pdf-field"><div class="pdf-field-label">Sinalização de Emergência:</div><div class="pdf-field-value">${data.placa_sinal_emerg}</div></div>`;
+    campos.push({ label: 'Sinalização de Emergência', value: data.placa_sinal_emerg });
   }
   if (data.placa_alarme && parseInt(data.placa_alarme) > 0) {
-    html += `<div class="pdf-field"><div class="pdf-field-label">Alarme de Incêndio:</div><div class="pdf-field-value">${data.placa_alarme}</div></div>`;
+    campos.push({ label: 'Alarme de Incêndio', value: data.placa_alarme });
   }
   if (data.placa_hidrante_espec && parseInt(data.placa_hidrante_espec) > 0) {
-    html += `<div class="pdf-field"><div class="pdf-field-label">Hidrante:</div><div class="pdf-field-value">${data.placa_hidrante_espec}</div></div>`;
+    campos.push({ label: 'Hidrante', value: data.placa_hidrante_espec });
   }
 
-  html += `</div>`;
-  return html;
+  const coluna1 = campos.filter((_, i) => i % 2 === 0);
+  const coluna2 = campos.filter((_, i) => i % 2 === 1);
+
+  return `
+    <div style="margin-bottom: 15px; background: white; border-radius: 6px; border: 2px solid #d1d5db; overflow: hidden; box-shadow: 0 2px 6px rgba(0,0,0,0.06);">
+      <div style="font-size: 11px; color: white; font-weight: 800; margin: 0; padding: 8px 12px; background: linear-gradient(135deg, #4b5563 0%, #6b7280 100%); display: flex; align-items: center; gap: 8px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid #374151;">
+        <i class="fas fa-sign" style="font-size: 13px;"></i> Sinalização
+      </div>
+      
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0;">
+        <div style="border-right: 2px solid #d1d5db;">
+          ${coluna1.map((campo, idx) => `
+            <div style="padding: 7px 10px; ${idx < coluna1.length - 1 ? 'border-bottom: 1px solid #e5e7eb;' : ''}">
+              <div style="font-weight: 700; color: #6b7280; font-size: 8px; text-transform: uppercase; margin-bottom: 2px; letter-spacing: 0.3px;">${campo.label}</div>
+              <div style="color: #1f2937; font-weight: 600; font-size: 9px;">${campo.value}</div>
+            </div>
+          `).join('')}
+        </div>
+        
+        <div>
+          ${coluna2.map((campo, idx) => `
+            <div style="padding: 7px 10px; ${idx < coluna2.length - 1 ? 'border-bottom: 1px solid #e5e7eb;' : ''}">
+              <div style="font-weight: 700; color: #6b7280; font-size: 8px; text-transform: uppercase; margin-bottom: 2px; letter-spacing: 0.3px;">${campo.label}</div>
+              <div style="color: #1f2937; font-weight: 600; font-size: 9px;">${campo.value}</div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    </div>
+  `;
 }
 
 function generateConformidadeSection(data) {
@@ -2744,39 +3012,49 @@ function generateConformidadeSection(data) {
 
 function generateSignaturesSection(data) {
   return `
-        <div class="pdf-section" style="margin-top: 40px; page-break-inside: avoid;">
-          <div class="pdf-section-title">
-            <i class="fas fa-signature"></i> Assinaturas
-          </div>
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-top: 30px;">
-            <div style="text-align: center;">
-              <div style="border-top: 2px solid #333; padding-top: 10px; margin-top: 60px;">
-                <strong style="color: #333;">Assinatura do Técnico</strong>
-                <p style="color: #666; font-size: 12px; margin-top: 5px;">${currentUser ? currentUser.nome : 'Técnico Responsável'}</p>
-                <p style="color: #666; font-size: 11px;">CNPJ: ${currentUser ? currentUser.cnpj : '__.___.___/____-__'}</p>
-              </div>
-            </div>
-            <div style="text-align: center;">
-              <div style="border-top: 2px solid #333; padding-top: 10px; margin-top: 60px;">
-                <strong style="color: #333;">Assinatura do Cliente</strong>
-                <p style="color: #666; font-size: 12px; margin-top: 5px;">${data.responsavel || 'Responsável pela Empresa'}</p>
-<p style="color: #666; font-size: 11px;">Endereço: ${data.endereco || 'Endereço não informado'}</p>
-              </div>
-            </div>
+    <div style="margin-top: 30px; margin-bottom: 15px; background: white; border-radius: 6px; border: 2px solid #d1d5db; overflow: hidden; box-shadow: 0 2px 6px rgba(0,0,0,0.06); page-break-inside: avoid;">
+      <div style="font-size: 11px; color: white; font-weight: 800; margin: 0; padding: 8px 12px; background: linear-gradient(135deg, #4b5563 0%, #6b7280 100%); display: flex; align-items: center; gap: 8px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid #374151;">
+        <i class="fas fa-signature" style="font-size: 13px;"></i> Assinaturas
+      </div>
+      
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0; padding: 25px 20px;">
+        <div style="text-align: center; padding: 0 15px; border-right: 2px solid #d1d5db;">
+          <div style="border-top: 2px solid #333; padding-top: 8px; margin-top: 50px;">
+            <div style="font-weight: 700; color: #1f2937; font-size: 10px; margin-bottom: 4px;">Assinatura do Técnico</div>
+            <div style="color: #6b7280; font-size: 8px; margin-bottom: 2px;">${currentUser ? currentUser.nome : 'Técnico Responsável'}</div>
+            <div style="color: #9ca3af; font-size: 7px;">CNPJ: ${currentUser ? currentUser.cnpj : '__.___.___/____-__'}</div>
           </div>
         </div>
-      `;
+        
+        <div style="text-align: center; padding: 0 15px;">
+          <div style="border-top: 2px solid #333; padding-top: 8px; margin-top: 50px;">
+            <div style="font-weight: 700; color: #1f2937; font-size: 10px; margin-bottom: 4px;">Assinatura do Cliente</div>
+            <div style="color: #6b7280; font-size: 8px; margin-bottom: 2px;">${data.responsavel || 'Responsável pela Empresa'}</div>
+            <div style="color: #9ca3af; font-size: 7px;">Endereço: ${data.endereco || 'Endereço não informado'}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
 }
 
 function generatePDFFooter() {
   return `
-        <div class="pdf-footer">
-          <p>Relatório gerado em ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}</p>
-          <p>EXTINMAIS - Sistema de Inspeção de Incêndio</p>
-         <p>extinmaiss@outlook.com</p>
-        </div>
-      `;
+    <div class="pdf-footer">
+      <div class="footer-brand">
+        <i class="fas fa-fire-extinguisher"></i> EXTINMAIS
+      </div>
+      <div class="footer-info">
+        CNPJ: 52.026.476/0001-03 | Tel: (15) 99137-1232 | extinmaiss@outlook.com
+      </div>
+      <div class="footer-timestamp">
+        Documento gerado em ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}
+      </div>
+    </div>
+  `;
 }
+
+
 
 // Generate Report Button - Show Selection Modal
 document.getElementById('generateReportBtn').addEventListener('click', () => {
@@ -4753,7 +5031,7 @@ function mostrarOpcoesPDF(osId) {
         <button onclick="gerarPDFOrdem('${osId}', 'com_valores'); document.body.removeChild(this.closest('div').parentElement)" style="
           width: 100%;
           padding: 16px;
-          background: linear-gradient(135deg, #10b93a 0%, #059669 100%);
+          background: linear-gradient(135deg, #10b981 0%, #059669 100%);
           color: #fff;
           border: none;
           border-radius: 10px;
@@ -4774,7 +5052,7 @@ function mostrarOpcoesPDF(osId) {
         <button onclick="gerarPDFOrdem('${osId}', 'sem_valores'); document.body.removeChild(this.closest('div').parentElement)" style="
           width: 100%;
           padding: 16px;
-          background: linear-gradient(135deg, #f63b3b 0%, #eb2525 100%);
+          background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
           color: #fff;
           border: none;
           border-radius: 10px;
@@ -4786,8 +5064,8 @@ function mostrarOpcoesPDF(osId) {
           align-items: center;
           justify-content: center;
           gap: 10px;
-          box-shadow: 0 4px 12px rgba(243, 59, 59, 0.3);
-        " onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 6px 16px rgba(243, 59, 59, 0.4)'" onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='0 4px 12px rgba(243, 59, 59, 0.3)'">
+          box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+        " onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 6px 16px rgba(239, 68, 68, 0.4)'" onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='0 4px 12px rgba(239, 68, 68, 0.3)'">
           <i class="fas fa-file-alt" style="font-size: 18px;"></i>
           <span>PDF sem Valores</span>
         </button>
@@ -4811,6 +5089,27 @@ function mostrarOpcoesPDF(osId) {
         " onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 6px 16px rgba(124, 58, 237, 0.4)'" onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='0 4px 12px rgba(124, 58, 237, 0.3)'">
           <i class="fas fa-list-check" style="font-size: 18px;"></i>
           <span>PDF com Valores Detalhados</span>
+        </button>
+
+        <button onclick="gerarPDFOrdem('${osId}', 'sem_quantidade_valor'); document.body.removeChild(this.closest('div').parentElement)" style="
+          width: 100%;
+          padding: 16px;
+          background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+          color: #fff;
+          border: none;
+          border-radius: 10px;
+          font-size: 15px;
+          font-weight: 700;
+          cursor: pointer;
+          transition: all 0.3s;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 10px;
+          box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+        " onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 6px 16px rgba(245, 158, 11, 0.4)'" onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='0 4px 12px rgba(245, 158, 11, 0.3)'">
+          <i class="fas fa-file" style="font-size: 18px;"></i>
+          <span>PDF sem Quantidade e Valor</span>
         </button>
       </div>
 
@@ -5184,7 +5483,6 @@ async function salvarFormaPagamento(orderId) {
 // ============================= 
 // FUNÇÃO GERAR PDF COM JSPDF
 // ============================= 
-
 async function gerarPDFOrdem(orderId, tipoRelatorio = 'com_valores') {
   const ordem = allOrders.find(o => o.id === orderId);
   if (!ordem) {
@@ -5196,7 +5494,8 @@ async function gerarPDFOrdem(orderId, tipoRelatorio = 'com_valores') {
     const mensagens = {
       'com_valores': 'Gerando PDF com valor total...',
       'sem_valores': 'Gerando PDF sem valores...',
-      'valores_detalhados': 'Gerando PDF com valores detalhados...'
+      'valores_detalhados': 'Gerando PDF com valores detalhados...',
+      'sem_quantidade_valor': 'Gerando PDF sem quantidade e valor...'
     };
     showToast(mensagens[tipoRelatorio] || 'Gerando PDF...', 'info');
 
@@ -5219,7 +5518,46 @@ async function gerarPDFOrdem(orderId, tipoRelatorio = 'com_valores') {
 
     const qtdTotal = produtos.reduce((acc, p) => acc + p.qty, 0);
 
-    // ===== DIVIDE PRODUTOS EM MÚLTIPLAS COLUNAS =====
+    // 🔥 TAMANHOS DE FONTE DINÂMICOS
+    const qtdProdutos = produtos.length;
+    let fontSizes = {
+      tabelaTh: '10px',
+      tabelaTd: '11px',
+      tabelaNumero: '9px',
+      maxNomeLength: 80
+    };
+
+    if (qtdProdutos <= 10) {
+      fontSizes = {
+        tabelaTh: '10px',
+        tabelaTd: '11px',
+        tabelaNumero: '9px',
+        maxNomeLength: 80
+      };
+    } else if (qtdProdutos <= 30) {
+      fontSizes = {
+        tabelaTh: '8px',
+        tabelaTd: '9px',
+        tabelaNumero: '7px',
+        maxNomeLength: 60
+      };
+    } else if (qtdProdutos <= 60) {
+      fontSizes = {
+        tabelaTh: '7px',
+        tabelaTd: '7.5px',
+        tabelaNumero: '6px',
+        maxNomeLength: 45
+      };
+    } else {
+      fontSizes = {
+        tabelaTh: '6px',
+        tabelaTd: '6.5px',
+        tabelaNumero: '5px',
+        maxNomeLength: 35
+      };
+    }
+
+    // ===== DIVIDE PRODUTOS EM MÚLTIPLAS COLUNAS E PÁGINAS =====
     function dividirEmColunas(array, itensPorColuna) {
       const colunas = [];
       for (let i = 0; i < array.length; i += itensPorColuna) {
@@ -5228,16 +5566,24 @@ async function gerarPDFOrdem(orderId, tipoRelatorio = 'com_valores') {
       return colunas;
     }
 
-    const ITENS_POR_COLUNA = 9; // 🔥 AUMENTEI DE 9 PARA 15
+    // 🎯 CONFIGURAÇÃO ESPECIAL PARA valores_detalhados: 1 COLUNA COM 40 PRODUTOS POR PÁGINA
+    const ITENS_POR_COLUNA = tipoRelatorio === 'valores_detalhados' ? 40 : 15;
+    const COLUNAS_POR_PAGINA = tipoRelatorio === 'valores_detalhados' ? 1 : 3;
     const colunasProdutos = dividirEmColunas(produtos, ITENS_POR_COLUNA);
 
-    // GRID AUTOMÁTICO
-    let colunasGrid = 3;
-    if (colunasProdutos.length >= 6) colunasGrid = 3;
-    if (colunasProdutos.length >= 9) colunasGrid = 4;
+    // Divide colunas em páginas
+    const paginasProdutos = [];
+    for (let i = 0; i < colunasProdutos.length; i += COLUNAS_POR_PAGINA) {
+      paginasProdutos.push(colunasProdutos.slice(i, i + COLUNAS_POR_PAGINA));
+    }
+    
+    // 🎯 CALCULA TOTAL DE PÁGINAS (1 página de dados + N páginas de produtos para valores_detalhados)
+    const totalPaginas = tipoRelatorio === 'valores_detalhados' 
+      ? 1 + paginasProdutos.length 
+      : paginasProdutos.length;
 
     // FUNÇÃO PARA TRUNCAR NOME DO PRODUTO
-    const truncarNome = (nome, maxLength = 50) => { // 🔥 DIMINUÍ DE 30 PARA 18
+    const truncarNome = (nome, maxLength = fontSizes.maxNomeLength) => {
       if (!nome) return '-';
       if (nome.length <= maxLength) return nome;
       return nome.substring(0, maxLength) + '...';
@@ -5247,17 +5593,20 @@ async function gerarPDFOrdem(orderId, tipoRelatorio = 'com_valores') {
     const renderizarTabelaProdutos = (lista, offset = 0) => {
       if (!lista || !lista.length) return '';
 
+      // 🎯 ESTILO ESPECIAL PARA valores_detalhados (1 COLUNA ÚNICA)
+      const tabelaWidth = tipoRelatorio === 'valores_detalhados' ? '100%' : '100%';
+
       // PDF COM VALORES DETALHADOS (Unit. + Total)
       if (tipoRelatorio === 'valores_detalhados') {
         return `
-      <table style="width: 100%; border-collapse: collapse; background: white; font-size: 7px; border: 1px solid #e5e7eb; border-radius: 4px; overflow: hidden;">
-        <thead style="background: linear-gradient(135deg, #4b5563 0%, #6b7280 100%); color: white;">
+      <table style="width: ${tabelaWidth}; border-collapse: collapse; background: white; font-size: ${fontSizes.tabelaTd}; border: 2px solid #d1d5db; border-radius: 6px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+        <thead style="background: linear-gradient(135deg, #4b5563 0%, #6b7280 100%); color: white; border-bottom: 2px solid #374151;">
           <tr>
-            <th style="padding: 3px 4px; text-align: center; font-weight: 700; text-transform: uppercase; font-size: 6px; width: 20px;">N°</th>
-            <th style="padding: 3px 4px; text-align: left; font-weight: 700; text-transform: uppercase; font-size: 6px;">Produto</th>
-            <th style="padding: 3px 4px; text-align: center; font-weight: 700; text-transform: uppercase; font-size: 6px; width: 30px;">Qtd</th>
-            <th style="padding: 3px 4px; text-align: right; font-weight: 700; text-transform: uppercase; font-size: 6px; width: 55px;">Unit.</th>
-            <th style="padding: 3px 4px; text-align: right; font-weight: 700; text-transform: uppercase; font-size: 6px; width: 60px;">Total</th>
+            <th style="padding: 6px 8px; text-align: center; font-weight: 700; text-transform: uppercase; font-size: ${fontSizes.tabelaTh}; width: 30px; border-right: 1px solid rgba(255,255,255,0.2);">N°</th>
+            <th style="padding: 6px 8px; text-align: left; font-weight: 700; text-transform: uppercase; font-size: ${fontSizes.tabelaTh}; border-right: 1px solid rgba(255,255,255,0.2);">Produto</th>
+            <th style="padding: 6px 8px; text-align: center; font-weight: 700; text-transform: uppercase; font-size: ${fontSizes.tabelaTh}; width: 40px; border-right: 1px solid rgba(255,255,255,0.2);">Qtd</th>
+            <th style="padding: 6px 8px; text-align: right; font-weight: 700; text-transform: uppercase; font-size: ${fontSizes.tabelaTh}; width: 65px; border-right: 1px solid rgba(255,255,255,0.2);">Unit.</th>
+            <th style="padding: 6px 8px; text-align: right; font-weight: 700; text-transform: uppercase; font-size: ${fontSizes.tabelaTh}; width: 70px;">Total</th>
           </tr>
         </thead>
         <tbody>
@@ -5265,14 +5614,14 @@ async function gerarPDFOrdem(orderId, tipoRelatorio = 'com_valores') {
           const valorUn = (Number(p.price) || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
           const subtotal = ((Number(p.price) || 0) * p.qty).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
           const bgColor = idx % 2 === 0 ? '#ffffff' : '#f9fafb';
-          const nomeTruncado = truncarNome(p.name, 18);
+          const nomeTruncado = truncarNome(p.name);
           return `
-              <tr style="background: ${bgColor};">
-                <td style="padding: 3px 4px; border-bottom: 1px solid #f3f4f6; color: #6b7280; text-align: center; font-weight: 700; font-size: 5px;">${offset + idx + 1}</td>
-                <td style="padding: 3px 4px; border-bottom: 1px solid #f3f4f6; color: #374151; text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 5px;" title="${p.name || '-'}">${nomeTruncado}</td>
-                <td style="padding: 3px 4px; border-bottom: 1px solid #f3f4f6; color: #374151; text-align: center; font-weight: 600; font-size: 5px;">${p.qty}x</td>
-                <td style="padding: 3px 4px; border-bottom: 1px solid #f3f4f6; color: #b91c1c; text-align: right; font-weight: 600; font-size: 5px;">${valorUn}</td>
-                <td style="padding: 3px 4px; border-bottom: 1px solid #f3f4f6; color: #1f2937; text-align: right; font-weight: 700; font-size: 5px;">${subtotal}</td>
+              <tr style="background: ${bgColor}; border-bottom: 1px solid #e5e7eb;">
+                <td style="padding: 5px 8px; color: #6b7280; text-align: center; font-weight: 700; font-size: ${fontSizes.tabelaNumero}; border-right: 1px solid #e5e7eb;">${offset + idx + 1}</td>
+                <td style="padding: 5px 8px; color: #374151; text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: ${fontSizes.tabelaTd}; border-right: 1px solid #e5e7eb;" title="${p.name || '-'}">${nomeTruncado}</td>
+                <td style="padding: 5px 8px; color: #374151; text-align: center; font-weight: 600; font-size: ${fontSizes.tabelaTd}; border-right: 1px solid #e5e7eb;">${p.qty}x</td>
+                <td style="padding: 5px 8px; color: #b91c1c; text-align: right; font-weight: 600; font-size: ${fontSizes.tabelaTd}; border-right: 1px solid #e5e7eb;">${valorUn}</td>
+                <td style="padding: 5px 8px; color: #1f2937; text-align: right; font-weight: 700; font-size: ${fontSizes.tabelaTd};">${subtotal}</td>
               </tr>
             `;
         }).join('')}
@@ -5281,28 +5630,24 @@ async function gerarPDFOrdem(orderId, tipoRelatorio = 'com_valores') {
     `;
       }
 
-      // PDF SEM VALORES ou COM VALORES (apenas Produto + Qtd)
-
-      // PDF SEM VALORES ou COM VALORES (apenas Produto + Qtd)
-      else {
+      // PDF SEM QUANTIDADE E VALOR (apenas Produto)
+      else if (tipoRelatorio === 'sem_quantidade_valor') {
         return `
-          <table style="width: 100%; border-collapse: collapse; background: white; font-size: 6px; border: 1px solid #e5e7eb; border-radius: 3px; overflow: hidden;">
-            <thead style="background: linear-gradient(135deg, #4b5563 0%, #6b7280 100%); color: white;">
+          <table style="width: 100%; border-collapse: collapse; background: white; font-size: ${fontSizes.tabelaTd}; border: 2px solid #d1d5db; border-radius: 6px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+            <thead style="background: linear-gradient(135deg, #4b5563 0%, #6b7280 100%); color: white; border-bottom: 2px solid #374151;">
               <tr>
-                <th style="padding: 2px 3px; text-align: center; font-weight: 700; text-transform: uppercase; font-size: 5px; width: 18px;">N°</th>
-                <th style="padding: 2px 3px; text-align: left; font-weight: 700; text-transform: uppercase; font-size: 5px;">Produto</th>
-                <th style="padding: 2px 3px; text-align: center; font-weight: 700; text-transform: uppercase; font-size: 5px; width: 25px;">Qtd</th>
+                <th style="padding: 6px 8px; text-align: center; font-weight: 700; text-transform: uppercase; font-size: ${fontSizes.tabelaTh}; width: 30px; border-right: 1px solid rgba(255,255,255,0.2);">N°</th>
+                <th style="padding: 6px 8px; text-align: left; font-weight: 700; text-transform: uppercase; font-size: ${fontSizes.tabelaTh};">Produto</th>
               </tr>
             </thead>
             <tbody>
               ${lista.map((p, idx) => {
           const bgColor = idx % 2 === 0 ? '#ffffff' : '#f9fafb';
-          const nomeTruncado = truncarNome(p.name, 60);
+          const nomeTruncado = truncarNome(p.name);
           return `
-                  <tr style="background: ${bgColor};">
-                    <td style="padding: 3px 4px; border-bottom: 1px solid #f3f4f6; color: #6b7280; text-align: center; font-weight: 700; font-size: 6px;">${offset + idx + 1}</td>
-                    <td style="padding: 3px 4px; border-bottom: 1px solid #f3f4f6; color: #374151; text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 6.5px;" title="${p.name || '-'}">${nomeTruncado}</td>
-                    <td style="padding: 3px 4px; border-bottom: 1px solid #f3f4f6; color: #374151; text-align: center; font-weight: 600; font-size: 6px;">${p.qty}x</td>
+                  <tr style="background: ${bgColor}; border-bottom: 1px solid #e5e7eb;">
+                    <td style="padding: 5px 8px; color: #6b7280; text-align: center; font-weight: 700; font-size: ${fontSizes.tabelaNumero}; border-right: 1px solid #e5e7eb;">${offset + idx + 1}</td>
+                    <td style="padding: 5px 8px; color: #374151; text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: ${fontSizes.tabelaTd};" title="${p.name || '-'}">${nomeTruncado}</td>
                   </tr>
                 `;
         }).join('')}
@@ -5311,10 +5656,477 @@ async function gerarPDFOrdem(orderId, tipoRelatorio = 'com_valores') {
         `;
       }
 
-
+      // PDF SEM VALORES ou COM VALORES (apenas Produto + Qtd)
+      else {
+        return `
+          <table style="width: 100%; border-collapse: collapse; background: white; font-size: ${fontSizes.tabelaTd}; border: 2px solid #d1d5db; border-radius: 6px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+            <thead style="background: linear-gradient(135deg, #4b5563 0%, #6b7280 100%); color: white; border-bottom: 2px solid #374151;">
+              <tr>
+                <th style="padding: 6px 8px; text-align: center; font-weight: 700; text-transform: uppercase; font-size: ${fontSizes.tabelaTh}; width: 30px; border-right: 1px solid rgba(255,255,255,0.2);">N°</th>
+                <th style="padding: 6px 8px; text-align: left; font-weight: 700; text-transform: uppercase; font-size: ${fontSizes.tabelaTh}; border-right: 1px solid rgba(255,255,255,0.2);">Produto</th>
+                <th style="padding: 6px 8px; text-align: center; font-weight: 700; text-transform: uppercase; font-size: ${fontSizes.tabelaTh}; width: 40px;">Qtd</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${lista.map((p, idx) => {
+          const bgColor = idx % 2 === 0 ? '#ffffff' : '#f9fafb';
+          const nomeTruncado = truncarNome(p.name);
+          return `
+                  <tr style="background: ${bgColor}; border-bottom: 1px solid #e5e7eb;">
+                    <td style="padding: 5px 8px; color: #6b7280; text-align: center; font-weight: 700; font-size: ${fontSizes.tabelaNumero}; border-right: 1px solid #e5e7eb;">${offset + idx + 1}</td>
+                    <td style="padding: 5px 8px; color: #374151; text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: ${fontSizes.tabelaTd}; border-right: 1px solid #e5e7eb;" title="${p.name || '-'}">${nomeTruncado}</td>
+                    <td style="padding: 5px 8px; color: #374151; text-align: center; font-weight: 600; font-size: ${fontSizes.tabelaTd};">${p.qty}x</td>
+                  </tr>
+                `;
+        }).join('')}
+            </tbody>
+          </table>
+        `;
+      }
     };
 
-    const htmlPDF = `<!DOCTYPE html>
+    // ===== GERA HEADER COMPLETO =====
+    const gerarHeader = (numeroPagina = 1) => `
+      <div class="pdf-nota-header">
+        <div class="pdf-nota-header-top">
+          <div class="pdf-nota-logo-section">
+            <div class="pdf-nota-logo-header">
+              <div class="pdf-nota-logo-text">EXTINMAIS</div>
+            </div>
+            <div class="pdf-nota-company-info">
+              <div>CNPJ: 52.026.476/0001-03 | Tel: (15) 99137-1232</div>
+              <div>Email: extinmaiss@outlook.com</div>
+            </div>
+          </div>
+          <div class="pdf-nota-header-center">
+            <h1>NOTA DE SERVIÇO ${numeroPagina > 1 ? `- PARTE ${numeroPagina}` : ''}</h1>
+            <p>Nº OS: ${numeroSequencial}</p>
+          </div>
+          <div class="pdf-nota-header-right">
+            <div class="pdf-nota-header-item">Status: ${statusText}</div>
+            <div class="pdf-nota-header-item">Data: ${dataStr}</div>
+            ${totalPaginas > 1 ? `<div class="pdf-nota-header-item">Pág: ${numeroPagina}/${totalPaginas}</div>` : ''}
+          </div>
+        </div>
+      </div>
+    `;
+
+    // ===== GERA FOOTER COMPLETO =====
+    const gerarFooter = () => `
+      <div class="pdf-nota-pdf-footer">
+        <div class="pdf-nota-footer-brand">
+          <i class="fas fa-fire-extinguisher"></i> EXTINMAIS
+        </div>
+        <div class="pdf-nota-footer-info">
+          CNPJ: 52.026.476/0001-03 | Tel: (15) 99137-1232 | Email: extinmaiss@outlook.com
+        </div>
+        <div class="pdf-nota-footer-timestamp">
+          ${new Date().toLocaleString('pt-BR')}
+        </div>
+      </div>
+    `;
+
+    // ===== GERA PRIMEIRA PÁGINA (COM TODOS OS DADOS) =====
+    const gerarPrimeiraPagina = () => {
+      // 🎯 PARA valores_detalhados: PRIMEIRA PÁGINA SEM PRODUTOS
+      if (tipoRelatorio === 'valores_detalhados') {
+        return `
+      <div class="pdf-nota-page">
+        ${gerarHeader(1)}
+
+        <div class="pdf-nota-body">
+          <div class="pdf-nota-section">
+            <div class="pdf-nota-section-title vermelho">
+              <i class="fas fa-user-circle"></i> DADOS DO CLIENTE
+            </div>
+            <div class="pdf-nota-section-content">
+              <div class="pdf-nota-dados-inline">
+                <div class="pdf-nota-dado-item destaque">
+                  <div class="pdf-nota-dado-label">Cliente</div>
+                  <div class="pdf-nota-dado-valor">${ordem.cliente || '-'}</div>
+                </div>
+                <div class="pdf-nota-dado-item">
+                  <div class="pdf-nota-dado-label">CPF/CNPJ</div>
+                  <div class="pdf-nota-dado-valor">${ordem.cnpj || '____'}</div>
+                </div>
+                <div class="pdf-nota-dado-item">
+                  <div class="pdf-nota-dado-label">Telefone</div>
+                  <div class="pdf-nota-dado-valor">${ordem.telefone || ordem.contato || '____'}</div>
+                </div>
+                <div class="pdf-nota-dado-item">
+                  <div class="pdf-nota-dado-label">E-mail</div>
+                  <div class="pdf-nota-dado-valor">${ordem.email || '____'}</div>
+                </div>
+                <div class="pdf-nota-dado-item">
+                  <div class="pdf-nota-dado-label">Endereço Completo</div>
+                  <div class="pdf-nota-dado-valor">${enderecoCompleto}</div>
+                </div>
+                <div class="pdf-nota-dado-item">
+                  <div class="pdf-nota-dado-label">CEP</div>
+                  <div class="pdf-nota-dado-valor">${ordem.cep || '____'}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="pdf-nota-section">
+            <div class="pdf-nota-section-title">
+              <i class="fas fa-tools"></i> DESCRIÇÃO DO SERVIÇO
+            </div>
+            <div class="pdf-nota-section-content">
+              <div class="pdf-nota-dados-inline">
+                <div class="pdf-nota-dado-item destaque">
+                  <div class="pdf-nota-dado-label">Serviço</div>
+                  <div class="pdf-nota-dado-valor">${ordem.servico || '-'}</div>
+                </div>
+                <div class="pdf-nota-dado-item">
+                  <div class="pdf-nota-dado-label">Técnico</div>
+                  <div class="pdf-nota-dado-valor">${ordem.tecnico || '-'}</div>
+                </div>
+                <div class="pdf-nota-dado-item">
+                  <div class="pdf-nota-dado-label">Data Execução</div>
+                  <div class="pdf-nota-dado-valor">${dataStr}</div>
+                </div>
+                <div class="pdf-nota-dado-item">
+                  <div class="pdf-nota-dado-label">Cidade</div>
+                  <div class="pdf-nota-dado-valor">${ordem.cidade || '-'}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          ${produtos.length ? `
+            <div class="pdf-nota-section">
+              <div class="pdf-nota-section-title">
+                <i class="fas fa-box"></i> MATERIAIS E PRODUTOS
+              </div>
+              <div class="pdf-nota-section-content">
+                <div style="padding: 15px; background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%); border: 2px dashed #9ca3af; border-radius: 8px; text-align: center;">
+                  <i class="fas fa-file-invoice" style="font-size: 32px; color: #6b7280; margin-bottom: 10px;"></i>
+                  <p style="margin: 0; font-size: 11px; font-weight: 700; color: #374151; margin-bottom: 5px;">
+                    Lista completa de ${produtos.length} produtos disponível nas páginas seguintes
+                  </p>
+                  <p style="margin: 0; font-size: 9px; color: #6b7280;">
+                    📄 Confira a relação detalhada com valores unitários e totais nas próximas páginas
+                  </p>
+                </div>
+              </div>
+            </div>
+          ` : ''}
+
+          <div class="pdf-nota-section">
+            <div class="pdf-nota-section-title vermelho">
+              <i class="fas fa-chart-line"></i> RESUMO FINANCEIRO
+            </div>
+            <div class="pdf-nota-section-content">
+              <div class="pdf-nota-resumo-compact">
+                <div class="pdf-nota-resumo-item">
+                  <div class="pdf-nota-resumo-label">Total Itens</div>
+                  <div class="pdf-nota-resumo-valor">${qtdTotal}</div>
+                </div>
+                <div class="pdf-nota-resumo-item">
+                  <div class="pdf-nota-resumo-label">Pagamento</div>
+                  <div class="pdf-nota-resumo-valor" style="font-size: 9px;">${formaPagamento}</div>
+                </div>
+                <div class="pdf-nota-resumo-item">
+                  <div class="pdf-nota-resumo-label">Status</div>
+                  <div class="pdf-nota-resumo-valor" style="font-size: 9px; color: ${statusPagamento === 'Pago' ? '#22c55e' : '#ef4444'};">${statusPagamento}</div>
+                </div>
+                <div class="pdf-nota-resumo-item destaque">
+                  <div class="pdf-nota-resumo-label">Valor Total</div>
+                  <div class="pdf-nota-resumo-valor">${totalFinal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          ${ordem.observacoes || ordem.notas || ordem.descricao ? `
+            <div class="pdf-nota-section">
+              <div class="pdf-nota-section-title">
+                <i class="fas fa-sticky-note"></i> OBSERVAÇÕES
+              </div>
+              <div class="pdf-nota-section-content">
+                <p class="pdf-nota-observacoes-texto">${ordem.observacoes || ordem.notas || ordem.descricao}</p>
+              </div>
+            </div>
+          ` : ''}
+
+          <div class="pdf-nota-section">
+            <div class="pdf-nota-section-title">
+              <i class="fas fa-shield-alt"></i> CONDIÇÕES GERAIS
+            </div>
+            <div class="pdf-nota-section-content">
+              <div class="pdf-nota-condicoes-list">
+                <div class="pdf-nota-condicoes-item">
+                  <i class="fas fa-check-circle"></i>
+                  <span>Garantia de 90 dias para serviços e peças.</span>
+                </div>
+                <div class="pdf-nota-condicoes-item">
+                  <i class="fas fa-check-circle"></i>
+                  <span>Garantia não cobre mau uso ou danos.</span>
+                </div>
+                <div class="pdf-nota-condicoes-item">
+                  <i class="fas fa-check-circle"></i>
+                  <span>Validade do orçamento: 30 dias.</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="pdf-nota-section">
+            <div class="pdf-nota-section-title">
+              <i class="fas fa-pen-square"></i> ASSINATURAS
+            </div>
+            <div class="pdf-nota-section-content">
+              <div class="pdf-nota-assinaturas">
+                <div class="pdf-nota-assinatura-campo">
+                  <div class="pdf-nota-assinatura-linha"></div>
+                  <div class="pdf-nota-assinatura-nome">Técnico Responsável</div>
+                  <div class="pdf-nota-assinatura-info">
+                    Nome: ${ordem.tecnico || '_____________________'}<br>
+                    Tel: (15) 99137-1232
+                  </div>
+                </div>
+                <div class="pdf-nota-assinatura-campo">
+                  <div class="pdf-nota-assinatura-linha"></div>
+                  <div class="pdf-nota-assinatura-nome">Cliente</div>
+                  <div class="pdf-nota-assinatura-info">
+                    Nome: ${ordem.cliente || '_____________________'}<br>
+                    CPF/CNPJ: ${ordem.cnpj || '_____________________'}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        ${gerarFooter()}
+      </div>
+    `;
+      }
+      
+      // 🎯 PARA OUTROS TIPOS: PÁGINA NORMAL COM PRODUTOS
+      else {
+        return `
+      <div class="pdf-nota-page">
+        ${gerarHeader(1)}
+
+        <div class="pdf-nota-body">
+          <div class="pdf-nota-section">
+            <div class="pdf-nota-section-title vermelho">
+              <i class="fas fa-user-circle"></i> DADOS DO CLIENTE
+            </div>
+            <div class="pdf-nota-section-content">
+              <div class="pdf-nota-dados-inline">
+                <div class="pdf-nota-dado-item destaque">
+                  <div class="pdf-nota-dado-label">Cliente</div>
+                  <div class="pdf-nota-dado-valor">${ordem.cliente || '-'}</div>
+                </div>
+                <div class="pdf-nota-dado-item">
+                  <div class="pdf-nota-dado-label">CPF/CNPJ</div>
+                  <div class="pdf-nota-dado-valor">${ordem.cnpj || '____'}</div>
+                </div>
+                <div class="pdf-nota-dado-item">
+                  <div class="pdf-nota-dado-label">Telefone</div>
+                  <div class="pdf-nota-dado-valor">${ordem.telefone || ordem.contato || '____'}</div>
+                </div>
+                <div class="pdf-nota-dado-item">
+                  <div class="pdf-nota-dado-label">E-mail</div>
+                  <div class="pdf-nota-dado-valor">${ordem.email || '____'}</div>
+                </div>
+                <div class="pdf-nota-dado-item">
+                  <div class="pdf-nota-dado-label">Endereço Completo</div>
+                  <div class="pdf-nota-dado-valor">${enderecoCompleto}</div>
+                </div>
+                <div class="pdf-nota-dado-item">
+                  <div class="pdf-nota-dado-label">CEP</div>
+                  <div class="pdf-nota-dado-valor">${ordem.cep || '____'}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="pdf-nota-section">
+            <div class="pdf-nota-section-title">
+              <i class="fas fa-tools"></i> DESCRIÇÃO DO SERVIÇO
+            </div>
+            <div class="pdf-nota-section-content">
+              <div class="pdf-nota-dados-inline">
+                <div class="pdf-nota-dado-item destaque">
+                  <div class="pdf-nota-dado-label">Serviço</div>
+                  <div class="pdf-nota-dado-valor">${ordem.servico || '-'}</div>
+                </div>
+                <div class="pdf-nota-dado-item">
+                  <div class="pdf-nota-dado-label">Técnico</div>
+                  <div class="pdf-nota-dado-valor">${ordem.tecnico || '-'}</div>
+                </div>
+                <div class="pdf-nota-dado-item">
+                  <div class="pdf-nota-dado-label">Data Execução</div>
+                  <div class="pdf-nota-dado-valor">${dataStr}</div>
+                </div>
+                <div class="pdf-nota-dado-item">
+                  <div class="pdf-nota-dado-label">Cidade</div>
+                  <div class="pdf-nota-dado-valor">${ordem.cidade || '-'}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          ${produtos.length && paginasProdutos[0] ? `
+            <div class="pdf-nota-section">
+              <div class="pdf-nota-section-title">
+                <i class="fas fa-box"></i> MATERIAIS E PRODUTOS ${tipoRelatorio === 'sem_quantidade_valor' ? `(${produtos.length} itens)` : `(${qtdTotal} un.)`}
+              </div>
+              <div class="pdf-nota-section-content">
+                <div class="pdf-produtos-columns">
+                  ${paginasProdutos[0].map((coluna, idx) => `
+                    <div>
+                      ${renderizarTabelaProdutos(coluna, idx * ITENS_POR_COLUNA)}
+                    </div>
+                  `).join('')}
+                </div>
+              </div>
+            </div>
+          ` : ''}
+
+          ${(tipoRelatorio !== 'sem_valores' && tipoRelatorio !== 'sem_quantidade_valor') ? `
+            <div class="pdf-nota-section">
+              <div class="pdf-nota-section-title vermelho">
+                <i class="fas fa-chart-line"></i> RESUMO FINANCEIRO
+              </div>
+              <div class="pdf-nota-section-content">
+                <div class="pdf-nota-resumo-compact">
+                  <div class="pdf-nota-resumo-item">
+                    <div class="pdf-nota-resumo-label">Total Itens</div>
+                    <div class="pdf-nota-resumo-valor">${qtdTotal}</div>
+                  </div>
+                  <div class="pdf-nota-resumo-item">
+                    <div class="pdf-nota-resumo-label">Pagamento</div>
+                    <div class="pdf-nota-resumo-valor" style="font-size: 9px;">${formaPagamento}</div>
+                  </div>
+                  <div class="pdf-nota-resumo-item">
+                    <div class="pdf-nota-resumo-label">Status</div>
+                    <div class="pdf-nota-resumo-valor" style="font-size: 9px; color: ${statusPagamento === 'Pago' ? '#22c55e' : '#ef4444'};">${statusPagamento}</div>
+                  </div>
+                  <div class="pdf-nota-resumo-item destaque">
+                    <div class="pdf-nota-resumo-label">Valor Total</div>
+                    <div class="pdf-nota-resumo-valor">${totalFinal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ` : ''}
+
+          ${ordem.observacoes || ordem.notas || ordem.descricao ? `
+            <div class="pdf-nota-section">
+              <div class="pdf-nota-section-title">
+                <i class="fas fa-sticky-note"></i> OBSERVAÇÕES
+              </div>
+              <div class="pdf-nota-section-content">
+                <p class="pdf-nota-observacoes-texto">${ordem.observacoes || ordem.notas || ordem.descricao}</p>
+              </div>
+            </div>
+          ` : ''}
+
+          <div class="pdf-nota-section">
+            <div class="pdf-nota-section-title">
+              <i class="fas fa-shield-alt"></i> CONDIÇÕES GERAIS
+            </div>
+            <div class="pdf-nota-section-content">
+              <div class="pdf-nota-condicoes-list">
+                <div class="pdf-nota-condicoes-item">
+                  <i class="fas fa-check-circle"></i>
+                  <span>Garantia de 90 dias para serviços e peças.</span>
+                </div>
+                <div class="pdf-nota-condicoes-item">
+                  <i class="fas fa-check-circle"></i>
+                  <span>Garantia não cobre mau uso ou danos.</span>
+                </div>
+                <div class="pdf-nota-condicoes-item">
+                  <i class="fas fa-check-circle"></i>
+                  <span>Validade do orçamento: 30 dias.</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="pdf-nota-section">
+            <div class="pdf-nota-section-title">
+              <i class="fas fa-pen-square"></i> ASSINATURAS
+            </div>
+            <div class="pdf-nota-section-content">
+              <div class="pdf-nota-assinaturas">
+                <div class="pdf-nota-assinatura-campo">
+                  <div class="pdf-nota-assinatura-linha"></div>
+                  <div class="pdf-nota-assinatura-nome">Técnico Responsável</div>
+                  <div class="pdf-nota-assinatura-info">
+                    Nome: ${ordem.tecnico || '_____________________'}<br>
+                    Tel: (15) 99137-1232
+                  </div>
+                </div>
+                <div class="pdf-nota-assinatura-campo">
+                  <div class="pdf-nota-assinatura-linha"></div>
+                  <div class="pdf-nota-assinatura-nome">Cliente</div>
+                  <div class="pdf-nota-assinatura-info">
+                    Nome: ${ordem.cliente || '_____________________'}<br>
+                    CPF/CNPJ: ${ordem.cnpj || '_____________________'}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        ${gerarFooter()}
+      </div>
+    `;
+      }
+    };
+
+    // ===== GERA PÁGINAS ADICIONAIS (SÓ PRODUTOS) =====
+    const gerarPaginaProdutos = (numeroPagina, colunas) => {
+      const offsetInicial = (numeroPagina - 2) * COLUNAS_POR_PAGINA * ITENS_POR_COLUNA;
+      
+      // 🎯 GRID ESPECIAL PARA valores_detalhados (1 COLUNA ÚNICA CENTRALIZADA)
+      const gridStyle = tipoRelatorio === 'valores_detalhados' 
+        ? 'display: flex; justify-content: center;' 
+        : 'display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;';
+      
+      return `
+      <div class="pdf-nota-page">
+        ${gerarHeader(numeroPagina)}
+
+        <div class="pdf-nota-body">
+          <div class="pdf-nota-section">
+            <div class="pdf-nota-section-title">
+              <i class="fas fa-box"></i> MATERIAIS E PRODUTOS ${numeroPagina === 2 ? '' : '(CONTINUAÇÃO)'} ${tipoRelatorio === 'sem_quantidade_valor' ? `(${produtos.length} itens)` : `(${qtdTotal} un.)`}
+            </div>
+            <div class="pdf-nota-section-content">
+              <div style="${gridStyle}">
+                ${colunas.map((coluna, idx) => {
+                  const offsetColuna = offsetInicial + (idx * ITENS_POR_COLUNA);
+                  return `
+                    <div style="${tipoRelatorio === 'valores_detalhados' ? 'width: 100%;' : ''}">
+                      ${renderizarTabelaProdutos(coluna, offsetColuna)}
+                    </div>
+                  `;
+                }).join('')}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        ${gerarFooter()}
+      </div>
+    `;
+    };
+
+    // ===== MONTA HTML COMPLETO COM TODAS AS PÁGINAS =====
+    let htmlPDF = '';
+    
+    // 🎯 PARA valores_detalhados: PRIMEIRA PÁGINA + TODAS AS PÁGINAS DE PRODUTOS
+    if (tipoRelatorio === 'valores_detalhados') {
+      htmlPDF = `<!DOCTYPE html>
     <html>
     <head>
       <meta charset="UTF-8">
@@ -5341,12 +6153,17 @@ async function gerarPDFOrdem(orderId, tipoRelatorio = 'com_valores') {
         .pdf-nota-page {
           width: 210mm;
           height: 297mm;
-          margin: 0 auto;
+          margin: 0 auto 10mm auto;
           background: #ffffff;
           display: flex;
           flex-direction: column;
           position: relative;
           overflow: hidden;
+          page-break-after: always;
+        }
+
+        .pdf-nota-page:last-child {
+          margin-bottom: 0;
         }
 
         .pdf-nota-header {
@@ -5374,11 +6191,6 @@ async function gerarPDFOrdem(orderId, tipoRelatorio = 'com_valores') {
           display: flex;
           align-items: center;
           gap: 8px;
-        }
-
-        .pdf-nota-logo-icon {
-          font-size: 20px;
-          color: #ffffff;
         }
 
         .pdf-nota-logo-text {
@@ -5501,7 +6313,7 @@ async function gerarPDFOrdem(orderId, tipoRelatorio = 'com_valores') {
 
         .pdf-produtos-columns {
           display: grid;
-          grid-template-columns: repeat(${colunasGrid}, 1fr);
+          grid-template-columns: repeat(3, 1fr);
           gap: 10px;
         }
 
@@ -5663,216 +6475,385 @@ async function gerarPDFOrdem(orderId, tipoRelatorio = 'com_valores') {
             print-color-adjust: exact;
           }
           body { margin: 0; padding: 0; }
-          .pdf-nota-page { max-width: none; }
+          .pdf-nota-page { 
+            max-width: none;
+            margin: 0;
+          }
         }
       </style>
     </head>
     <body>
-      <div class="pdf-nota-page">
-        <div class="pdf-nota-header">
-          <div class="pdf-nota-header-top">
-            <div class="pdf-nota-logo-section">
-              <div class="pdf-nota-logo-header">
-                <div class="pdf-nota-logo-text">EXTINMAIS</div>
-              </div>
-              <div class="pdf-nota-company-info">
-                <div>CNPJ: 52.026.476/0001-03 | Tel: (15) 99137-1232</div>
-                <div>Email: extinmaiss@outlook.com</div>
-              </div>
-            </div>
-            <div class="pdf-nota-header-center">
-              <h1>NOTA DE SERVIÇO</h1>
-              <p>Nº OS: ${numeroSequencial}</p>
-            </div>
-            <div class="pdf-nota-header-right">
-              <div class="pdf-nota-header-item">Status: ${statusText}</div>
-              <div class="pdf-nota-header-item">Data: ${dataStr}</div>
-            </div>
-          </div>
-        </div>
-
-        <div class="pdf-nota-body">
-          <div class="pdf-nota-section">
-            <div class="pdf-nota-section-title vermelho">
-              <i class="fas fa-user-circle"></i> DADOS DO CLIENTE
-            </div>
-            <div class="pdf-nota-section-content">
-              <div class="pdf-nota-dados-inline">
-                <div class="pdf-nota-dado-item destaque">
-                  <div class="pdf-nota-dado-label">Cliente</div>
-                  <div class="pdf-nota-dado-valor">${ordem.cliente || '-'}</div>
-                </div>
-                <div class="pdf-nota-dado-item">
-                  <div class="pdf-nota-dado-label">CPF/CNPJ</div>
-                  <div class="pdf-nota-dado-valor">${ordem.cnpj || '____'}</div>
-                </div>
-                <div class="pdf-nota-dado-item">
-                  <div class="pdf-nota-dado-label">Telefone</div>
-                  <div class="pdf-nota-dado-valor">${ordem.telefone || ordem.contato || '____'}</div>
-                </div>
-                <div class="pdf-nota-dado-item">
-                  <div class="pdf-nota-dado-label">E-mail</div>
-                  <div class="pdf-nota-dado-valor">${ordem.email || '____'}</div>
-                </div>
-                <div class="pdf-nota-dado-item">
-                  <div class="pdf-nota-dado-label">Endereço Completo</div>
-                  <div class="pdf-nota-dado-valor">${enderecoCompleto}</div>
-                </div>
-                <div class="pdf-nota-dado-item">
-                  <div class="pdf-nota-dado-label">CEP</div>
-                  <div class="pdf-nota-dado-valor">${ordem.cep || '____'}</div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="pdf-nota-section">
-            <div class="pdf-nota-section-title">
-              <i class="fas fa-tools"></i> DESCRIÇÃO DO SERVIÇO
-            </div>
-            <div class="pdf-nota-section-content">
-              <div class="pdf-nota-dados-inline">
-                <div class="pdf-nota-dado-item destaque">
-                  <div class="pdf-nota-dado-label">Serviço</div>
-                  <div class="pdf-nota-dado-valor">${ordem.servico || '-'}</div>
-                </div>
-                <div class="pdf-nota-dado-item">
-                  <div class="pdf-nota-dado-label">Técnico</div>
-                  <div class="pdf-nota-dado-valor">${ordem.tecnico || '-'}</div>
-                </div>
-                <div class="pdf-nota-dado-item">
-                  <div class="pdf-nota-dado-label">Data Execução</div>
-                  <div class="pdf-nota-dado-valor">${dataStr}</div>
-                </div>
-                <div class="pdf-nota-dado-item">
-                  <div class="pdf-nota-dado-label">Cidade</div>
-                  <div class="pdf-nota-dado-valor">${ordem.cidade || '-'}</div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          ${produtos.length ? `
-            <div class="pdf-nota-section">
-              <div class="pdf-nota-section-title">
-                <i class="fas fa-box"></i> MATERIAIS E PRODUTOS (${qtdTotal} un.)
-              </div>
-              <div class="pdf-nota-section-content">
-                <div class="pdf-produtos-columns">
-                  ${colunasProdutos.map((coluna, idx) => `
-                    <div>
-                      ${renderizarTabelaProdutos(coluna, idx * ITENS_POR_COLUNA)}
-                    </div>
-                  `).join('')}
-                </div>
-              </div>
-            </div>
-          ` : ''}
-
-          ${tipoRelatorio !== 'sem_valores' ? `
-            <div class="pdf-nota-section">
-              <div class="pdf-nota-section-title vermelho">
-                <i class="fas fa-chart-line"></i> RESUMO FINANCEIRO
-              </div>
-              <div class="pdf-nota-section-content">
-                <div class="pdf-nota-resumo-compact">
-                  <div class="pdf-nota-resumo-item">
-                    <div class="pdf-nota-resumo-label">Total Itens</div>
-                    <div class="pdf-nota-resumo-valor">${qtdTotal}</div>
-                  </div>
-                  <div class="pdf-nota-resumo-item">
-                    <div class="pdf-nota-resumo-label">Pagamento</div>
-                    <div class="pdf-nota-resumo-valor" style="font-size: 9px;">${formaPagamento}</div>
-                  </div>
-                  <div class="pdf-nota-resumo-item">
-                    <div class="pdf-nota-resumo-label">Status</div>
-                    <div class="pdf-nota-resumo-valor" style="font-size: 9px; color: ${statusPagamento === 'Pago' ? '#22c55e' : '#ef4444'};">${statusPagamento}</div>
-                  </div>
-                  <div class="pdf-nota-resumo-item destaque">
-                    <div class="pdf-nota-resumo-label">Valor Total</div>
-                    <div class="pdf-nota-resumo-valor">${totalFinal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          ` : ''}
-
-          ${ordem.observacoes || ordem.notas || ordem.descricao ? `
-            <div class="pdf-nota-section">
-              <div class="pdf-nota-section-title">
-                <i class="fas fa-sticky-note"></i> OBSERVAÇÕES
-              </div>
-              <div class="pdf-nota-section-content">
-                <p class="pdf-nota-observacoes-texto">${ordem.observacoes || ordem.notas || ordem.descricao}</p>
-              </div>
-            </div>
-          ` : ''}
-
-          <div class="pdf-nota-section">
-            <div class="pdf-nota-section-title">
-              <i class="fas fa-shield-alt"></i> CONDIÇÕES GERAIS
-            </div>
-            <div class="pdf-nota-section-content">
-              <div class="pdf-nota-condicoes-list">
-                <div class="pdf-nota-condicoes-item">
-                  <i class="fas fa-check-circle"></i>
-                  <span>Garantia de 90 dias para serviços e peças.</span>
-                </div>
-                <div class="pdf-nota-condicoes-item">
-                  <i class="fas fa-check-circle"></i>
-                  <span>Garantia não cobre mau uso ou danos.</span>
-                </div>
-                <div class="pdf-nota-condicoes-item">
-                  <i class="fas fa-check-circle"></i>
-                  <span>Validade do orçamento: 30 dias.</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="pdf-nota-section">
-            <div class="pdf-nota-section-title">
-              <i class="fas fa-pen-square"></i> ASSINATURAS
-            </div>
-            <div class="pdf-nota-section-content">
-              <div class="pdf-nota-assinaturas">
-                <div class="pdf-nota-assinatura-campo">
-                  <div class="pdf-nota-assinatura-linha"></div>
-                  <div class="pdf-nota-assinatura-nome">Técnico Responsável</div>
-                  <div class="pdf-nota-assinatura-info">
-                    Nome: ${ordem.tecnico || '_____________________'}<br>
-                    Tel: (15) 99137-1232
-                  </div>
-                </div>
-                <div class="pdf-nota-assinatura-campo">
-                  <div class="pdf-nota-assinatura-linha"></div>
-                  <div class="pdf-nota-assinatura-nome">Cliente</div>
-                  <div class="pdf-nota-assinatura-info">
-                    Nome: ${ordem.cliente || '_____________________'}<br>
-                    CPF/CNPJ: ${ordem.cnpj || '_____________________'}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="pdf-nota-pdf-footer">
-          <div class="pdf-nota-footer-brand">
-            <i class="fas fa-fire-extinguisher"></i> EXTINMAIS
-          </div>
-          <div class="pdf-nota-footer-info">
-            CNPJ: 52.026.476/0001-03 | Tel: (15) 99137-1232 | Email: extinmaiss@outlook.com
-          </div>
-          <div class="pdf-nota-footer-timestamp">
-            ${new Date().toLocaleString('pt-BR')}
-          </div>
-        </div>
-      </div>
+      ${gerarPrimeiraPagina()}
+      ${paginasProdutos.map((colunas, idx) => gerarPaginaProdutos(idx + 2, colunas)).join('')}
     </body>
     </html>`;
+    } 
+    // 🎯 PARA OUTROS TIPOS: ESTRUTURA NORMAL
+    else {
+      htmlPDF = `<!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+      <style>
+        * { 
+          margin: 0; 
+          padding: 0; 
+          box-sizing: border-box; 
+        }
+        
+        html, body { 
+          width: 100%; 
+          height: auto;
+          font-family: 'Segoe UI', Arial, sans-serif;
+        }
+        
+        body { 
+          background: #ffffff;
+          padding: 0;
+        }
 
-    // Aguardar 100ms para garantir renderização
+        .pdf-nota-page {
+          width: 210mm;
+          height: 297mm;
+          margin: 0 auto 10mm auto;
+          background: #ffffff;
+          display: flex;
+          flex-direction: column;
+          position: relative;
+          overflow: hidden;
+          page-break-after: always;
+        }
+
+        .pdf-nota-page:last-child {
+          margin-bottom: 0;
+        }
+
+        .pdf-nota-header {
+          background: linear-gradient(135deg, #b91c1c 0%, #dc2626 100%);
+          color: white;
+          padding: 12px 15px;
+          border-bottom: 3px solid #7f1d1d;
+          flex-shrink: 0;
+        }
+
+        .pdf-nota-header-top {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+          gap: 15px;
+        }
+
+        .pdf-nota-logo-section {
+          display: flex;
+          flex-direction: column;
+          gap: 3px;
+        }
+
+        .pdf-nota-logo-header {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+
+        .pdf-nota-logo-text {
+          font-size: 14px;
+          font-weight: 900;
+        }
+
+        .pdf-nota-company-info {
+          font-size: 7px;
+          line-height: 1.4;
+          opacity: 0.9;
+        }
+
+        .pdf-nota-header-center {
+          text-align: center;
+          flex: 1;
+        }
+
+        .pdf-nota-header-center h1 {
+          font-size: 16px;
+          font-weight: 900;
+          margin: 0 0 2px 0;
+        }
+
+        .pdf-nota-header-center p {
+          font-size: 9px;
+          margin: 0;
+          opacity: 0.9;
+        }
+
+        .pdf-nota-header-right {
+          text-align: right;
+          font-size: 8px;
+          line-height: 1.4;
+        }
+
+        .pdf-nota-header-item {
+          font-weight: 600;
+          margin: 2px 0;
+        }
+
+        .pdf-nota-body {
+          flex: 1;
+          padding: 10px 15px 10px 15px;
+          background: #fafafa;
+          overflow: auto;
+        }
+
+        .pdf-nota-section {
+          margin-bottom: 8px;
+          background: white;
+          border: 1px solid #d1d5db;
+          overflow: hidden;
+          box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+          border-radius: 6px;
+        }
+
+        .pdf-nota-section-title {
+          background: linear-gradient(135deg, #4b5563 0%, #6b7280 100%);
+          color: white;
+          padding: 6px 10px;
+          font-size: 9px;
+          font-weight: 700;
+          text-transform: uppercase;
+          letter-spacing: 0.3px;
+          display: flex;
+          align-items: center;
+          gap: 6px;
+        }
+
+        .pdf-nota-section-title.vermelho {
+          background: linear-gradient(135deg, #b91c1c 0%, #dc2626 100%);
+          border-bottom: 2px solid #7f1d1d;
+        }
+
+        .pdf-nota-section-title i {
+          font-size: 10px;
+        }
+
+        .pdf-nota-section-content {
+          padding: 8px 10px;
+        }
+
+        .pdf-nota-dados-inline {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 6px;
+        }
+
+        .pdf-nota-dado-item {
+          background: #f9fafb;
+          border: 1px solid #e5e7eb;
+          border-left: 3px solid #6b7280;
+          padding: 5px 8px;
+          display: flex;
+          flex-direction: column;
+          gap: 2px;
+          border-radius: 4px;
+        }
+
+        .pdf-nota-dado-item.destaque {
+          border-left-color: #b91c1c;
+          background: #fef2f2;
+        }
+
+        .pdf-nota-dado-label {
+          font-size: 7px;
+          font-weight: 700;
+          color: #6b7280;
+          text-transform: uppercase;
+          letter-spacing: 0.2px;
+        }
+
+        .pdf-nota-dado-valor {
+          font-size: 9px;
+          font-weight: 600;
+          color: #1f2937;
+          word-break: break-word;
+        }
+
+        .pdf-produtos-columns {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 10px;
+        }
+
+        .pdf-nota-resumo-compact {
+          display: flex;
+          gap: 8px;
+          align-items: stretch;
+        }
+
+        .pdf-nota-resumo-item {
+          flex: 1;
+          background: #f9fafb;
+          border: 1px solid #e5e7eb;
+          padding: 8px;
+          text-align: center;
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          border-radius: 4px;
+        }
+
+        .pdf-nota-resumo-item.destaque {
+          background: linear-gradient(135deg, #b91c1c 0%, #dc2626 100%);
+          color: white;
+          border: 2px solid #7f1d1d;
+        }
+
+        .pdf-nota-resumo-label {
+          font-size: 7px;
+          font-weight: 700;
+          color: #6b7280;
+          text-transform: uppercase;
+          margin-bottom: 3px;
+        }
+
+        .pdf-nota-resumo-item.destaque .pdf-nota-resumo-label {
+          color: rgba(255,255,255,0.8);
+        }
+
+        .pdf-nota-resumo-valor {
+          font-size: 11px;
+          font-weight: 800;
+          color: #1f2937;
+        }
+
+        .pdf-nota-resumo-item.destaque .pdf-nota-resumo-valor {
+          color: #ffffff;
+          font-size: 16px;
+        }
+
+        .pdf-nota-observacoes-texto {
+          font-size: 8px;
+          line-height: 1.5;
+          color: #4b5563;
+          margin: 0;
+          padding: 6px;
+          background: #f9fafb;
+          border-left: 3px solid #f59e0b;
+          border-radius: 4px;
+        }
+
+        .pdf-nota-condicoes-list {
+          display: grid;
+          grid-template-columns: repeat(2, 1fr);
+          gap: 6px;
+        }
+
+        .pdf-nota-condicoes-item {
+          display: flex;
+          gap: 6px;
+          align-items: flex-start;
+          font-size: 8px;
+          line-height: 1.3;
+          color: #374151;
+          padding: 4px;
+          background: #f9fafb;
+          border-left: 2px solid #6b7280;
+          border-radius: 4px;
+        }
+
+        .pdf-nota-condicoes-item i {
+          color: #22c55e;
+          font-size: 8px;
+          margin-top: 1px;
+          flex-shrink: 0;
+        }
+
+        .pdf-nota-assinaturas {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 15px;
+          margin-top: 8px;
+        }
+
+        .pdf-nota-assinatura-campo {
+          display: flex;
+          flex-direction: column;
+          gap: 3px;
+        }
+
+        .pdf-nota-assinatura-linha {
+          border-bottom: 1.5px solid #374151;
+          height: 20px;
+        }
+
+        .pdf-nota-assinatura-nome {
+          font-weight: 700;
+          color: #1f2937;
+          font-size: 8px;
+          text-align: center;
+        }
+
+        .pdf-nota-assinatura-info {
+          font-size: 7px;
+          color: #6b7280;
+          text-align: center;
+          line-height: 1.3;
+        }
+
+        .pdf-nota-pdf-footer {
+          width: 100%;
+          padding: 8px 15px;
+          border-top: 3px solid #b91c1c;
+          text-align: center;
+          background: #f9fafb;
+          flex-shrink: 0;
+        }
+
+        .pdf-nota-footer-brand {
+          font-size: 11px;
+          font-weight: 900;
+          color: #1f2937;
+          margin-bottom: 3px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 5px;
+        }
+
+        .pdf-nota-footer-brand i {
+          color: #b91c1c;
+        }
+
+        .pdf-nota-footer-info {
+          font-size: 7px;
+          color: #6b7280;
+          margin-bottom: 2px;
+        }
+
+        .pdf-nota-footer-timestamp {
+          font-size: 6px;
+          color: #9ca3af;
+          font-style: italic;
+        }
+
+        @media print {
+          * {
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+          }
+          body { margin: 0; padding: 0; }
+          .pdf-nota-page { 
+            max-width: none;
+            margin: 0;
+          }
+        }
+      </style>
+    </head>
+    <body>
+      ${gerarPrimeiraPagina()}
+      ${paginasProdutos.slice(1).map((colunas, idx) => gerarPaginaProdutos(idx + 2, colunas)).join('')}
+    </body>
+    </html>`;
+    }
+
+    // Aguardar renderização
     await new Promise(resolve => setTimeout(resolve, 100));
 
     const div = document.createElement('div');
@@ -5881,39 +6862,42 @@ async function gerarPDFOrdem(orderId, tipoRelatorio = 'com_valores') {
     div.innerHTML = htmlPDF;
     document.body.appendChild(div);
 
-    const container = div.querySelector('.pdf-nota-page');
+    const containers = div.querySelectorAll('.pdf-nota-page');
 
-    // Aguardar carregamento de fontes e ícones
+    // Aguardar carregamento de fontes
     await document.fonts.ready;
     await new Promise(resolve => setTimeout(resolve, 300));
 
-    const canvas = await html2canvas(container, {
-      scale: 2,
-      useCORS: true,
-      allowTaint: false,
-      backgroundColor: '#ffffff',
-      logging: false,
-      width: container.offsetWidth,
-      height: container.offsetHeight
-    });
-
-    document.body.removeChild(div);
-
     const { jsPDF } = window.jspdf;
     const pdf = new jsPDF('p', 'mm', 'a4');
-    const imgData = canvas.toDataURL('image/png', 1.0);
 
-    // ===== FORÇA TUDO EM UMA ÚNICA PÁGINA A4 =====
-    const imgWidth = 210;  // Largura A4
-    const imgHeight = 297; // Altura A4
+    // Renderizar cada página
+    for (let i = 0; i < containers.length; i++) {
+      if (i > 0) {
+        pdf.addPage();
+      }
 
-    // Adiciona a imagem comprimindo/esticando para caber exatamente em 1 página
-    pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight, '', 'FAST');
+      const canvas = await html2canvas(containers[i], {
+        scale: 2,
+        useCORS: true,
+        allowTaint: false,
+        backgroundColor: '#ffffff',
+        logging: false,
+        width: containers[i].offsetWidth,
+        height: containers[i].offsetHeight
+      });
+
+      const imgData = canvas.toDataURL('image/png', 1.0);
+      pdf.addImage(imgData, 'PNG', 0, 0, 210, 297, '', 'FAST');
+    }
+
+    document.body.removeChild(div);
 
     const nomeArquivos = {
       'com_valores': `Nota_Servico_${ordem.cliente || 'cliente'}_ComValorTotal_${Date.now()}.pdf`,
       'sem_valores': `Nota_Servico_${ordem.cliente || 'cliente'}_SemValores_${Date.now()}.pdf`,
-      'valores_detalhados': `Nota_Servico_${ordem.cliente || 'cliente'}_Detalhado_${Date.now()}.pdf`
+      'valores_detalhados': `Nota_Servico_${ordem.cliente || 'cliente'}_Detalhado_${Date.now()}.pdf`,
+      'sem_quantidade_valor': `Nota_Servico_${ordem.cliente || 'cliente'}_SemQtdValor_${Date.now()}.pdf`
     };
 
     pdf.save(nomeArquivos[tipoRelatorio] || `Nota_Servico_${Date.now()}.pdf`);
@@ -5921,12 +6905,16 @@ async function gerarPDFOrdem(orderId, tipoRelatorio = 'com_valores') {
 
   } catch (error) {
     console.error('Erro ao gerar PDF:', error);
-    showToast('Erro ao gerar PDF: ' + error.message, 'error');
+    console.error('Erro ao gerar PDF: ' + error.message, 'error');
   }
 }
 
+
+
 let editingOSId = null;
 let editingProducts = [];
+let produtosOriginaisOS = [];
+let estoqueBackup = {};
 
 async function editarOS(orderId) {
   try {
@@ -5939,7 +6927,25 @@ async function editarOS(orderId) {
     }
 
     editingOSId = orderId;
-    editingProducts = Array.isArray(ordem.products) ? [...ordem.products] : [];
+    
+    // ✅ GUARDAR PRODUTOS ORIGINAIS DA OS
+    produtosOriginaisOS = Array.isArray(ordem.products) ? [...ordem.products] : [];
+    
+    // ✅ FAZER BACKUP DO ESTOQUE ATUAL ANTES DE QUALQUER ALTERAÇÃO
+    estoqueBackup = {};
+    products.forEach(p => {
+      estoqueBackup[p.id] = p.quantity || 0;
+    });
+    
+    // ✅ RESTAURAR O ESTOQUE DOS PRODUTOS QUE ESTAVAM NA OS (TEMPORARIAMENTE)
+    for (const prodOS of produtosOriginaisOS) {
+      const produtoOriginal = products.find(p => p.id === prodOS.id);
+      if (produtoOriginal) {
+        produtoOriginal.quantity = (produtoOriginal.quantity || 0) + prodOS.qty;
+      }
+    }
+    
+    editingProducts = [...produtosOriginaisOS];
 
     document.getElementById('editCliente').value = ordem.cliente || '';
     document.getElementById('editCNPJ').value = ordem.cnpj || '';
@@ -5989,7 +6995,6 @@ function renderizarProdutosEdicao() {
         margin-bottom: 12px;
         overflow: hidden;
       ">
-        <!-- HEADER COMPRIMIDO (LISTA) -->
         <div class="product-header-collapsed" onclick="toggleProdutoEdicao(${index})" style="
           display: flex;
           justify-content: space-between;
@@ -6027,7 +7032,6 @@ function renderizarProdutosEdicao() {
           </button>
         </div>
 
-        <!-- CONTEÚDO EXPANDÍVEL -->
         <div class="product-content-${index}" style="
           padding: 16px;
           display: none;
@@ -6100,7 +7104,6 @@ function renderizarProdutosEdicao() {
     container.insertAdjacentHTML('beforeend', prodHtml);
   });
 
-  // Adicionar CSS para animação
   if (!document.getElementById('product-animation-style')) {
     const style = document.createElement('style');
     style.id = 'product-animation-style';
@@ -6113,31 +7116,6 @@ function renderizarProdutosEdicao() {
         to {
           opacity: 1;
           max-height: 1000px;
-        }
-      }
-
-      @keyframes slideUp {
-        from {
-          opacity: 1;
-          max-height: 1000px;
-        }
-        to {
-          opacity: 0;
-          max-height: 0;
-        }
-      }
-
-      @media (max-width: 768px) {
-        .product-header-collapsed {
-          flex-direction: column;
-          gap: 8px;
-          align-items: flex-start !important;
-        }
-        .product-header-collapsed > div {
-          width: 100%;
-        }
-        .product-header-collapsed button {
-          align-self: flex-end;
         }
       }
     `;
@@ -6153,26 +7131,21 @@ function toggleProdutoEdicao(index) {
 
   if (content.style.display === 'none') {
     content.style.display = 'block';
-    content.style.animation = 'slideDown 0.3s ease';
-    btn.style.transform = 'rotate(0deg)';
+    btn.style.transform = 'rotate(180deg)';
   } else {
-    content.style.animation = 'slideUp 0.3s ease';
-    setTimeout(() => {
-      content.style.display = 'none';
-    }, 300);
-    btn.style.transform = 'rotate(-90deg)';
+    content.style.display = 'none';
+    btn.style.transform = 'rotate(0deg)';
   }
 }
 
 function apagarProdutoEdicao(index) {
-  // Criar confirmação inline ao invés de usar confirm()
   const container = document.getElementById('editProductsContainer');
   const productElement = container.querySelector(`[data-prod-index="${index}"]`);
 
   if (!productElement) return;
 
   const confirmHtml = `
-    <div style="
+    <div id="confirm-delete-${index}" style="
       background: rgba(239, 68, 68, 0.1);
       border: 2px solid #ef4444;
       border-radius: 8px;
@@ -6211,17 +7184,31 @@ function apagarProdutoEdicao(index) {
 }
 
 function confirmarExclusaoProduto(index) {
+  const produto = editingProducts[index];
+  if (!produto) return;
+
+  // ✅ DEVOLVER AO ESTOQUE LOCAL QUANDO REMOVER
+  const produtoOriginal = products.find(p => p.id === produto.id);
+  if (produtoOriginal) {
+    produtoOriginal.quantity = (produtoOriginal.quantity || 0) + produto.qty;
+  }
+
   editingProducts.splice(index, 1);
+  
+  const confirmDiv = document.getElementById(`confirm-delete-${index}`);
+  if (confirmDiv) confirmDiv.remove();
+  
   renderizarProdutosEdicao();
   atualizarTotaisEdicao();
-  showToast('Produto removido', 'info');
+  showToast('Produto removido e devolvido ao estoque!', 'success');
 }
 
 function cancelarExclusaoProduto(index) {
-  renderizarProdutosEdicao();
+  const confirmDiv = document.getElementById(`confirm-delete-${index}`);
+  if (confirmDiv) confirmDiv.remove();
 }
 
-function atualizarProdutoEdicao(index) {
+async function atualizarProdutoEdicao(index) {
   const element = document.querySelector(`[data-prod-index="${index}"]`);
   if (!element) return;
 
@@ -6235,7 +7222,7 @@ function atualizarProdutoEdicao(index) {
   }
 
   const nome = nomeEl.value;
-  const qty = parseInt(qtyEl.value) || 1;
+  const novaQty = parseInt(qtyEl.value) || 1;
   const preco = parseFloat(precoEl.value) || 0;
 
   if (!nome.trim()) {
@@ -6243,17 +7230,53 @@ function atualizarProdutoEdicao(index) {
     return;
   }
 
+  if (novaQty <= 0) {
+    showToast('Quantidade deve ser maior que zero', 'error');
+    qtyEl.value = editingProducts[index].qty || 1;
+    return;
+  }
+
+  const produtoAtual = editingProducts[index];
+  const qtyAnterior = produtoAtual.qty || 0;
+  const diferencaQty = novaQty - qtyAnterior;
+
+  if (diferencaQty !== 0) {
+    const product = products.find(p => p.id === produtoAtual.id);
+    if (!product) {
+      showToast('Produto não encontrado no estoque', 'error');
+      qtyEl.value = qtyAnterior;
+      return;
+    }
+
+    const estoqueAtual = product.quantity || 0;
+
+    if (diferencaQty > 0) {
+      if (diferencaQty > estoqueAtual) {
+        showToast(`Estoque insuficiente! Disponível: ${estoqueAtual}`, 'error');
+        qtyEl.value = qtyAnterior;
+        return;
+      }
+
+      product.quantity = estoqueAtual - diferencaQty;
+    }
+
+    if (diferencaQty < 0) {
+      const quantidadeDevolver = Math.abs(diferencaQty);
+      product.quantity = estoqueAtual + quantidadeDevolver;
+    }
+  }
+
   editingProducts[index] = {
     ...editingProducts[index],
     name: nome,
     description: editingProducts[index].description || '',
-    qty: qty,
+    qty: novaQty,
     price: preco,
     id: editingProducts[index]?.id || ''
   };
 
   atualizarTotaisEdicao();
-  showToast('Produto atualizado', 'success');
+  renderizarProdutosEdicao();
 }
 
 function atualizarTotaisEdicao() {
@@ -6279,26 +7302,16 @@ function atualizarTotaisEdicao() {
 
   if (subtotalEl) subtotalEl.value = subtotal.toFixed(2);
   if (totalEl) totalEl.value = total.toFixed(2);
-
-  // Atualizar lista para refletir novos totais
-  renderizarProdutosEdicao();
 }
 
-
 async function salvarEdicaoOS() {
-  if (!editingOSId) return;
+  if (!editingOSId) {
+    showToast('ID da OS não encontrado', 'error');
+    return;
+  }
 
   try {
-    // BUSCAR A OS ORIGINAL ANTES DA EDIÇÃO
-    const osOriginalSnapshot = await database.ref(`orders/${editingOSId}`).once('value');
-    const osOriginal = osOriginalSnapshot.val();
-
-    if (!osOriginal) {
-      showToast('Ordem de serviço não encontrada', 'error');
-      return;
-    }
-
-    // Atualizar todos os produtos com as alterações
+    // ✅ Atualizar dados dos produtos editados
     editingProducts.forEach((_, index) => {
       const element = document.querySelector(`[data-prod-index="${index}"]`);
       if (element) {
@@ -6316,7 +7329,92 @@ async function salvarEdicaoOS() {
       }
     });
 
-    // Limpar produtos para garantir que não há undefined
+    // ✅ COMPARAR PRODUTOS: Encontrar removidos e alterados
+    const produtosRemovidos = produtosOriginaisOS.filter(
+      original => !editingProducts.some(editado => editado.id == original.id)
+    );
+
+    const produtosAlterados = produtosOriginaisOS.filter(original => {
+      const editado = editingProducts.find(p => p.id == original.id);
+      return editado && editado.qty !== original.qty;
+    });
+
+    console.log('Produtos removidos:', produtosRemovidos);
+    console.log('Produtos com quantidade alterada:', produtosAlterados);
+
+    // ✅ DEVOLVER ESTOQUE DOS PRODUTOS REMOVIDOS
+    for (const produtoRemovido of produtosRemovidos) {
+      try {
+        // Buscar produto no Firebase
+        const produtoSnapshot = await database.ref('products')
+          .orderByChild('id')
+          .equalTo(Number(produtoRemovido.id))
+          .once('value');
+
+        if (produtoSnapshot.exists()) {
+          produtoSnapshot.forEach(async (childSnapshot) => {
+            const produto = childSnapshot.val();
+            const firebaseKey = childSnapshot.key;
+            
+            const novoEstoque = (produto.quantity || 0) + produtoRemovido.qty;
+            
+            await database.ref(`products/${firebaseKey}`).update({
+              quantity: novoEstoque
+            });
+            
+            console.log(`✅ Devolvido ${produtoRemovido.qty}x de "${produtoRemovido.name}" ao estoque`);
+          });
+        }
+      } catch (error) {
+        console.error(`Erro ao devolver estoque de ${produtoRemovido.name}:`, error);
+      }
+    }
+
+    // ✅ AJUSTAR ESTOQUE DOS PRODUTOS COM QUANTIDADE ALTERADA
+    for (const produtoOriginal of produtosAlterados) {
+      try {
+        const produtoEditado = editingProducts.find(p => p.id == produtoOriginal.id);
+        if (!produtoEditado) continue;
+
+        const diferencaQty = produtoOriginal.qty - produtoEditado.qty;
+
+        // Buscar produto no Firebase
+        const produtoSnapshot = await database.ref('products')
+          .orderByChild('id')
+          .equalTo(Number(produtoOriginal.id))
+          .once('value');
+
+        if (produtoSnapshot.exists()) {
+          produtoSnapshot.forEach(async (childSnapshot) => {
+            const produto = childSnapshot.val();
+            const firebaseKey = childSnapshot.key;
+            
+            // Se diminuiu a quantidade na OS, devolver ao estoque
+            // Se aumentou a quantidade na OS, retirar do estoque
+            const novoEstoque = (produto.quantity || 0) + diferencaQty;
+            
+            if (novoEstoque < 0) {
+              showToast(`Estoque insuficiente para ${produto.name}`, 'error');
+              return;
+            }
+            
+            await database.ref(`products/${firebaseKey}`).update({
+              quantity: novoEstoque
+            });
+            
+            if (diferencaQty > 0) {
+              console.log(`✅ Devolvido ${diferencaQty}x de "${produto.name}" ao estoque`);
+            } else {
+              console.log(`✅ Retirado ${Math.abs(diferencaQty)}x de "${produto.name}" do estoque`);
+            }
+          });
+        }
+      } catch (error) {
+        console.error(`Erro ao ajustar estoque:`, error);
+      }
+    }
+
+    // ✅ Preparar dados limpos para salvar
     const produtosLimpos = editingProducts.map(prod => ({
       id: prod.id || '',
       name: prod.name || '',
@@ -6325,45 +7423,7 @@ async function salvarEdicaoOS() {
       price: prod.price || 0
     }));
 
-    // ============ GESTÃO DE ESTOQUE ============
-
-    // 1. RESTAURAR ESTOQUE DOS PRODUTOS ANTIGOS
-    if (osOriginal.products && osOriginal.products.length > 0) {
-      for (const oldProd of osOriginal.products) {
-        if (oldProd.id) {
-          const produtoSnapshot = await database.ref(`products/${oldProd.id}`).once('value');
-          const produtoNoEstoque = produtoSnapshot.val();
-
-          if (produtoNoEstoque) {
-            const novaQuantidade = (produtoNoEstoque.quantity || 0) + (oldProd.qty || 0);
-            await database.ref(`products/${oldProd.id}`).update({
-              quantity: novaQuantidade
-            });
-          }
-        }
-      }
-    }
-
-    // 2. DIMINUIR ESTOQUE DOS PRODUTOS NOVOS
-    for (const newProd of produtosLimpos) {
-      if (newProd.id) {
-        const produtoSnapshot = await database.ref(`products/${newProd.id}`).once('value');
-        const produtoNoEstoque = produtoSnapshot.val();
-
-        if (produtoNoEstoque) {
-          const novaQuantidade = (produtoNoEstoque.quantity || 0) - (newProd.qty || 0);
-
-          // Garantir que não fique negativo
-          await database.ref(`products/${newProd.id}`).update({
-            quantity: novaQuantidade < 0 ? 0 : novaQuantidade
-          });
-        }
-      }
-    }
-
-    // ============ FIM DA GESTÃO DE ESTOQUE ============
-
-    // Calcular totais
+    // ✅ Calcular totais
     let subtotal = 0;
     produtosLimpos.forEach(prod => {
       subtotal += (prod.price || 0) * (prod.qty || 1);
@@ -6378,6 +7438,7 @@ async function salvarEdicaoOS() {
     const profitValue = (subtotal * profitPercent) / 100;
     const total = subtotal + profitValue;
 
+    // ✅ Coletar dados do formulário
     const clienteEl = document.getElementById('editCliente');
     const cnpjEl = document.getElementById('editCNPJ');
     const enderecoEl = document.getElementById('editEndereco');
@@ -6405,7 +7466,13 @@ async function salvarEdicaoOS() {
       preco: Math.round(total * 100) / 100
     };
 
+    // ✅ Atualizar OS no Firebase
     await database.ref(`orders/${editingOSId}`).update(dadosAtualizados);
+
+    // ✅ Limpar variáveis de controle
+    produtosOriginaisOS = [];
+    editingProducts = [];
+    editingOSId = null;
 
     closeEditOSModal();
     showToast('Ordem atualizada com sucesso!', 'success');
@@ -6415,378 +7482,262 @@ async function salvarEdicaoOS() {
     }
 
   } catch (err) {
-    console.error(err);
+    console.error('Erro ao salvar:', err);
     showToast('Erro ao salvar edição: ' + err.message, 'error');
   }
 }
 
-// ============================ FUNÇÕES PARA ADICIONAR PRODUTO ============================
+//
 
-function abrirModalSelecionarProdutoEditOS() {
-  // Ocultar TODOS os elementos do body temporariamente (exceto o novo modal)
-  document.body.style.overflow = 'hidden';
 
-  // Fechar modal de edição temporariamente
-  const editModal = document.getElementById('editOSModal');
-  if (editModal) editModal.style.display = 'none';
-
-  const modalHtml = `
-    <div id="selectProductEditOSModal" style="
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      width: 100vw;
-      height: 100vh;
-      background: rgba(0, 0, 0, 0.98);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      padding: 12px;
-      backdrop-filter: blur(10px);
-      z-index: 2147483647;
-      overflow: auto;
-    ">
-      <div style="
-        background: linear-gradient(145deg, #1f1f1f 0%, #1a1a1a 100%);
-        border: 2px solid #10b981;
-        border-radius: 12px;
-        width: 100%;
-        max-width: 450px;
-        max-height: 85vh;
-        color: #f5f5f5;
-        box-shadow: 0 25px 80px rgba(0, 0, 0, 0.9), 0 0 50px rgba(16, 185, 129, 0.2);
-        display: flex;
-        flex-direction: column;
-        position: relative;
-        margin: auto;
-      ">
-        <style>
-          #productEditOSModalList::-webkit-scrollbar {
-            width: 6px;
-          }
-          #productEditOSModalList::-webkit-scrollbar-track {
-            background: #0d0d0d;
-            border-radius: 10px;
-          }
-          #productEditOSModalList::-webkit-scrollbar-thumb {
-            background: #10b981;
-            border-radius: 10px;
-          }
-          #productEditOSModalList::-webkit-scrollbar-thumb:hover {
-            background: #0d9668;
-          }
-          @media (max-width: 480px) {
-            #selectProductEditOSModal {
-              padding: 8px !important;
-            }
-            #selectProductEditOSModal > div {
-              max-height: 92vh !important;
-              border-radius: 10px !important;
-            }
-          }
-        </style>
-
-        <div style="
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          padding: 16px 18px;
-          border-bottom: 2px solid #10b981;
-          background: linear-gradient(135deg, #2a2a2a 0%, #1f1f1f 100%);
-          border-radius: 10px 10px 0 0;
-          flex-shrink: 0;
-        ">
-          <h3 style="
-            margin: 0;
-            font-size: 1.15rem;
-            color: #10b981;
-            font-weight: 700;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            letter-spacing: 0.3px;
-          ">
-            <i class="fas fa-search" style="font-size: 1rem;"></i>
-            Adicionar Produto
-          </h3>
-          <button onclick="fecharModalSelecionarProdutoEditOS()" style="
-            background: rgba(239, 68, 68, 0.1);
-            border: 1px solid rgba(239, 68, 68, 0.3);
-            color: #ef4444;
-            font-size: 1.15rem;
-            cursor: pointer;
-            width: 34px;
-            height: 34px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 8px;
-          " onmouseover="this.style.background='rgba(239, 68, 68, 0.2)'; this.style.borderColor='#ef4444'" onmouseout="this.style.background='rgba(239, 68, 68, 0.1)'; this.style.borderColor='rgba(239, 68, 68, 0.3)'">
-            <i class="fas fa-times"></i>
-          </button>
-        </div>
-
-        <div style="padding: 16px 18px; border-bottom: 1px solid #2a2a2a; flex-shrink: 0; background: #1a1a1a;">
-          <div style="position: relative;">
-            <input type="text" id="searchProductEditOSInput" placeholder="Buscar produtos com estoque..." style="
-              width: 100%;
-              padding: 12px 14px 12px 42px;
-              background: #0d0d0d;
-              border: 2px solid #333;
-              border-radius: 10px;
-              color: #fff;
-              font-size: 0.9rem;
-              transition: all 0.3s ease;
-              box-sizing: border-box;
-              font-weight: 500;
-            " onfocus="this.style.borderColor='#10b981'; this.style.boxShadow='0 0 0 3px rgba(16, 185, 129, 0.1)'" onblur="this.style.borderColor='#333'; this.style.boxShadow='none'" oninput="filtrarProdutosEditOSModal()">
-            <i class="fas fa-search" style="
-              position: absolute;
-              left: 14px;
-              top: 50%;
-              transform: translateY(-50%);
-              color: #10b981;
-              font-size: 15px;
-            "></i>
-          </div>
-        </div>
-
-        <div id="productEditOSModalList" style="
-          flex: 1;
-          overflow-y: auto;
-          padding: 14px 18px;
-          background: #1a1a1a;
-          min-height: 200px;
-        ">
-        </div>
-
-      </div>
-    </div>
-  `;
-
-  document.body.insertAdjacentHTML('beforeend', modalHtml);
-  renderizarListaProdutosEditOSModal();
-}
-
-function fecharModalSelecionarProdutoEditOS() {
-  const modal = document.getElementById('selectProductEditOSModal');
-  if (modal) modal.remove();
-
-  // Restaurar overflow do body
-  document.body.style.overflow = '';
-
-  // Reabrir modal de edição
-  const editModal = document.getElementById('editOSModal');
-  if (editModal) editModal.style.display = 'flex';
-}
 
 function filtrarProdutosEditOSModal() {
-  const input = document.getElementById('searchProductEditOSInput');
-  if (!input) return;
-  renderizarListaProdutosEditOSModal(input.value);
-}
+  const searchInput = document.getElementById('searchProductEditOSInput');
+  const searchTerm = searchInput?.value.toLowerCase() || '';
+  
+  const list = document.getElementById('productEditOSModalList');
+  if (!list) return;
 
-function renderizarListaProdutosEditOSModal(filtro = '') {
-  const container = document.getElementById('productEditOSModalList');
-  if (!container) return;
-
-  const filtroLower = filtro.toLowerCase();
-
-  // FILTRAR APENAS PRODUTOS COM ESTOQUE DISPONÍVEL (quantity > 0)
-  const produtosFiltrados = products.filter(p => {
-    const hasStock = (p.quantity || 0) > 0;
-    const matchesFilter = p.name.toLowerCase().includes(filtroLower) ||
-      (p.description && p.description.toLowerCase().includes(filtroLower));
-
-    return hasStock && matchesFilter;
-  });
-
-  if (produtosFiltrados.length === 0) {
-    container.innerHTML = `
-      <div style="
-        padding: 50px 20px;
-        text-align: center;
-        color: #666;
-      ">
-        <i class="fas fa-box-open" style="font-size: 3.5rem; margin-bottom: 14px; color: #10b981; opacity: 0.3;"></i>
-        <p style="margin: 0; font-size: 14px; font-weight: 500;">Nenhum produto disponível</p>
-        <p style="margin: 6px 0 0 0; font-size: 12px; color: #555;">
-          ${filtro ? 'Nenhum produto com estoque corresponde à busca' : 'Todos os produtos estão sem estoque'}
-        </p>
-      </div>
-    `;
-    return;
-  }
-
-  container.innerHTML = produtosFiltrados.map(prod => {
-    const stockQuantity = prod.quantity || 0;
-
-    return `
-    <div style="
-      background: linear-gradient(135deg, #0d0d0d 0%, #121212 100%);
-      border: 2px solid #2a2a2a;
-      border-radius: 10px;
-      padding: 14px;
-      margin-bottom: 10px;
-      transition: all 0.3s ease;
-      position: relative;
-      overflow: hidden;
-    " onmouseover="this.style.background='linear-gradient(135deg, #1a1a1a 0%, #1f1f1f 100%)'; this.style.borderColor='#10b981'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 18px rgba(16, 185, 129, 0.2)'" onmouseout="this.style.background='linear-gradient(135deg, #0d0d0d 0%, #121212 100%)'; this.style.borderColor='#2a2a2a'; this.style.transform='translateY(0)'; this.style.boxShadow='none'">
+  database.ref('products').once('value', (snapshot) => {
+    const produtosDisponiveis = [];
+    
+    snapshot.forEach((childSnapshot) => {
+      const produto = childSnapshot.val();
+      const firebaseKey = childSnapshot.key;
       
-      <div style="
-        position: absolute;
-        top: 0;
-        right: 0;
-        width: 50px;
-        height: 50px;
-        background: radial-gradient(circle, rgba(16, 185, 129, 0.08) 0%, transparent 70%);
-        border-radius: 0 0 0 100%;
-      "></div>
+      if (produto.quantity > 0) {
+        produtosDisponiveis.push({
+          ...produto,
+          firebaseKey: firebaseKey
+        });
+      }
+    });
 
-      <div style="
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        margin-bottom: 6px;
-      ">
-        <div style="
-          width: 7px;
-          height: 7px;
-          background: #10b981;
-          border-radius: 50%;
-          box-shadow: 0 0 6px rgba(16, 185, 129, 0.6);
-          flex-shrink: 0;
-        "></div>
-        <div style="
-          color: #fff;
-          font-weight: 700;
-          font-size: 15px;
-          letter-spacing: 0.2px;
-        ">
-          ${escapeHtml(prod.name)}
+    const produtosNaoAdicionados = produtosDisponiveis.filter(
+      p => !editingProducts.some(ep => ep.id == p.id)
+    );
+
+    // ✅ Aplicar filtro de busca
+    const produtosFiltrados = produtosNaoAdicionados.filter(p => 
+      p.name.toLowerCase().includes(searchTerm) ||
+      (p.description && p.description.toLowerCase().includes(searchTerm))
+    );
+
+    if (produtosFiltrados.length === 0) {
+      list.innerHTML = `
+        <div style="text-align: center; padding: 40px 20px; color: #666;">
+          <i class="fas fa-search" style="font-size: 3rem; margin-bottom: 15px; opacity: 0.3;"></i>
+          <p style="margin: 0; font-size: 15px;">Nenhum produto encontrado</p>
         </div>
-      </div>
+      `;
+      return;
+    }
 
+    list.innerHTML = produtosFiltrados.map(produto => `
       <div style="
-        color: #999;
-        font-size: 12px;
+        background: #2a2a2a;
+        border: 2px solid #333;
+        border-radius: 10px;
+        padding: 14px;
         margin-bottom: 10px;
-        line-height: 1.4;
-        padding-left: 15px;
-      ">
-        ${escapeHtml(prod.description || 'Sem descrição disponível')}
-      </div>
-
-      <div style="
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding-left: 15px;
-        gap: 10px;
-        flex-wrap: wrap;
-      ">
-        <div style="display: flex; flex-direction: column; gap: 5px;">
-          <div style="
-            color: #4ade80;
-            font-weight: 800;
-            font-size: 17px;
-            text-shadow: 0 0 8px rgba(74, 222, 128, 0.3);
-          ">
-            R$ ${prod.price.toFixed(2)}
-          </div>
-          <div style="
-            background: rgba(16, 185, 129, 0.1);
-            border: 1px solid rgba(16, 185, 129, 0.3);
-            border-radius: 6px;
-            padding: 3px 7px;
-            color: #10b981;
-            font-size: 10px;
-            font-weight: 600;
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-          ">
-            <i class="fas fa-boxes" style="font-size: 9px;"></i>
-            Estoque: ${stockQuantity}
+        transition: all 0.2s ease;
+      " onmouseover="this.style.borderColor='#10b981'" onmouseout="this.style.borderColor='#333'">
+        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px;">
+          <div style="flex: 1;">
+            <div style="color: #fff; font-weight: 700; font-size: 15px; margin-bottom: 4px;">
+              ${escapeHtml(produto.name)}
+            </div>
+            ${produto.description ? `
+              <div style="color: #999; font-size: 12px; margin-bottom: 6px;">
+                ${escapeHtml(produto.description)}
+              </div>
+            ` : ''}
+            <div style="display: flex; gap: 12px; font-size: 13px; color: #aaa;">
+              <span><strong style="color: #10b981;">Preço:</strong> R$ ${produto.price.toFixed(2)}</span>
+              <span><strong style="color: ${produto.quantity <= 5 ? '#ef4444' : '#10b981'};">Estoque:</strong> ${produto.quantity}</span>
+            </div>
           </div>
         </div>
         
-        <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-          <div style="display: flex; align-items: center; gap: 5px; background: #0d0d0d; border: 2px solid #333; border-radius: 7px; padding: 3px;">
-            <button onclick="event.stopPropagation(); alterarQuantidadeEditModal(${prod.id}, -1)" style="
-              background: rgba(239, 68, 68, 0.1);
-              border: 1px solid rgba(239, 68, 68, 0.3);
-              color: #ef4444;
-              width: 26px;
-              height: 26px;
-              border-radius: 5px;
-              cursor: pointer;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              font-weight: 700;
-              transition: all 0.2s ease;
-            " onmouseover="this.style.background='rgba(239, 68, 68, 0.2)'" onmouseout="this.style.background='rgba(239, 68, 68, 0.1)'">
-              <i class="fas fa-minus" style="font-size: 10px;"></i>
-            </button>
-            
-            <input type="text" id="qty_edit_${prod.id}" value="1" readonly style="
-              width: 45px;
-              background: transparent;
+        <div style="display: flex; gap: 8px; align-items: center;">
+          <input 
+            type="number" 
+            id="qty_edit_${produto.id}" 
+            min="1" 
+            max="${produto.quantity}"
+            value="1" 
+            style="
+              width: 80px;
+              padding: 8px 10px;
+              background: #1a1a1a;
+              border: 2px solid #333;
+              border-radius: 8px;
+              color: #fff;
+              font-size: 14px;
+              font-weight: 600;
+              text-align: center;
+            "
+          >
+          <button 
+            onclick="selecionarProdutoEditOSModal('${produto.id}')"
+            style="
+              flex: 1;
+              background: linear-gradient(135deg, #10b981 0%, #059669 100%);
               border: none;
               color: #fff;
-              text-align: center;
-              font-size: 13px;
-              font-weight: 700;
-              outline: none;
-              cursor: default;
-              user-select: none;
-            " onclick="event.stopPropagation()">
-            
-            <button onclick="event.stopPropagation(); alterarQuantidadeEditModal(${prod.id}, 1, ${stockQuantity})" style="
-              background: rgba(16, 185, 129, 0.15);
-              border: 1px solid rgba(16, 185, 129, 0.3);
-              color: #10b981;
-              width: 26px;
-              height: 26px;
-              border-radius: 5px;
+              padding: 10px 16px;
+              border-radius: 8px;
               cursor: pointer;
+              font-weight: 600;
+              font-size: 13px;
+              transition: all 0.2s ease;
               display: flex;
               align-items: center;
               justify-content: center;
-              font-weight: 700;
-              transition: all 0.2s ease;
-            " onmouseover="this.style.background='rgba(16, 185, 129, 0.25)'" onmouseout="this.style.background='rgba(16, 185, 129, 0.15)'">
-              <i class="fas fa-plus" style="font-size: 10px;"></i>
-            </button>
-          </div>
-          
-          <button onclick="event.stopPropagation(); selecionarProdutoEditOSModal(${prod.id})" style="
-            background: rgba(16, 185, 129, 0.15);
-            color: #10b981;
-            padding: 7px 14px;
-            border-radius: 18px;
-            font-size: 12px;
-            font-weight: 600;
-            border: 1px solid rgba(16, 185, 129, 0.3);
-            cursor: pointer;
-            transition: all 0.2s ease;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-          " onmouseover="this.style.background='rgba(16, 185, 129, 0.25)'; this.style.transform='scale(1.05)'" onmouseout="this.style.background='rgba(16, 185, 129, 0.15)'; this.style.transform='scale(1)'">
+              gap: 8px;
+            "
+            onmouseover="this.style.transform='translateY(-1px)'; this.style.boxShadow='0 4px 12px rgba(16, 185, 129, 0.4)'"
+            onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'"
+          >
             <i class="fas fa-plus"></i>
             Adicionar
           </button>
         </div>
       </div>
+    `).join('');
+  });
+}
 
-    </div>
-  `;
-  }).join('');
+
+
+function renderizarListaProdutosEditOSModal() {
+  const list = document.getElementById('productEditOSModalList');
+  if (!list) return;
+
+  // ✅ Buscar produtos diretamente do Firebase
+  database.ref('products').once('value', (snapshot) => {
+    const produtosDisponiveis = [];
+    
+    snapshot.forEach((childSnapshot) => {
+      const produto = childSnapshot.val();
+      const firebaseKey = childSnapshot.key;
+      
+      // ✅ Mostrar apenas produtos com estoque > 0
+      if (produto.quantity > 0) {
+        produtosDisponiveis.push({
+          ...produto,
+          firebaseKey: firebaseKey
+        });
+      }
+    });
+
+    // ✅ Filtrar produtos já adicionados à OS
+    const produtosNaoAdicionados = produtosDisponiveis.filter(
+      p => !editingProducts.some(ep => ep.id == p.id)
+    );
+
+    // Renderizar lista
+    if (produtosNaoAdicionados.length === 0) {
+      list.innerHTML = `
+        <div style="text-align: center; padding: 40px 20px; color: #666;">
+          <i class="fas fa-box-open" style="font-size: 3rem; margin-bottom: 15px; opacity: 0.3;"></i>
+          <p style="margin: 0; font-size: 15px;">Nenhum produto disponível</p>
+          <p style="margin: 8px 0 0 0; font-size: 13px; opacity: 0.7;">Todos os produtos já foram adicionados ou estão sem estoque</p>
+        </div>
+      `;
+      return;
+    }
+
+    list.innerHTML = produtosNaoAdicionados.map(produto => `
+      <div style="
+        background: #2a2a2a;
+        border: 2px solid #333;
+        border-radius: 10px;
+        padding: 14px;
+        margin-bottom: 10px;
+        transition: all 0.2s ease;
+      " onmouseover="this.style.borderColor='#10b981'" onmouseout="this.style.borderColor='#333'">
+        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px;">
+          <div style="flex: 1;">
+            <div style="color: #fff; font-weight: 700; font-size: 15px; margin-bottom: 4px;">
+              ${escapeHtml(produto.name)}
+            </div>
+            ${produto.description ? `
+              <div style="color: #999; font-size: 12px; margin-bottom: 6px;">
+                ${escapeHtml(produto.description)}
+              </div>
+            ` : ''}
+            <div style="display: flex; gap: 12px; font-size: 13px; color: #aaa;">
+              <span><strong style="color: #10b981;">Preço:</strong> R$ ${produto.price.toFixed(2)}</span>
+              <span><strong style="color: ${produto.quantity <= 5 ? '#ef4444' : '#10b981'};">Estoque:</strong> ${produto.quantity}</span>
+            </div>
+          </div>
+        </div>
+        
+        <div style="display: flex; gap: 8px; align-items: center;">
+          <input 
+            type="number" 
+            id="qty_edit_${produto.id}" 
+            min="1" 
+            max="${produto.quantity}"
+            value="1" 
+            style="
+              width: 80px;
+              padding: 8px 10px;
+              background: #1a1a1a;
+              border: 2px solid #333;
+              border-radius: 8px;
+              color: #fff;
+              font-size: 14px;
+              font-weight: 600;
+              text-align: center;
+            "
+          >
+          <button 
+            onclick="selecionarProdutoEditOSModal('${produto.id}')"
+            style="
+              flex: 1;
+              background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+              border: none;
+              color: #fff;
+              padding: 10px 16px;
+              border-radius: 8px;
+              cursor: pointer;
+              font-weight: 600;
+              font-size: 13px;
+              transition: all 0.2s ease;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              gap: 8px;
+            "
+            onmouseover="this.style.transform='translateY(-1px)'; this.style.boxShadow='0 4px 12px rgba(16, 185, 129, 0.4)'"
+            onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'"
+          >
+            <i class="fas fa-plus"></i>
+            Adicionar
+          </button>
+        </div>
+      </div>
+    `).join('');
+  });
+}
+
+
+function validarQuantidadeEditModalOS(prodId, maxStock) {
+  const input = document.getElementById(`qty_edit_${prodId}`);
+  if (!input) return;
+
+  let valor = parseInt(input.value);
+  
+  if (isNaN(valor) || valor < 1) {
+    input.value = 1;
+  } else if (valor > maxStock) {
+    input.value = maxStock;
+    showToast(`Quantidade máxima disponível: ${maxStock}`, 'info');
+  } else {
+    input.value = valor;
+  }
 }
 
 function alterarQuantidadeEditModal(productId, delta, maxStock) {
@@ -6796,58 +7747,221 @@ function alterarQuantidadeEditModal(productId, delta, maxStock) {
   let currentValue = parseInt(input.value) || 1;
   let newValue = currentValue + delta;
 
-  // Não permitir valores menores que 1
   if (newValue < 1) newValue = 1;
 
-  // LIMITAR PELA QUANTIDADE EM ESTOQUE
   if (maxStock && newValue > maxStock) {
-    showToast(`Estoque disponível: ${maxStock} unidades`, 'error');
+    showToast('Quantidade maior que o estoque disponível!', 'error');
     newValue = maxStock;
   }
 
   input.value = newValue;
 }
 
-function selecionarProdutoEditOSModal(productId) {
-  const produto = products.find(p => p.id === productId);
-  if (!produto) {
-    showToast('Produto não encontrado', 'error');
-    return;
+
+
+// Referências do banco de dados
+const productsRef = database.ref('products');
+const osRef = database.ref('os');
+
+// Arrays locais que serão sincronizados com Firebase
+
+// ✅ Listener em tempo real para produtos
+productsRef.on('value', (snapshot) => {
+  products = [];
+  const data = snapshot.val();
+  
+  if (data) {
+    Object.keys(data).forEach(key => {
+      products.push({
+        firebaseKey: key,
+        ...data[key]
+      });
+    });
   }
-
-  const qtyInput = document.getElementById(`qty_edit_${productId}`);
-  const qty = parseInt(qtyInput?.value) || 1;
-
-  if (qty <= 0) {
-    showToast('Quantidade inválida', 'error');
-    return;
+  
+  // Atualizar UI se necessário
+  if (typeof renderProducts === 'function') {
+    renderProducts();
   }
+});
 
-  // VALIDAR ESTOQUE DISPONÍVEL
-  const stockAvailable = produto.quantity || 0;
-  if (qty > stockAvailable) {
-    showToast('Quantidade maior que o estoque disponível!', 'error');
-    return;
+// ✅ Função para adicionar produto à OS (com atualização em tempo real)
+async function selecionarProdutoEditOSModal(productId) {
+  try {
+    // Buscar produto atualizado do Firebase em tempo real
+    const produtoSnapshot = await database.ref('products')
+      .orderByChild('id')
+      .equalTo(Number(productId))
+      .once('value');
+    
+    if (!produtoSnapshot.exists()) {
+      showToast('Produto não encontrado', 'error');
+      return;
+    }
+
+    let produto = null;
+    let firebaseKey = null;
+    
+    produtoSnapshot.forEach((childSnapshot) => {
+      produto = childSnapshot.val();
+      firebaseKey = childSnapshot.key;
+    });
+
+    // Verificar se já foi adicionado
+    const produtoJaAdicionado = editingProducts.find(p => p.id == productId);
+    if (produtoJaAdicionado) {
+      showToast('Este produto já foi adicionado à OS', 'error');
+      return;
+    }
+
+    const qtyInput = document.getElementById(`qty_edit_${productId}`);
+    const qty = parseInt(qtyInput?.value) || 1;
+
+    if (qty <= 0) {
+      showToast('Quantidade inválida', 'error');
+      return;
+    }
+
+    const stockAvailable = produto.quantity || 0;
+    if (qty > stockAvailable) {
+      showToast(`Estoque insuficiente! Disponível: ${stockAvailable}`, 'error');
+      return;
+    }
+
+    // ✅ DESCONTAR do estoque no Firebase
+    const novoEstoque = stockAvailable - qty;
+    await database.ref(`products/${firebaseKey}/quantity`).set(novoEstoque);
+
+    // ✅ Adicionar ao array de produtos da OS em edição
+    editingProducts.push({
+      id: produto.id,
+      firebaseKey: firebaseKey, // ✅ Guardar a chave do Firebase
+      name: produto.name,
+      description: produto.description || '',
+      qty: qty,
+      price: produto.price
+    });
+
+    // Fechar modal e atualizar UI
+    closeProductModal();
+    
+    if (typeof renderizarProdutosEdicao === 'function') {
+      renderizarProdutosEdicao();
+    }
+    
+    if (typeof atualizarTotaisEdicao === 'function') {
+      atualizarTotaisEdicao();
+    }
+
+    // ✅ Forçar atualização do modal de produtos
+    if (document.getElementById('productEditOSModalList')) {
+      renderizarListaProdutosEditOSModal();
+    }
+
+    showToast(`${produto.name} (${qty}x) adicionado!`, 'success');
+    
+  } catch (error) {
+    console.error('Erro ao adicionar produto:', error);
+    showToast('Erro ao adicionar produto', 'error');
   }
-
-  // Adicionar produto ao array editingProducts
-  editingProducts.push({
-    id: produto.id || '',
-    name: produto.name || '',
-    description: produto.description || '',
-    qty: qty,
-    price: produto.price || 0
-  });
-
-  // Fechar modal de seleção
-  fecharModalSelecionarProdutoEditOS();
-
-  // Renderizar produtos novamente
-  renderizarProdutosEdicao();
-  atualizarTotaisEdicao();
-
-  showToast(`${produto.name} (${qty}x) adicionado com sucesso!`, 'success');
 }
+
+// ✅ Função para remover produto da OS (com atualização em tempo real)
+// ✅ VERSÃO CORRIGIDA - Remover produto da OS
+async function removerProdutoEdicao(index) {
+  try {
+    const produtoRemovido = editingProducts[index];
+    
+    if (!produtoRemovido) {
+      showToast('Produto não encontrado', 'error');
+      return;
+    }
+
+    // ✅ DEVOLVER estoque no Firebase usando a chave correta
+    if (produtoRemovido.firebaseKey) {
+      const produtoRef = database.ref(`products/${produtoRemovido.firebaseKey}`);
+      const snapshot = await produtoRef.once('value');
+      const produtoAtual = snapshot.val();
+      
+      if (produtoAtual) {
+        const novoEstoque = (produtoAtual.quantity || 0) + produtoRemovido.qty;
+        await produtoRef.update({ quantity: novoEstoque });
+      }
+    }
+    
+    // Remover do array local
+    editingProducts.splice(index, 1);
+    
+    // Atualizar UI
+    if (typeof renderizarProdutosEdicao === 'function') {
+      renderizarProdutosEdicao();
+    }
+    
+    if (typeof atualizarTotaisEdicao === 'function') {
+      atualizarTotaisEdicao();
+    }
+
+    // ✅ Forçar atualização do modal de produtos se estiver aberto
+    if (document.getElementById('productEditOSModalList')) {
+      renderizarListaProdutosEditOSModal();
+    }
+    
+    showToast(`${produtoRemovido.name} removido - estoque devolvido`, 'success');
+    
+  } catch (error) {
+    console.error('Erro ao remover produto:', error);
+    showToast('Erro ao remover produto', 'error');
+  }
+}
+
+
+// ✅ Função auxiliar para salvar OS completa no Firebase
+async function salvarOSNoFirebase(osData) {
+  try {
+    // Criar nova OS ou atualizar existente
+    if (osData.id) {
+      // Atualizar OS existente
+      await database.ref(`os/${osData.id}`).update(osData);
+    } else {
+      // Criar nova OS
+      const newOsRef = osRef.push();
+      osData.id = newOsRef.key;
+      await newOsRef.set(osData);
+    }
+    
+    showToast('OS salva com sucesso!', 'success');
+    return osData.id;
+    
+  } catch (error) {
+    console.error('Erro ao salvar OS:', error);
+    showToast('Erro ao salvar OS', 'error');
+    return null;
+  }
+}
+
+// ✅ Listener em tempo real para uma OS específica
+function monitorarOS(osId, callback) {
+  const osItemRef = database.ref(`os/${osId}`);
+  
+  osItemRef.on('value', (snapshot) => {
+    const osData = snapshot.val();
+    if (osData && typeof callback === 'function') {
+      callback(osData);
+    }
+  });
+  
+  // Retornar função para parar de monitorar
+  return () => osItemRef.off('value');
+}
+
+// ✅ Desconectar listeners quando não precisar mais
+function desconectarListeners() {
+  productsRef.off();
+  osRef.off();
+}
+
+
+
 
 function escapeHtml(text) {
   if (!text) return '';
@@ -6861,21 +7975,21 @@ function escapeHtml(text) {
   return text.toString().replace(/[&<>"']/g, m => map[m]);
 }
 
-// Event listener para o botão de adicionar produto
-document.addEventListener('DOMContentLoaded', function () {
-  document.addEventListener('click', function (e) {
-    if (e.target && (e.target.id === 'addProductToEditOSBtn' || e.target.closest('#addProductToEditOSBtn'))) {
-      e.preventDefault();
-      e.stopPropagation();
-      abrirModalSelecionarProdutoEditOS();
-    }
-  });
-});
-
 function closeEditOSModal() {
+  // ✅ RESTAURAR ESTOQUE ORIGINAL (CANCELAR ALTERAÇÕES)
+  if (Object.keys(estoqueBackup).length > 0) {
+    products.forEach(p => {
+      if (estoqueBackup.hasOwnProperty(p.id)) {
+        p.quantity = estoqueBackup[p.id];
+      }
+    });
+  }
+
   document.getElementById('editOSModal').style.display = 'none';
   editingOSId = null;
   editingProducts = [];
+  produtosOriginaisOS = [];
+  estoqueBackup = {};
 }
 
 async function excluirOS(orderId) {
@@ -6887,18 +8001,32 @@ async function excluirOS(orderId) {
 
   const confirmed = await showConfirmDialog(
     'Confirmar Exclusão',
-    `Tem certeza que deseja excluir a ordem de <strong>${escapeHtml(ordem.cliente || 'este cliente')}</strong>?<br><br><span style="color: #999;">Esta ação não pode ser desfeita.</span>`
+    `Tem certeza que deseja excluir a ordem de <strong>${escapeHtml(ordem.cliente || 'este cliente')}</strong>?<br><br><span style="color: #10b981;">Os produtos serão devolvidos ao estoque.</span>`
   );
 
   if (!confirmed) return;
 
   try {
-    showToast('Excluindo ordem...', 'info');
+    showToast('Excluindo ordem e devolvendo estoque...', 'info');
+
+    const produtosDaOS = Array.isArray(ordem.products) ? ordem.products : [];
+    
+    for (const osProd of produtosDaOS) {
+      const product = products.find(p => p.id === osProd.id);
+      if (product) {
+        const newStock = (product.quantity || 0) + (osProd.qty || 0);
+        await firebase.database().ref('products/' + osProd.id).update({
+          quantity: newStock
+        });
+        
+        product.quantity = newStock;
+      }
+    }
 
     const ordemRef = firebase.database().ref('orders/' + orderId);
     await ordemRef.remove();
 
-    showToast('Ordem excluída com sucesso!', 'success');
+    showToast('Ordem excluída - Produtos devolvidos ao estoque!', 'success');
 
     if (typeof loadOrders === 'function') {
       loadOrders();
@@ -6910,34 +8038,9 @@ async function excluirOS(orderId) {
 }
 
 function switchEditTab(tabName) {
-  // Ocultar todas as abas
-  document.querySelectorAll('.tab-content').forEach(tab => {
-    tab.style.display = 'none';
-  });
-
-  // Remover classe active de todos os botões
-  document.querySelectorAll('.tab-btn').forEach(btn => {
-    btn.classList.remove('active');
-    btn.style.borderBottomColor = 'transparent';
-    btn.style.color = '#999';
-  });
-
-  // Mostrar aba selecionada
-  document.getElementById(`tab-${tabName}`).style.display = 'block';
-
-  // Ativar botão selecionado
-  const activeBtn = document.querySelector(`[data-tab="${tabName}"]`);
-  activeBtn.classList.add('active');
-  activeBtn.style.borderBottomColor = '#10b981';
-  activeBtn.style.color = '#10b981';
-}
-
-function switchEditTab(tabName) {
-  // Esconde todas as abas
   const tabs = document.querySelectorAll('.tab-content');
   tabs.forEach(tab => tab.style.display = 'none');
 
-  // Remove ativo de todos os botões
   const buttons = document.querySelectorAll('.tab-btn');
   buttons.forEach(btn => {
     btn.style.borderBottomColor = 'transparent';
@@ -6945,13 +8048,11 @@ function switchEditTab(tabName) {
     btn.classList.remove('active');
   });
 
-  // Mostra a aba selecionada
   const selectedTab = document.getElementById(`tab-${tabName}`);
   if (selectedTab) {
     selectedTab.style.display = 'block';
   }
 
-  // Marca o botão como ativo
   const activeBtn = document.querySelector(`[data-tab="${tabName}"]`);
   if (activeBtn) {
     activeBtn.style.borderBottomColor = '#10b981';
@@ -6959,11 +8060,23 @@ function switchEditTab(tabName) {
     activeBtn.classList.add('active');
   }
 
-  // Se está na aba de produtos, renderiza os produtos
   if (tabName === 'produtos') {
     renderizarProdutosEdicao();
   }
 }
+
+document.addEventListener('DOMContentLoaded', function () {
+  document.addEventListener('click', function (e) {
+    if (e.target && (e.target.id === 'addProductToEditOSBtn' || e.target.closest('#addProductToEditOSBtn'))) {
+      e.preventDefault();
+      e.stopPropagation();
+      abrirModalSelecionarProdutoEditOS();
+    }
+  });
+});
+
+
+
 
 // ============================= 
 // DIALOG DE CONFIRMAÇÃO
@@ -7083,21 +8196,6 @@ if (!document.getElementById('modalAnimations')) {
   document.head.appendChild(style);
 }
 
-// Finalizar OS
-async function finalizarOS(orderId) {
-  if (!confirm('Deseja finalizar esta Ordem de Serviço?')) return;
-  try {
-    await database.ref(`orders/${orderId}`).update({
-      status: 'finalizada',
-      dataFinalizacao: new Date().toISOString()
-    });
-    showToast('Ordem de Serviço finalizada!');
-    await loadOrders();
-  } catch (err) {
-    console.error('Erro finalizando OS:', err);
-    showToast('Erro ao finalizar OS', 'error');
-  }
-}
 
 // Criar nova OS (handler seguro)
 document.getElementById('orderForm')?.addEventListener('submit', async (e) => {
@@ -7515,44 +8613,113 @@ async function startInspection(companyId) {
     const company = snapshot.val();
     if (!company) return showToast('Empresa não encontrada', 'error');
 
-    // guarda para reutilizar
-    window.ultimaEmpresaCadastrada = { id: companyId, tipo: 'empresa', ...company };
+    // Guarda dados para reutilizar
+    window.ultimaEmpresaCadastrada = { 
+      id: companyId, 
+      tipo: 'empresa',
+      ...company 
+    };
 
-    // abre modal
     openModal('inspectionFormModal');
 
-    // preenche
-    setTimeout(() => preencherDadosInspecao(window.ultimaEmpresaCadastrada), 120);
+    setTimeout(() => {
+      // Atualiza label
+      const labelRazaoNome = document.getElementById('labelRazaoNome');
+      if (labelRazaoNome) labelRazaoNome.textContent = 'Razão Social';
+
+      // Preenche campos com IDs corretos
+      const campoRazao = document.getElementById('inspecaoRazao');
+      const campoCnpj = document.getElementById('inspecaoCnpj');
+      const campoTelefone = document.getElementById('inspecaoTelefone');
+      const campoResponsavel = document.getElementById('inspecaoResponsavel');
+      const campoCep = document.getElementById('inspecaoCep');
+      const campoEndereco = document.getElementById('inspecaoEndereco');
+      const campoNumeroEmpresa = document.getElementById('inspecaoNumeroEmpresa');
+
+      if (campoRazao) campoRazao.value = company.razao_social || '';
+      if (campoCnpj) campoCnpj.value = company.cnpj || '';
+      if (campoTelefone) campoTelefone.value = company.telefone || '';
+      if (campoResponsavel) campoResponsavel.value = company.responsavel || '';
+      if (campoCep) campoCep.value = company.cep || '';
+      if (campoEndereco) campoEndereco.value = company.endereco || '';
+      if (campoNumeroEmpresa) campoNumeroEmpresa.value = company.numero_empresa || '';
+
+      // Mostra campo empresa, oculta campo prédio
+      const rowEmpresa = document.getElementById('rowNumeroEmpresa');
+      const rowPredio = document.getElementById('rowNumeroPredio');
+      const campoNumeroPredio = document.getElementById('inspecaoNumeroPredio');
+
+      if (rowEmpresa) rowEmpresa.style.display = 'flex';
+      if (rowPredio) rowPredio.style.display = 'none';
+      if (campoNumeroPredio) campoNumeroPredio.value = '';
+
+      window.currentInspectionType = 'empresa';
+    }, 200);
   } catch (err) {
-    console.error('startInspection error:', err);
+    console.error('Erro startInspection:', err);
     showToast('Erro ao iniciar inspeção', 'error');
   }
 }
 
-
-// ---------- startInspectionBuilding para prédio (lista -> iniciar inspeção) ----------
+// Start Inspection Building (PRÉDIO) - VERSÃO ÚNICA
 async function startInspectionBuilding(buildingId) {
   try {
     const snapshot = await database.ref(`buildings/${buildingId}`).once('value');
     const building = snapshot.val();
     if (!building) return showToast('Prédio não encontrado', 'error');
 
-    // IMPORTANTE: Garantir que o objeto tenha o 'tipo' e os dados corretos
+    // Guarda dados para reutilizar (tipo 'predio' para PDF)
     window.ultimaEmpresaCadastrada = {
-      ...building,
       id: buildingId,
-      tipo: 'predio' // Isso identifica que é um prédio para o PDF
+      tipo: 'predio',
+      ...building
     };
 
     openModal('inspectionFormModal');
 
-    // Delay para garantir que o DOM do modal carregou
-    setTimeout(() => preencherDadosInspecao(window.ultimaEmpresaCadastrada), 120);
+    setTimeout(() => {
+      // Atualiza label
+      const labelRazaoNome = document.getElementById('labelRazaoNome');
+      if (labelRazaoNome) labelRazaoNome.textContent = 'Nome do Prédio';
+
+      // Preenche campos com IDs corretos
+      const campoRazao = document.getElementById('inspecaoRazao');
+      const campoCnpj = document.getElementById('inspecaoCnpj');
+      const campoTelefone = document.getElementById('inspecaoTelefone');
+      const campoResponsavel = document.getElementById('inspecaoResponsavel');
+      const campoCep = document.getElementById('inspecaoCep');
+      const campoEndereco = document.getElementById('inspecaoEndereco');
+      const campoNumeroPredio = document.getElementById('inspecaoNumeroPredio');
+
+      if (campoRazao) campoRazao.value = building.razao_social_predio || '';
+      if (campoCnpj) campoCnpj.value = building.cnpj_predio || '';
+      if (campoTelefone) campoTelefone.value = building.telefone_predio || '';
+      if (campoResponsavel) campoResponsavel.value = building.responsavel_predio || '';
+      if (campoCep) campoCep.value = building.cep_predio || '';
+      if (campoEndereco) campoEndereco.value = building.endereco_predio || '';
+      if (campoNumeroPredio) campoNumeroPredio.value = building.numero_predio || '';
+
+      // Oculta campo empresa, mostra campo prédio
+      const rowEmpresa = document.getElementById('rowNumeroEmpresa');
+      const rowPredio = document.getElementById('rowNumeroPredio');
+      const campoNumeroEmpresa = document.getElementById('inspecaoNumeroEmpresa');
+
+      if (rowEmpresa) rowEmpresa.style.display = 'none';
+      if (rowPredio) rowPredio.style.display = 'flex';
+      if (campoNumeroEmpresa) campoNumeroEmpresa.value = '';
+
+      window.currentInspectionType = 'predio';
+    }, 200);
   } catch (err) {
-    console.error('startInspectionBuilding error:', err);
+    console.error('Erro startInspectionBuilding:', err);
     showToast('Erro ao iniciar inspeção do prédio', 'error');
   }
 }
+
+
+
+// ---------- startInspectionBuilding para prédio (lista -> iniciar inspeção) ----------
+
 
 // ---------- Se você abrir o modal manualmente, também preenche se última empresa/prédio existir ----------
 if (!window.openModalOriginal) {
@@ -7677,8 +8844,7 @@ document.querySelectorAll('.orders-tab').forEach(tab => {
 /* ============================= */
 /* PRODUTOS - BASE GLOBAL */
 /* ============================= */
-
-/* ============================= */
+ /* ============================= */
 /* SALVAR PRODUTO NO FIREBASE */
 /* ============================= */
 
@@ -7686,8 +8852,12 @@ function saveProduct() {
   const name = document.getElementById('productName').value.trim();
   const description = document.getElementById('productDescription').value.trim();
   const price = parseFloat(document.getElementById('productPrice').value);
+  const quantity = parseInt(document.getElementById('productQuantity').value) || 0;
 
-
+  if (!name || isNaN(price) || price < 0) {
+    showToast('Preencha todos os campos obrigatórios corretamente', 'error');
+    return;
+  }
 
   const productId = Date.now();
 
@@ -7696,16 +8866,18 @@ function saveProduct() {
     name,
     description,
     price,
+    quantity
   };
 
   firebase.database().ref('products/' + productId).set(productData)
     .then(() => {
+      showToast('Produto cadastrado com sucesso!', 'success');
       closeProductModal();
       clearProductForm();
     })
     .catch(err => {
       console.error(err);
-      alert('Erro ao salvar produto.');
+      showToast('Erro ao salvar produto', 'error');
     });
 }
 
@@ -7717,6 +8889,7 @@ function clearProductForm() {
   document.getElementById('productName').value = '';
   document.getElementById('productDescription').value = '';
   document.getElementById('productPrice').value = '';
+  document.getElementById('productQuantity').value = '';
 }
 
 /* ============================= */
@@ -8083,7 +9256,6 @@ function createProductToolbar() {
   topRow.appendChild(toggleFiltersBtn);
   topRow.appendChild(viewButtonsContainer);
 
-  // RESTO DO CÓDIGO DOS FILTROS... (mantém igual)
   const filtersRow = document.createElement('div');
   filtersRow.id = 'filtersRow';
   filtersRow.style.cssText = `
@@ -8319,8 +9491,12 @@ function updateViewButtons() {
   }
 }
 
+
 // ============================================
 // RENDERIZAR COMO CARDS
+// ============================================
+// ============================================
+// RENDERIZAR PRODUTOS COMO CARDS
 // ============================================
 
 function renderProductsAsCards(container, productsArray) {
@@ -8346,7 +9522,8 @@ function renderProductsAsCards(container, productsArray) {
   window.addEventListener('resize', updateGridLayout);
 
   productsArray.forEach(prod => {
-    const quantity = prod.quantity || 0;
+    // ✅ Usar quantidade sempre do array atualizado
+    const quantity = prod.quantity !== undefined ? prod.quantity : 0;
 
     let status = '';
     let statusColor = '';
@@ -8670,7 +9847,7 @@ function renderProductsAsList(container, productsArray) {
   `;
 
   productsArray.forEach(prod => {
-    const quantity = prod.quantity || 0;
+    const quantity = prod.quantity !== undefined ? prod.quantity : 0;
 
     let statusColor = '';
     let statusBg = '';
@@ -8957,155 +10134,182 @@ function renderProducts() {
 // MODAL DE CONTROLE DE ESTOQUE
 // ===========================
 function openStockModal(productId, action) {
-  const product = products.find(p => p.id == productId);
-  if (!product) return;
+  // ✅ Buscar produto atualizado do Firebase em tempo real
+  database.ref('products')
+    .orderByChild('id')
+    .equalTo(Number(productId))
+    .once('value', (snapshot) => {
+      if (!snapshot.exists()) {
+        showToast('Produto não encontrado!', 'error');
+        return;
+      }
 
-  const isAdd = action === 'add';
-  const title = isAdd ? 'Adicionar ao Estoque' : 'Remover do Estoque';
-  const icon = isAdd ? 'fa-plus' : 'fa-minus';
-  const color = isAdd ? '#10b981' : '#f59e0b';
-  const buttonText = isAdd ? 'Adicionar' : 'Remover';
+      let product = null;
+      let firebaseKey = null;
 
-  const overlay = document.createElement('div');
-  overlay.id = 'stockModalOverlay';
-  overlay.style.cssText = `
-    position:fixed;
-    top:0;
-    left:0;
-    width:100%;
-    height:100%;
-    background:rgba(0,0,0,0.8);
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    z-index:99999;
-  `;
+      snapshot.forEach((childSnapshot) => {
+        product = childSnapshot.val();
+        firebaseKey = childSnapshot.key;
+      });
 
-  const modal = document.createElement('div');
-  modal.style.cssText = `
-    background:#1a1a1a;
-    border:2px solid ${color};
-    border-radius:16px;
-    padding:30px;
-    width:90%;
-    max-width:400px;
-    box-shadow:0 10px 40px rgba(0,0,0,0.8);
-  `;
+      if (!product) return;
 
-  modal.innerHTML = `
-    <h2 style="color:#f1f1f1; font-size:22px; margin:0 0 20px 0;">
-      <i class="fas ${icon}" style="color:${color};"></i> ${title}
-    </h2>
+      const isAdd = action === 'add';
+      const title = isAdd ? 'Adicionar ao Estoque' : 'Remover do Estoque';
+      const icon = isAdd ? 'fa-plus' : 'fa-minus';
+      const color = isAdd ? '#10b981' : '#f59e0b';
+      const buttonText = isAdd ? 'Adicionar' : 'Remover';
 
-    <div style="margin-bottom:16px;">
-      <label style="display:block; color:#f1f1f1; margin-bottom:8px; font-weight:600;">Produto</label>
-      <div style="
-        background:#0f0f0f;
-        border:1px solid #333;
-        border-radius:8px;
-        padding:12px;
-        color:#aaa;
-        font-size:15px;
-      ">
-        ${escapeHtml(product.name)}
-      </div>
-    </div>
-
-    <div style="margin-bottom:16px;">
-      <label style="display:block; color:#f1f1f1; margin-bottom:8px; font-weight:600;">Estoque Atual</label>
-      <div style="
-        background:#0f0f0f;
-        border:1px solid #333;
-        border-radius:8px;
-        padding:12px;
-        color:#10b981;
-        font-size:18px;
-        font-weight:700;
-      ">
-        ${product.quantity || 0} unidades
-      </div>
-    </div>
-
-    <div style="margin-bottom:24px;">
-      <label style="display:block; color:#f1f1f1; margin-bottom:8px; font-weight:600;">Quantidade</label>
-      <input type="number" id="stockQuantity" value="1" min="1" ${!isAdd ? `max="${product.quantity || 0}"` : ''} style="
+      const overlay = document.createElement('div');
+      overlay.id = 'stockModalOverlay';
+      overlay.style.cssText = `
+        position:fixed;
+        top:0;
+        left:0;
         width:100%;
-        background:#0f0f0f;
-        border:1px solid #333;
-        border-radius:8px;
-        padding:12px;
-        color:#f1f1f1;
-        font-size:15px;
-        box-sizing:border-box;
-      ">
-    </div>
+        height:100%;
+        background:rgba(0,0,0,0.8);
+        display:flex;
+        justify-content:center;
+        align-items:center;
+        z-index:99999;
+      `;
 
-    <div style="display:flex; gap:12px; justify-content:flex-end;">
-      <button id="cancelStockBtn" style="
-        background:#1f1f1f;
-        border:1px solid #333;
-        color:#ef4444;
-        border-radius:8px;
-        padding:12px 24px;
-        cursor:pointer;
-        font-size:15px;
-        font-weight:600;
-      ">
-        Cancelar
-      </button>
-      <button id="confirmStockBtn" style="
-        background:${color};
-        border:none;
-        color:#fff;
-        border-radius:8px;
-        padding:12px 24px;
-        cursor:pointer;
-        font-size:15px;
-        font-weight:600;
-      ">
-        ${buttonText}
-      </button>
-    </div>
-  `;
+      const modal = document.createElement('div');
+      modal.style.cssText = `
+        background:#1a1a1a;
+        border:2px solid ${color};
+        border-radius:16px;
+        padding:30px;
+        width:90%;
+        max-width:400px;
+        box-shadow:0 10px 40px rgba(0,0,0,0.8);
+      `;
 
-  overlay.appendChild(modal);
-  document.body.appendChild(overlay);
+      modal.innerHTML = `
+        <h2 style="color:#f1f1f1; font-size:22px; margin:0 0 20px 0;">
+          <i class="fas ${icon}" style="color:${color};"></i> ${title}
+        </h2>
 
-  document.getElementById('cancelStockBtn').onclick = () => {
-    overlay.remove();
-  };
+        <div style="margin-bottom:16px;">
+          <label style="display:block; color:#f1f1f1; margin-bottom:8px; font-weight:600;">Produto</label>
+          <div style="
+            background:#0f0f0f;
+            border:1px solid #333;
+            border-radius:8px;
+            padding:12px;
+            color:#aaa;
+            font-size:15px;
+          ">
+            ${escapeHtml(product.name)}
+          </div>
+        </div>
 
-  document.getElementById('confirmStockBtn').onclick = () => {
-    const qty = parseInt(document.getElementById('stockQuantity').value);
+        <div style="margin-bottom:16px;">
+          <label style="display:block; color:#f1f1f1; margin-bottom:8px; font-weight:600;">Estoque Atual</label>
+          <div style="
+            background:#0f0f0f;
+            border:1px solid #333;
+            border-radius:8px;
+            padding:12px;
+            color:#10b981;
+            font-size:18px;
+            font-weight:700;
+          ">
+            ${product.quantity || 0} unidades
+          </div>
+        </div>
 
-    if (!qty || qty <= 0) {
-      showToast('Quantidade inválida!', 'error');
-      return;
-    }
+        <div style="margin-bottom:24px;">
+          <label style="display:block; color:#f1f1f1; margin-bottom:8px; font-weight:600;">Quantidade</label>
+          <input type="number" id="stockQuantity" value="1" min="1" ${!isAdd ? `max="${product.quantity || 0}"` : ''} style="
+            width:100%;
+            background:#0f0f0f;
+            border:1px solid #333;
+            border-radius:8px;
+            padding:12px;
+            color:#f1f1f1;
+            font-size:15px;
+            box-sizing:border-box;
+          ">
+        </div>
 
-    if (!isAdd && qty > (product.quantity || 0)) {
-      showToast('Quantidade maior que o estoque disponível!', 'error');
-      return;
-    }
+        <div style="display:flex; gap:12px; justify-content:flex-end;">
+          <button id="cancelStockBtn" style="
+            background:#1f1f1f;
+            border:1px solid #333;
+            color:#ef4444;
+            border-radius:8px;
+            padding:12px 24px;
+            cursor:pointer;
+            font-size:15px;
+            font-weight:600;
+          ">
+            Cancelar
+          </button>
+          <button id="confirmStockBtn" style="
+            background:${color};
+            border:none;
+            color:#fff;
+            border-radius:8px;
+            padding:12px 24px;
+            cursor:pointer;
+            font-size:15px;
+            font-weight:600;
+          ">
+            ${buttonText}
+          </button>
+        </div>
+      `;
 
-    updateStock(productId, qty, isAdd);
-    overlay.remove();
-  };
+      overlay.appendChild(modal);
+      document.body.appendChild(overlay);
 
-  overlay.onclick = (e) => {
-    if (e.target === overlay) {
-      overlay.remove();
-    }
-  };
+      // ✅ Função helper para fechar modal com segurança
+      const closeModal = () => {
+        if (overlay && overlay.parentNode) {
+          overlay.parentNode.removeChild(overlay);
+        }
+      };
+
+      document.getElementById('cancelStockBtn').onclick = closeModal;
+
+      document.getElementById('confirmStockBtn').onclick = () => {
+        const qty = parseInt(document.getElementById('stockQuantity').value);
+
+        if (!qty || qty <= 0) {
+          showToast('Quantidade inválida!', 'error');
+          return;
+        }
+
+        if (!isAdd && qty > (product.quantity || 0)) {
+          showToast('Quantidade maior que o estoque disponível!', 'error');
+          return;
+        }
+
+        updateStock(firebaseKey, qty, isAdd, product);
+        closeModal();
+      };
+
+      overlay.onclick = (e) => {
+        if (e.target === overlay) {
+          closeModal();
+        }
+      };
+    });
 }
+
+
 
 // ===========================
 // ATUALIZAR ESTOQUE NO FIREBASE
 // ===========================
-async function updateStock(productId, quantity, isAdd) {
+async function updateStock(firebaseKey, quantity, isAdd, product) {
   try {
-    const product = products.find(p => p.id == productId);
-    if (!product) return;
+    if (!firebaseKey) {
+      showToast('Chave do produto não encontrada!', 'error');
+      return;
+    }
 
     const currentStock = product.quantity || 0;
     const newStock = isAdd ? currentStock + quantity : currentStock - quantity;
@@ -9115,7 +10319,8 @@ async function updateStock(productId, quantity, isAdd) {
       return;
     }
 
-    await firebase.database().ref('products/' + productId).update({
+    // ✅ Atualizar no Firebase usando a chave correta
+    await database.ref(`products/${firebaseKey}`).update({
       quantity: newStock
     });
 
@@ -9131,8 +10336,8 @@ async function updateStock(productId, quantity, isAdd) {
 // ===========================
 // PAGINAÇÃO
 // ===========================
-function renderPagination() {
-  const totalPages = Math.ceil(products.length / itemsPerPage);
+function renderPagination(totalFilteredProducts) {
+  const totalPages = Math.ceil(totalFilteredProducts / itemsPerPage);
   const paginationContainer = document.getElementById('pagination');
 
   if (!paginationContainer || totalPages <= 1) {
@@ -9212,250 +10417,302 @@ function renderPagination() {
 // ===========================
 // EDITAR PRODUTO
 // ===========================
-function openEditModal(id) {
-  const product = products.find(p => p.id == id);
-  if (!product) return;
+function openEditModal(productId) {
+  // ✅ Buscar produto atualizado do Firebase
+  database.ref('products')
+    .orderByChild('id')
+    .equalTo(Number(productId))
+    .once('value', (snapshot) => {
+      if (!snapshot.exists()) {
+        showToast('Produto não encontrado!', 'error');
+        return;
+      }
 
-  editingProductId = id;
+      let product = null;
+      let firebaseKey = null;
 
-  const overlay = document.createElement('div');
-  overlay.id = 'editModalOverlay';
-  overlay.style.cssText = `
-    position:fixed;
-    top:0;
-    left:0;
-    width:100%;
-    height:100%;
-    background:rgba(0,0,0,0.8);
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    z-index:99999;
-  `;
-
-  const modal = document.createElement('div');
-  modal.style.cssText = `
-    background:#1a1a1a;
-    border:2px solid #3b82f6;
-    border-radius:16px;
-    padding:30px;
-    width:90%;
-    max-width:500px;
-    box-shadow:0 10px 40px rgba(0,0,0,0.8);
-  `;
-
-  modal.innerHTML = `
-    <h2 style="color:#f1f1f1; font-size:24px; margin:0 0 20px 0;">
-      <i class="fas fa-edit" style="color:#3b82f6;"></i> Editar Produto
-    </h2>
-    
-    <div style="margin-bottom:16px;">
-      <label style="display:block; color:#f1f1f1; margin-bottom:8px; font-weight:600;">Nome</label>
-      <input type="text" id="editName" value="${escapeHtml(product.name)}" style="
-        width:100%;
-        background:#0f0f0f;
-        border:1px solid #333;
-        border-radius:8px;
-        padding:12px;
-        color:#f1f1f1;
-        font-size:15px;
-        box-sizing:border-box;
-      ">
-    </div>
-
-    <div style="margin-bottom:16px;">
-      <label style="display:block; color:#f1f1f1; margin-bottom:8px; font-weight:600;">Descrição</label>
-      <textarea id="editDesc" rows="3" style="
-        width:100%;
-        background:#0f0f0f;
-        border:1px solid #333;
-        border-radius:8px;
-        padding:12px;
-        color:#f1f1f1;
-        font-size:15px;
-        box-sizing:border-box;
-        font-family:inherit;
-        resize:vertical;
-      ">${escapeHtml(product.description || '')}</textarea>
-    </div>
-
-    <div style="margin-bottom:24px;">
-      <label style="display:block; color:#f1f1f1; margin-bottom:8px; font-weight:600;">Preço</label>
-      <input type="number" id="editPrice" value="${product.price}" step="0.01" min="0" style="
-        width:100%;
-        background:#0f0f0f;
-        border:1px solid #333;
-        border-radius:8px;
-        padding:12px;
-        color:#f1f1f1;
-        font-size:15px;
-        box-sizing:border-box;
-      ">
-    </div>
-
-    <div style="display:flex; gap:12px; justify-content:flex-end;">
-      <button id="cancelBtn" style="
-        background:#1f1f1f;
-        border:1px solid #333;
-        color:#ef4444;
-        border-radius:8px;
-        padding:12px 24px;
-        cursor:pointer;
-        font-size:15px;
-        font-weight:600;
-      ">
-        Cancelar
-      </button>
-      <button id="saveBtn" style="
-        background:#3b82f6;
-        border:none;
-        color:#fff;
-        border-radius:8px;
-        padding:12px 24px;
-        cursor:pointer;
-        font-size:15px;
-        font-weight:600;
-      ">
-        Salvar
-      </button>
-    </div>
-  `;
-
-  overlay.appendChild(modal);
-  document.body.appendChild(overlay);
-
-  document.getElementById('cancelBtn').onclick = () => {
-    overlay.remove();
-  };
-
-  document.getElementById('saveBtn').onclick = async () => {
-    const name = document.getElementById('editName').value.trim();
-    const description = document.getElementById('editDesc').value.trim();
-    const price = parseFloat(document.getElementById('editPrice').value);
-
-    if (!name || !price || price <= 0) {
-      showToast('Preencha todos os campos corretamente!', 'error');
-      return;
-    }
-
-    try {
-      await firebase.database().ref('products/' + editingProductId).update({
-        name,
-        description,
-        price
+      snapshot.forEach((childSnapshot) => {
+        product = childSnapshot.val();
+        firebaseKey = childSnapshot.key;
       });
 
-      showToast('Produto atualizado com sucesso!', 'success');
-      overlay.remove();
-    } catch (err) {
-      console.error('Erro ao atualizar produto:', err);
-      showToast('Erro ao atualizar produto', 'error');
-    }
-  };
+      if (!product) return;
 
-  overlay.onclick = (e) => {
-    if (e.target === overlay) {
-      overlay.remove();
-    }
-  };
+      editingProductId = firebaseKey;
+
+      const overlay = document.createElement('div');
+      overlay.id = 'editModalOverlay';
+      overlay.style.cssText = `
+        position:fixed;
+        top:0;
+        left:0;
+        width:100%;
+        height:100%;
+        background:rgba(0,0,0,0.8);
+        display:flex;
+        justify-content:center;
+        align-items:center;
+        z-index:99999;
+      `;
+
+      const modal = document.createElement('div');
+      modal.style.cssText = `
+        background:#1a1a1a;
+        border:2px solid #3b82f6;
+        border-radius:16px;
+        padding:30px;
+        width:90%;
+        max-width:500px;
+        box-shadow:0 10px 40px rgba(0,0,0,0.8);
+      `;
+
+      modal.innerHTML = `
+        <h2 style="color:#f1f1f1; font-size:24px; margin:0 0 20px 0;">
+          <i class="fas fa-edit" style="color:#3b82f6;"></i> Editar Produto
+        </h2>
+        
+        <div style="margin-bottom:16px;">
+          <label style="display:block; color:#f1f1f1; margin-bottom:8px; font-weight:600;">Nome</label>
+          <input type="text" id="editName" value="${escapeHtml(product.name)}" style="
+            width:100%;
+            background:#0f0f0f;
+            border:1px solid #333;
+            border-radius:8px;
+            padding:12px;
+            color:#f1f1f1;
+            font-size:15px;
+            box-sizing:border-box;
+          ">
+        </div>
+
+        <div style="margin-bottom:16px;">
+          <label style="display:block; color:#f1f1f1; margin-bottom:8px; font-weight:600;">Descrição</label>
+          <textarea id="editDesc" rows="3" style="
+            width:100%;
+            background:#0f0f0f;
+            border:1px solid #333;
+            border-radius:8px;
+            padding:12px;
+            color:#f1f1f1;
+            font-size:15px;
+            box-sizing:border-box;
+            font-family:inherit;
+            resize:vertical;
+          ">${escapeHtml(product.description || '')}</textarea>
+        </div>
+
+        <div style="margin-bottom:24px;">
+          <label style="display:block; color:#f1f1f1; margin-bottom:8px; font-weight:600;">Preço</label>
+          <input type="number" id="editPrice" value="${product.price}" step="0.01" min="0" style="
+            width:100%;
+            background:#0f0f0f;
+            border:1px solid #333;
+            border-radius:8px;
+            padding:12px;
+            color:#f1f1f1;
+            font-size:15px;
+            box-sizing:border-box;
+          ">
+        </div>
+
+        <div style="display:flex; gap:12px; justify-content:flex-end;">
+          <button id="cancelBtn" style="
+            background:#1f1f1f;
+            border:1px solid #333;
+            color:#ef4444;
+            border-radius:8px;
+            padding:12px 24px;
+            cursor:pointer;
+            font-size:15px;
+            font-weight:600;
+          ">
+            Cancelar
+          </button>
+          <button id="saveBtn" style="
+            background:#3b82f6;
+            border:none;
+            color:#fff;
+            border-radius:8px;
+            padding:12px 24px;
+            cursor:pointer;
+            font-size:15px;
+            font-weight:600;
+          ">
+            Salvar
+          </button>
+        </div>
+      `;
+
+      overlay.appendChild(modal);
+      document.body.appendChild(overlay);
+
+      // ✅ Função helper para fechar modal com segurança
+      const closeModal = () => {
+        if (overlay && overlay.parentNode) {
+          overlay.parentNode.removeChild(overlay);
+        }
+      };
+
+      document.getElementById('cancelBtn').onclick = closeModal;
+
+      document.getElementById('saveBtn').onclick = async () => {
+        const name = document.getElementById('editName').value.trim();
+        const description = document.getElementById('editDesc').value.trim();
+        const price = parseFloat(document.getElementById('editPrice').value);
+
+        if (!name || !price || price <= 0) {
+          showToast('Preencha todos os campos corretamente!', 'error');
+          return;
+        }
+
+        try {
+          await database.ref(`products/${firebaseKey}`).update({
+            name,
+            description,
+            price
+          });
+
+          showToast('Produto atualizado com sucesso!', 'success');
+          closeModal();
+        } catch (err) {
+          console.error('Erro ao atualizar produto:', err);
+          showToast('Erro ao atualizar produto', 'error');
+        }
+      };
+
+      overlay.onclick = (e) => {
+        if (e.target === overlay) {
+          closeModal();
+        }
+      };
+    });
 }
+
+
 
 // ===========================
 // DELETAR PRODUTO
 // ===========================
-async function deleteProduct(productId) {
+function deleteProduct(productId) {
   if (!productId) return;
 
-  const overlay = document.createElement('div');
-  overlay.style.cssText = `
-    position:fixed;
-    top:0;
-    left:0;
-    width:100%;
-    height:100%;
-    background:rgba(0,0,0,0.8);
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    z-index:99999;
-  `;
+  // ✅ Buscar produto do Firebase primeiro
+  database.ref('products')
+    .orderByChild('id')
+    .equalTo(Number(productId))
+    .once('value', (snapshot) => {
+      if (!snapshot.exists()) {
+        showToast('Produto não encontrado!', 'error');
+        return;
+      }
 
-  const modal = document.createElement('div');
-  modal.style.cssText = `
-    background:#1a1a1a;
-    border:2px solid #ef4444;
-    border-radius:16px;
-    padding:30px;
-    width:90%;
-    max-width:400px;
-    box-shadow:0 10px 40px rgba(0,0,0,0.8);
-  `;
+      let firebaseKey = null;
 
-  modal.innerHTML = `
-    <h2 style="color:#ef4444; font-size:22px; margin:0 0 16px 0;">
-      <i class="fas fa-exclamation-triangle"></i> Confirmar Exclusão
-    </h2>
-    <p style="color:#f1f1f1; margin:0 0 24px 0; line-height:1.6;">
-      Deseja realmente excluir este produto? Esta ação não pode ser desfeita.
-    </p>
-    <div style="display:flex; gap:12px; justify-content:flex-end;">
-      <button id="cancelDeleteBtn" style="
-        background:#1f1f1f;
-        border:1px solid #333;
-        color:#f1f1f1;
-        border-radius:8px;
-        padding:12px 24px;
-        cursor:pointer;
-        font-size:15px;
-        font-weight:600;
-      ">
-        Cancelar
-      </button>
-      <button id="confirmDeleteBtn" style="
-        background:#ef4444;
-        border:none;
-        color:#fff;
-        border-radius:8px;
-        padding:12px 24px;
-        cursor:pointer;
-        font-size:15px;
-        font-weight:600;
-      ">
-        Excluir
-      </button>
-    </div>
-  `;
+      snapshot.forEach((childSnapshot) => {
+        firebaseKey = childSnapshot.key;
+      });
 
-  overlay.appendChild(modal);
-  document.body.appendChild(overlay);
+      if (!firebaseKey) return;
 
-  document.getElementById('cancelDeleteBtn').onclick = () => {
-    overlay.remove();
-  };
+      const overlay = document.createElement('div');
+      overlay.style.cssText = `
+        position:fixed;
+        top:0;
+        left:0;
+        width:100%;
+        height:100%;
+        background:rgba(0,0,0,0.8);
+        display:flex;
+        justify-content:center;
+        align-items:center;
+        z-index:99999;
+      `;
 
-  document.getElementById('confirmDeleteBtn').onclick = async () => {
-    try {
-      await firebase.database().ref('products/' + productId).remove();
+      const modal = document.createElement('div');
+      modal.style.cssText = `
+        background:#1a1a1a;
+        border:2px solid #ef4444;
+        border-radius:16px;
+        padding:30px;
+        width:90%;
+        max-width:400px;
+        box-shadow:0 10px 40px rgba(0,0,0,0.8);
+      `;
 
-      products = products.filter(p => p.id !== productId);
+      modal.innerHTML = `
+        <h2 style="color:#ef4444; font-size:22px; margin:0 0 16px 0;">
+          <i class="fas fa-exclamation-triangle"></i> Confirmar Exclusão
+        </h2>
+        <p style="color:#f1f1f1; margin:0 0 24px 0; line-height:1.6;">
+          Deseja realmente excluir este produto? Esta ação não pode ser desfeita.
+        </p>
+        <div style="display:flex; gap:12px; justify-content:flex-end;">
+          <button id="cancelDeleteBtn" style="
+            background:#1f1f1f;
+            border:1px solid #333;
+            color:#f1f1f1;
+            border-radius:8px;
+            padding:12px 24px;
+            cursor:pointer;
+            font-size:15px;
+            font-weight:600;
+          ">
+            Cancelar
+          </button>
+          <button id="confirmDeleteBtn" style="
+            background:#ef4444;
+            border:none;
+            color:#fff;
+            border-radius:8px;
+            padding:12px 24px;
+            cursor:pointer;
+            font-size:15px;
+            font-weight:600;
+          ">
+            Excluir
+          </button>
+        </div>
+      `;
 
-      renderProducts();
-      populateOSProductSelect();
+      overlay.appendChild(modal);
+      document.body.appendChild(overlay);
 
-      showToast('Produto removido com sucesso!', 'success');
-      overlay.remove();
-    } catch (err) {
-      console.error('Erro ao excluir produto:', err);
-      showToast('Erro ao excluir produto', 'error');
-    }
-  };
+      // ✅ Função helper para fechar modal com segurança
+      const closeModal = () => {
+        if (overlay && overlay.parentNode) {
+          overlay.parentNode.removeChild(overlay);
+        }
+      };
 
-  overlay.onclick = (e) => {
-    if (e.target === overlay) {
-      overlay.remove();
-    }
-  };
+      document.getElementById('cancelDeleteBtn').onclick = closeModal;
+
+      document.getElementById('confirmDeleteBtn').onclick = async () => {
+        try {
+          await database.ref(`products/${firebaseKey}`).remove();
+
+          products = products.filter(p => p.id !== productId);
+
+          renderProducts();
+          populateOSProductSelect();
+
+          showToast('Produto removido com sucesso!', 'success');
+          closeModal();
+        } catch (err) {
+          console.error('Erro ao excluir produto:', err);
+          showToast('Erro ao excluir produto', 'error');
+        }
+      };
+
+      overlay.onclick = (e) => {
+        if (e.target === overlay) {
+          closeModal();
+        }
+      };
+    });
 }
+
+
+
 
 // ===========================
 // POPULAR SELECT DA OS
@@ -9589,17 +10846,6 @@ function abrirModalSelecionarProdutoOS() {
   renderizarListaProdutosOSModal();
 }
 
-function filtrarProdutosOSModal() {
-  const input = document.getElementById('searchProductOSInput');
-  if (!input) return;
-  renderizarListaProdutosOSModal(input.value);
-}
-
-function fecharModalSelecionarProdutoOS() {
-  const modal = document.getElementById('selectProductOSModal');
-  if (modal) modal.remove();
-}
-
 function renderizarListaProdutosOSModal(filtro = '') {
   const container = document.getElementById('productOSModalList');
   if (!container) return;
@@ -9617,13 +10863,15 @@ function renderizarListaProdutosOSModal(filtro = '') {
   if (produtosFiltrados.length === 0) {
     container.innerHTML = `
       <div style="
-        padding: 60px 20px;
+        padding: 50px 20px;
         text-align: center;
         color: #666;
       ">
-        <i class="fas fa-box-open" style="font-size: 4rem; margin-bottom: 16px; color: #10b981; opacity: 0.3;"></i>
-        <p style="margin: 0; font-size: 15px; font-weight: 500;">Nenhum produto disponível</p>
-        <p style="margin: 8px 0 0 0; font-size: 13px; color: #555;">Todos os produtos estão sem estoque ou não correspondem à busca</p>
+        <i class="fas fa-box-open" style="font-size: 3.5rem; margin-bottom: 14px; color: #10b981; opacity: 0.3;"></i>
+        <p style="margin: 0; font-size: 14px; font-weight: 500;">Nenhum produto disponível</p>
+        <p style="margin: 6px 0 0 0; font-size: 12px; color: #555;">
+          ${filtro ? 'Nenhum produto com estoque corresponde à busca' : 'Todos os produtos estão sem estoque'}
+        </p>
       </div>
     `;
     return;
@@ -9634,31 +10882,45 @@ function renderizarListaProdutosOSModal(filtro = '') {
 
     return `
     <div style="
-      background: #0d0d0d;
+      background: linear-gradient(135deg, #0d0d0d 0%, #121212 100%);
       border: 2px solid #2a2a2a;
-      border-radius: 12px;
-      padding: 16px;
-      margin-bottom: 12px;
+      border-radius: 10px;
+      padding: 14px;
+      margin-bottom: 10px;
+      transition: all 0.3s ease;
       position: relative;
       overflow: hidden;
-    ">
+    " onmouseover="this.style.background='linear-gradient(135deg, #1a1a1a 0%, #1f1f1f 100%)'; this.style.borderColor='#10b981'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 18px rgba(16, 185, 129, 0.2)'" onmouseout="this.style.background='linear-gradient(135deg, #0d0d0d 0%, #121212 100%)'; this.style.borderColor='#2a2a2a'; this.style.transform='translateY(0)'; this.style.boxShadow='none'">
+      
+      <div style="
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 50px;
+        height: 50px;
+        background: radial-gradient(circle, rgba(16, 185, 129, 0.08) 0%, transparent 70%);
+        border-radius: 0 0 0 100%;
+      "></div>
 
       <div style="
         display: flex;
         align-items: center;
-        gap: 10px;
-        margin-bottom: 8px;
+        gap: 8px;
+        margin-bottom: 6px;
       ">
         <div style="
-          width: 8px;
-          height: 8px;
+          width: 7px;
+          height: 7px;
           background: #10b981;
           border-radius: 50%;
+          box-shadow: 0 0 6px rgba(16, 185, 129, 0.6);
+          flex-shrink: 0;
         "></div>
         <div style="
           color: #fff;
           font-weight: 700;
-          font-size: 16px;
+          font-size: 15px;
+          letter-spacing: 0.2px;
         ">
           ${escapeHtml(prod.name)}
         </div>
@@ -9666,10 +10928,10 @@ function renderizarListaProdutosOSModal(filtro = '') {
 
       <div style="
         color: #999;
-        font-size: 13px;
-        margin-bottom: 12px;
-        line-height: 1.5;
-        padding-left: 18px;
+        font-size: 12px;
+        margin-bottom: 10px;
+        line-height: 1.4;
+        padding-left: 15px;
       ">
         ${escapeHtml(prod.description || 'Sem descrição disponível')}
       </div>
@@ -9678,14 +10940,16 @@ function renderizarListaProdutosOSModal(filtro = '') {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding-left: 18px;
-        gap: 12px;
+        padding-left: 15px;
+        gap: 10px;
+        flex-wrap: wrap;
       ">
-        <div style="display: flex; flex-direction: column; gap: 6px;">
+        <div style="display: flex; flex-direction: column; gap: 5px;">
           <div style="
             color: #4ade80;
             font-weight: 800;
-            font-size: 18px;
+            font-size: 17px;
+            text-shadow: 0 0 8px rgba(74, 222, 128, 0.3);
           ">
             R$ ${prod.price.toFixed(2)}
           </div>
@@ -9693,79 +10957,82 @@ function renderizarListaProdutosOSModal(filtro = '') {
             background: rgba(16, 185, 129, 0.1);
             border: 1px solid rgba(16, 185, 129, 0.3);
             border-radius: 6px;
-            padding: 4px 8px;
+            padding: 3px 7px;
             color: #10b981;
-            font-size: 11px;
+            font-size: 10px;
             font-weight: 600;
             display: inline-flex;
             align-items: center;
             gap: 4px;
           ">
-            <i class="fas fa-boxes" style="font-size: 10px;"></i>
+            <i class="fas fa-boxes" style="font-size: 9px;"></i>
             Estoque: ${stockQuantity}
           </div>
         </div>
         
-        <div style="display: flex; align-items: center; gap: 10px;">
-          <div style="display: flex; align-items: center; gap: 6px; background: #0d0d0d; border: 2px solid #333; border-radius: 8px; padding: 4px;">
+        <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+          <div style="display: flex; align-items: center; gap: 5px; background: #0d0d0d; border: 2px solid #333; border-radius: 7px; padding: 3px;">
             <button onclick="event.stopPropagation(); alterarQuantidadeModal(${prod.id}, -1)" style="
               background: rgba(239, 68, 68, 0.1);
               border: 1px solid rgba(239, 68, 68, 0.3);
               color: #ef4444;
-              width: 28px;
-              height: 28px;
-              border-radius: 6px;
+              width: 26px;
+              height: 26px;
+              border-radius: 5px;
               cursor: pointer;
               display: flex;
               align-items: center;
               justify-content: center;
               font-weight: 700;
-            ">
-              <i class="fas fa-minus" style="font-size: 11px;"></i>
+              transition: all 0.2s ease;
+            " onmouseover="this.style.background='rgba(239, 68, 68, 0.2)'" onmouseout="this.style.background='rgba(239, 68, 68, 0.1)'">
+              <i class="fas fa-minus" style="font-size: 10px;"></i>
             </button>
             
-            <input type="text" id="qty_${prod.id}" value="1" readonly style="
-              width: 50px;
+            <input type="number" id="qty_${prod.id}" value="1" min="1" max="${stockQuantity}" style="
+              width: 45px;
               background: transparent;
               border: none;
               color: #fff;
               text-align: center;
-              font-size: 14px;
+              font-size: 13px;
               font-weight: 700;
               outline: none;
-              cursor: default;
-            " onclick="event.stopPropagation()">
+              cursor: text;
+            " onclick="event.stopPropagation(); this.select();" onchange="validarQuantidadeModalOS(${prod.id}, ${stockQuantity})" onblur="validarQuantidadeModalOS(${prod.id}, ${stockQuantity})">
             
             <button onclick="event.stopPropagation(); alterarQuantidadeModal(${prod.id}, 1, ${stockQuantity})" style="
               background: rgba(16, 185, 129, 0.15);
               border: 1px solid rgba(16, 185, 129, 0.3);
               color: #10b981;
-              width: 28px;
-              height: 28px;
-              border-radius: 6px;
+              width: 26px;
+              height: 26px;
+              border-radius: 5px;
               cursor: pointer;
               display: flex;
               align-items: center;
               justify-content: center;
               font-weight: 700;
-            ">
-              <i class="fas fa-plus" style="font-size: 11px;"></i>
+              transition: all 0.2s ease;
+            " onmouseover="this.style.background='rgba(16, 185, 129, 0.25)'" onmouseout="this.style.background='rgba(16, 185, 129, 0.15)'">
+              <i class="fas fa-plus" style="font-size: 10px;"></i>
             </button>
           </div>
           
           <button onclick="event.stopPropagation(); selecionarProdutoOSModal(${prod.id})" style="
             background: rgba(16, 185, 129, 0.15);
             color: #10b981;
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 13px;
+            padding: 7px 14px;
+            border-radius: 18px;
+            font-size: 12px;
             font-weight: 600;
             border: 1px solid rgba(16, 185, 129, 0.3);
             cursor: pointer;
+            transition: all 0.2s ease;
             display: flex;
             align-items: center;
-            gap: 6px;
-          ">
+            gap: 5px;
+          " onmouseover="this.style.background='rgba(16, 185, 129, 0.25)'; this.style.transform='scale(1.05)'" onmouseout="this.style.background='rgba(16, 185, 129, 0.15)'; this.style.transform='scale(1)'">
             <i class="fas fa-plus"></i>
             Adicionar
           </button>
@@ -9775,6 +11042,77 @@ function renderizarListaProdutosOSModal(filtro = '') {
     </div>
   `;
   }).join('');
+}
+
+function filtrarProdutosOSModal() {
+  const input = document.getElementById('searchProductOSInput');
+  if (!input) return;
+  renderizarListaProdutosOSModal(input.value);
+}
+
+function fecharModalSelecionarProdutoOS() {
+  const modal = document.getElementById('selectProductOSModal');
+  if (modal) modal.remove();
+}
+
+function alterarQuantidadeModal(productId, delta, maxStock) {
+  const input = document.getElementById(`qty_${productId}`);
+  if (!input) return;
+
+  let currentValue = parseInt(input.value) || 1;
+  let newValue = currentValue + delta;
+
+  if (newValue < 1) newValue = 1;
+  if (maxStock && newValue > maxStock) newValue = maxStock;
+
+  input.value = newValue;
+}
+
+function validarQuantidadeModalOS(productId, maxStock) {
+  const input = document.getElementById(`qty_${productId}`);
+  if (!input) return;
+
+  let value = parseInt(input.value) || 1;
+
+  if (value < 1) value = 1;
+  if (value > maxStock) value = maxStock;
+
+  input.value = value;
+}
+
+function selecionarProdutoOSModal(productId) {
+  const product = products.find(p => p.id == productId);
+  if (!product) return;
+
+  const qtyInput = document.getElementById(`qty_${productId}`);
+  const quantity = qtyInput ? parseInt(qtyInput.value) : 1;
+
+  if (typeof window.adicionarProdutoNaOS === 'function') {
+    window.adicionarProdutoNaOS(product, quantity);
+    fecharModalSelecionarProdutoOS();
+  } else {
+    showToast('Erro: função de adicionar produto não encontrada', 'error');
+  }
+}
+
+
+// ===========================
+// MODAL DE CRIAÇÃO - VALIDAÇÃO E SELEÇÃO
+// ===========================
+function validarQuantidadeModalOS(prodId, maxStock) {
+  const input = document.getElementById(`qty_${prodId}`);
+  if (!input) return;
+
+  let valor = parseInt(input.value);
+  
+  if (isNaN(valor) || valor < 1) {
+    input.value = 1;
+  } else if (valor > maxStock) {
+    input.value = maxStock;
+    showToast(`Quantidade máxima disponível: ${maxStock}`, 'info');
+  } else {
+    input.value = valor;
+  }
 }
 
 function alterarQuantidadeModal(productId, delta, maxStock) {
@@ -9796,7 +11134,16 @@ function alterarQuantidadeModal(productId, delta, maxStock) {
 
 function selecionarProdutoOSModal(productId) {
   const produto = products.find(p => p.id === productId);
-  if (!produto) return;
+  if (!produto) {
+    showToast('Produto não encontrado', 'error');
+    return;
+  }
+
+  const jaAdicionado = osSelectedProducts.some(p => p.id === productId);
+  if (jaAdicionado) {
+    showToast('Este produto já foi adicionado à OS', 'error');
+    return;
+  }
 
   const qtyInput = document.getElementById(`qty_${productId}`);
   const qty = parseInt(qtyInput?.value) || 1;
@@ -9819,9 +11166,203 @@ function selecionarProdutoOSModal(productId) {
     price: produto.price
   });
 
+  produto.quantity = (produto.quantity || 0) - qty;
+  renderizarListaProdutosOSModal();
   renderOSProducts();
-  fecharModalSelecionarProdutoOS();
   showToast(`${produto.name} (${qty}x) adicionado com sucesso!`, 'success');
+}
+
+// ===========================
+// MODAL DE EDIÇÃO - VALIDAÇÃO E SELEÇÃO
+// ===========================
+function validarQuantidadeEditModalOS(prodId, maxStock) {
+  const input = document.getElementById(`qty_edit_${prodId}`);
+  if (!input) return;
+
+  let valor = parseInt(input.value);
+  
+  if (isNaN(valor) || valor < 1) {
+    input.value = 1;
+  } else if (valor > maxStock) {
+    input.value = maxStock;
+    showToast(`Quantidade máxima disponível: ${maxStock}`, 'info');
+  } else {
+    input.value = valor;
+  }
+}
+
+function alterarQuantidadeEditModal(productId, delta, maxStock) {
+  const input = document.getElementById(`qty_edit_${productId}`);
+  if (!input) return;
+
+  let currentValue = parseInt(input.value) || 1;
+  let newValue = currentValue + delta;
+
+  if (newValue < 1) newValue = 1;
+
+  if (maxStock && newValue > maxStock) {
+    showToast('Quantidade maior que o estoque disponível!', 'error');
+    newValue = maxStock;
+  }
+
+  input.value = newValue;
+}
+
+
+
+
+
+
+
+function abrirModalSelecionarProdutoEditOS() {
+  document.body.style.overflow = 'hidden';
+
+  const editModal = document.getElementById('editOSModal');
+  if (editModal) editModal.style.display = 'none';
+
+  const modalHtml = `
+    <div id="selectProductEditOSModal" class="modal-overlay" style="
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.98);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      padding: 12px;
+      backdrop-filter: blur(10px);
+      z-index: 2147483647;
+      overflow: auto;
+    ">
+      <div class="modal-content" style="
+        background: linear-gradient(145deg, #1f1f1f 0%, #1a1a1a 100%);
+        border: 2px solid #10b981;
+        border-radius: 12px;
+        width: 100%;
+        max-width: 450px;
+        max-height: 85vh;
+        color: #f5f5f5;
+        box-shadow: 0 25px 80px rgba(0, 0, 0, 0.9), 0 0 50px rgba(16, 185, 129, 0.2);
+        display: flex;
+        flex-direction: column;
+        position: relative;
+        margin: auto;
+      ">
+        <div style="
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 16px 18px;
+          border-bottom: 2px solid #10b981;
+          background: linear-gradient(135deg, #2a2a2a 0%, #1f1f1f 100%);
+          border-radius: 10px 10px 0 0;
+          flex-shrink: 0;
+        ">
+          <h3 style="
+            margin: 0;
+            font-size: 1.15rem;
+            color: #10b981;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            letter-spacing: 0.3px;
+          ">
+            <i class="fas fa-search" style="font-size: 1rem;"></i>
+            Adicionar Produto
+          </h3>
+          <button onclick="closeProductModal()" style="
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #ef4444;
+            font-size: 1.15rem;
+            cursor: pointer;
+            width: 34px;
+            height: 34px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+          " onmouseover="this.style.background='rgba(239, 68, 68, 0.2)'; this.style.borderColor='#ef4444'" onmouseout="this.style.background='rgba(239, 68, 68, 0.1)'; this.style.borderColor='rgba(239, 68, 68, 0.3)'">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+
+        <div style="padding: 16px 18px; border-bottom: 1px solid #2a2a2a; flex-shrink: 0; background: #1a1a1a;">
+          <div style="position: relative;">
+            <input type="text" id="searchProductEditOSInput" placeholder="Buscar produtos com estoque..." style="
+              width: 100%;
+              padding: 12px 14px 12px 42px;
+              background: #0d0d0d;
+              border: 2px solid #333;
+              border-radius: 10px;
+              color: #fff;
+              font-size: 0.9rem;
+              transition: all 0.3s ease;
+              box-sizing: border-box;
+              font-weight: 500;
+            " onfocus="this.style.borderColor='#10b981'; this.style.boxShadow='0 0 0 3px rgba(16, 185, 129, 0.1)'" onblur="this.style.borderColor='#333'; this.style.boxShadow='none'" oninput="filtrarProdutosEditOSModal()">
+            <i class="fas fa-search" style="
+              position: absolute;
+              left: 14px;
+              top: 50%;
+              transform: translateY(-50%);
+              color: #10b981;
+              font-size: 15px;
+            "></i>
+          </div>
+        </div>
+
+        <div id="productEditOSModalList" style="
+          flex: 1;
+          overflow-y: auto;
+          padding: 14px 18px;
+          background: #1a1a1a;
+          min-height: 200px;
+        ">
+        </div>
+
+      </div>
+    </div>
+  `;
+
+  document.body.insertAdjacentHTML('beforeend', modalHtml);
+  renderizarListaProdutosEditOSModal();
+  openProductModal();
+}
+
+function openProductModal() {
+  const modal = document.getElementById('productModal') || document.getElementById('selectProductEditOSModal');
+  if (modal) {
+    modal.classList.add('active');
+  }
+}
+
+function closeProductModal() {
+  const productModal = document.getElementById('productModal');
+  const selectModal = document.getElementById('selectProductEditOSModal');
+  
+  if (productModal) {
+    productModal.classList.remove('active');
+  }
+  
+  if (selectModal) {
+    selectModal.classList.remove('active');
+    
+    setTimeout(() => {
+      selectModal.remove();
+      document.body.style.overflow = '';
+      
+      const editModal = document.getElementById('editOSModal');
+      if (editModal) editModal.style.display = 'flex';
+    }, 300);
+  }
 }
 
 // ===========================
@@ -9918,9 +11459,16 @@ function renderOSProducts() {
 // ===========================
 function removeProductFromOS(id) {
   const produtoRemovido = osSelectedProducts.find(p => p.id === id);
-  osSelectedProducts = osSelectedProducts.filter(p => p.id !== id);
-  renderOSProducts();
+  
   if (produtoRemovido) {
+    // Devolver estoque ao remover
+    const produto = products.find(p => p.id === id);
+    if (produto) {
+      produto.quantity = (produto.quantity || 0) + produtoRemovido.qty;
+    }
+    
+    osSelectedProducts = osSelectedProducts.filter(p => p.id !== id);
+    renderOSProducts();
     showToast(`${produtoRemovido.name} removido com sucesso`, 'success');
   }
 }
@@ -9969,34 +11517,43 @@ document.addEventListener('input', function (e) {
 // ===========================
 // FINALIZAR OS - BAIXA NO ESTOQUE
 // ===========================
-async function finalizarOS() {
-  if (osSelectedProducts.length === 0) {
-    showToast('Adicione produtos à OS antes de finalizar', 'error');
+async function finalizarOS(osId) {
+  if (!osId) {
+    showToast('ID da OS não fornecido', 'error');
     return;
   }
 
+  const os = allOrders.find(o => o.id === osId);
+  if (!os) {
+    showToast('Ordem de serviço não encontrada', 'error');
+    return;
+  }
+
+  // Verifica se já está finalizada
+  const statusText = (os.status || os.estado || '').toString().toLowerCase();
+  if (/conclu|finaliz/i.test(statusText)) {
+    showToast('Esta OS já está finalizada', 'info');
+    return;
+  }
+
+  const produtosDaOS = Array.isArray(os.products) ? os.products : [];
+  
+  if (produtosDaOS.length === 0) {
+    showToast('Esta OS não possui produtos cadastrados', 'info');
+  }
+
   try {
-    for (const osProd of osSelectedProducts) {
-      const product = products.find(p => p.id === osProd.id);
-      if (!product) continue;
+    // Apenas atualizar status - estoque já foi descontado ao adicionar os produtos
+    await firebase.database().ref('orders/' + osId).update({
+      status: 'Finalizada',
+      dataFinalizacao: new Date().toISOString()
+    });
 
-      const currentStock = product.quantity || 0;
-      const newStock = currentStock - osProd.qty;
+    showToast('OS finalizada com sucesso!', 'success');
 
-      if (newStock < 0) {
-        showToast(`Estoque insuficiente para ${product.name}`, 'error');
-        return;
-      }
-
-      await firebase.database().ref('products/' + osProd.id).update({
-        quantity: newStock
-      });
+    if (typeof loadOrders === 'function') {
+      loadOrders();
     }
-
-    osSelectedProducts = [];
-    renderOSProducts();
-
-    showToast('OS finalizada com sucesso! Estoque atualizado.', 'success');
 
   } catch (err) {
     console.error('Erro ao finalizar OS:', err);
@@ -10061,42 +11618,6 @@ function showToast(message, type = 'info') {
 }
 
 
-// ===========================
-// BUSCA DE PRODUTOS
-// ===========================
-const searchInput = document.getElementById('productSearch');
-
-if (searchInput) {
-  searchInput.addEventListener('input', () => {
-    const search = searchInput.value.toLowerCase().trim();
-    const list = document.getElementById('productsList');
-    if (!list) return;
-
-    const items = list.children;
-
-    Array.from(items).forEach(item => {
-      const text = item.innerText.toLowerCase();
-      item.style.display = text.includes(search) ? '' : 'none';
-    });
-  });
-}
-
-// ===========================
-// MODAL DE PRODUTO
-// ===========================
-function openProductModal() {
-  const modal = document.getElementById('productModal');
-  if (modal) {
-    modal.classList.add('active');
-  }
-}
-
-function closeProductModal() {
-  const modal = document.getElementById('productModal');
-  if (modal) {
-    modal.classList.remove('active');
-  }
-}
 
 // ===========================
 // VIEW MODE (LIST/CARD)
