@@ -1,5 +1,6 @@
 
 // Firebase Configuration
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
   apiKey: "AIzaSyA_jPOZqD37Efy_vlE-t-rpo5sf8Zuv-A0",
   authDomain: "checklist-3c94f.firebaseapp.com",
@@ -1575,8 +1576,8 @@ document.getElementById('addCompanyBtn').addEventListener('click', () => {
 
 // Manual Inspection
 // Cria o modal de seleção dinamicamente
- function criarModalSelecao() {
-    const modalHTML = `
+function criarModalSelecao() {
+  const modalHTML = `
       <div id="selectionModal" class="modal">
         <div class="modal-content" style="max-width: 800px;">
           <div class="modal-header">
@@ -1623,11 +1624,11 @@ document.getElementById('addCompanyBtn').addEventListener('click', () => {
       </div>
     `;
 
-    // Adiciona o modal ao body se ainda não existir
-    if (!document.getElementById('selectionModal')) {
-      document.body.insertAdjacentHTML('beforeend', modalHTML);
-    }
+  // Adiciona o modal ao body se ainda não existir
+  if (!document.getElementById('selectionModal')) {
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
   }
+}
 
 
 // Variável para controlar qual aba está ativa
@@ -1637,7 +1638,7 @@ let abaAtiva = 'empresas';
 
 // Cria o modal de seleção
 function criarModalSelecao() {
-    const modalHTML = `
+  const modalHTML = `
       <div id="selectionModal" class="modal">
         <div class="modal-content" style="max-width: 600px; background: linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%);">
           <div class="modal-header" style="background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%); border-bottom: 2px solid #D4C29A; padding: 20px;">
@@ -1689,10 +1690,10 @@ function criarModalSelecao() {
       </div>
     `;
 
-    // Adiciona o modal ao body se ainda não existir
-    if (!document.getElementById('selectionModal')) {
-      document.body.insertAdjacentHTML('beforeend', modalHTML);
-    }
+  // Adiciona o modal ao body se ainda não existir
+  if (!document.getElementById('selectionModal')) {
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+  }
 }
 
 // Abre o modal de seleção
@@ -1726,16 +1727,16 @@ async function carregarDadosSelecao() {
 // Alterna entre abas
 function switchTab(aba) {
   abaAtiva = aba;
-  
+
   const tabEmpresas = document.getElementById('tabEmpresas');
   const tabPredios = document.getElementById('tabPredios');
-  
+
   if (aba === 'empresas') {
     tabEmpresas.style.background = 'linear-gradient(135deg, #D4C29A 0%, #b8a676 100%)';
     tabEmpresas.style.color = '#1a1a1a';
     tabEmpresas.style.border = 'none';
     tabEmpresas.style.boxShadow = '0 4px 15px rgba(212, 194, 154, 0.3)';
-    
+
     tabPredios.style.background = 'transparent';
     tabPredios.style.color = '#888';
     tabPredios.style.border = '2px solid #444';
@@ -1745,16 +1746,16 @@ function switchTab(aba) {
     tabPredios.style.color = '#1a1a1a';
     tabPredios.style.border = 'none';
     tabPredios.style.boxShadow = '0 4px 15px rgba(212, 194, 154, 0.3)';
-    
+
     tabEmpresas.style.background = 'transparent';
     tabEmpresas.style.color = '#888';
     tabEmpresas.style.border = '2px solid #444';
     tabEmpresas.style.boxShadow = 'none';
   }
-  
+
   document.getElementById('listaEmpresas').style.display = aba === 'empresas' ? 'block' : 'none';
   document.getElementById('listaPredios').style.display = aba === 'predios' ? 'block' : 'none';
-  
+
   document.getElementById('searchSelection').value = '';
   renderizarLista();
 }
@@ -1838,7 +1839,7 @@ function filtrarSelecao() {
 // Seleciona cliente e abre inspeção
 async function selecionarCliente(id, tipo) {
   closeModal('selectionModal');
-  
+
   if (tipo === 'empresa') {
     await startInspection(id);
   } else {
@@ -2526,18 +2527,28 @@ function generateHidrantesSection(data) {
             <div style="font-weight: 700; color: #6b7280; font-size: 8px; text-transform: uppercase; margin-bottom: 2px; letter-spacing: 0.3px;">Material Chave</div>
             <div style="color: #1f2937; font-weight: 600; font-size: 9px;">${data.chave_material || '-'}</div>
           </div>
-          <div style="padding: 7px 10px; border-bottom: 1px solid #e5e7eb;">
-            <div style="font-weight: 700; color: #6b7280; font-size: 8px; text-transform: uppercase; margin-bottom: 2px; letter-spacing: 0.3px;">Tipo Mangueira</div>
-            <div style="color: #1f2937; font-weight: 600; font-size: 9px;">${data.mangueira_tipo || '-'}</div>
-          </div>
-          <div style="padding: 7px 10px; border-bottom: 1px solid #e5e7eb;">
-            <div style="font-weight: 700; color: #6b7280; font-size: 8px; text-transform: uppercase; margin-bottom: 2px; letter-spacing: 0.3px;">Diâmetro Mangueira</div>
-            <div style="color: #1f2937; font-weight: 600; font-size: 9px;">${data.mangueira_diametro || '-'}</div>
-          </div>
-          <div style="padding: 7px 10px; border-bottom: 1px solid #e5e7eb;">
-            <div style="font-weight: 700; color: #6b7280; font-size: 8px; text-transform: uppercase; margin-bottom: 2px; letter-spacing: 0.3px;">Comprimento</div>
-            <div style="color: #1f2937; font-weight: 600; font-size: 9px;">${data.mangueira_comprimento ? data.mangueira_comprimento + ' m' : '-'}</div>
-          </div>
+    <div style="padding: 7px 10px; border-bottom: 1px solid #e5e7eb;">
+  <div style="font-weight: 700; color: #6b7280; font-size: 8px; text-transform: uppercase; margin-bottom: 2px; letter-spacing: 0.3px;">Tipo Mangueira</div>
+  <div style="color: #1f2937; font-weight: 600; font-size: 9px;">${data.mangueira_tipo || '-'}</div>
+</div>
+<div style="padding: 7px 10px; border-bottom: 1px solid #e5e7eb;">
+  <div style="font-weight: 700; color: #6b7280; font-size: 8px; text-transform: uppercase; margin-bottom: 2px; letter-spacing: 0.3px;">Diâmetro Mangueira</div>
+  <div style="color: #1f2937; font-weight: 600; font-size: 9px;">${data.mangueira_diametro || '-'}</div>
+</div>
+<div style="padding: 7px 10px; border-bottom: 1px solid #e5e7eb;">
+  <div style="font-weight: 700; color: #6b7280; font-size: 8px; text-transform: uppercase; margin-bottom: 2px; letter-spacing: 0.3px;">Comprimento</div>
+  <div style="color: #1f2937; font-weight: 600; font-size: 9px;">${data.mangueira_comprimento ? data.mangueira_comprimento + ' m' : '-'}</div>
+</div>
+<div style="padding: 7px 10px; border-bottom: 1px solid #e5e7eb;">
+  <div style="font-weight: 700; color: #6b7280; font-size: 8px; text-transform: uppercase; margin-bottom: 2px; letter-spacing: 0.3px;">Data Fabricação</div>
+  <div style="color: #1f2937; font-weight: 600; font-size: 9px;">${data.mangueira_data_fabricacao ? new Date(data.mangueira_data_fabricacao).toLocaleDateString('pt-BR') : '-'}</div>
+</div>
+<div style="padding: 7px 10px; border-bottom: 1px solid #e5e7eb;">
+  <div style="font-weight: 700; color: #6b7280; font-size: 8px; text-transform: uppercase; margin-bottom: 2px; letter-spacing: 0.3px;">Data Vencimento</div>
+  <div style="color: #1f2937; font-weight: 600; font-size: 9px;">${data.mangueira_data_vencimento ? new Date(data.mangueira_data_vencimento).toLocaleDateString('pt-BR') : '-'}</div>
+</div>
+
+
           <div style="padding: 7px 10px;">
             <div style="font-weight: 700; color: #6b7280; font-size: 8px; text-transform: uppercase; margin-bottom: 2px; letter-spacing: 0.3px;">Hidrante RR</div>
             <div style="color: #1f2937; font-weight: 600; font-size: 9px;">${data.hidrante_rr_possui || '-'}</div>
@@ -3164,9 +3175,133 @@ function generateSelectedPDF(type) {
   document.querySelectorAll('.content-section').forEach(sec => sec.classList.remove('active'));
   document.getElementById('pdfPreviewSection').classList.add('active');
 }
+// ===== VARIÁVEIS GLOBAIS DA CÂMERA =====
+let photos = [];
 
-// Finish Inspection
-// Finish Inspection
+// ===== FUNÇÕES DA CÂMERA =====
+
+// Abrir Câmera Nativa do Aparelho
+function openNativeCamera(event) {
+  event.preventDefault();
+
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = 'image/*';
+  input.capture = 'environment'; // Força câmera traseira
+
+  input.onchange = function (e) {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = function (event) {
+        const photoData = event.target.result;
+        photos.push({
+          id: Date.now(),
+          data: photoData,
+          timestamp: new Date().toLocaleString('pt-BR')
+        });
+
+        atualizarGaleria();
+        atualizarContador();
+        showToast('Foto capturada com sucesso!');
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  input.click();
+}
+
+// Atualizar Galeria
+function atualizarGaleria() {
+  const gallery = document.getElementById('photosGallery');
+  gallery.innerHTML = '';
+
+  photos.forEach((photo, index) => {
+    const div = document.createElement('div');
+    div.style.position = 'relative';
+    div.style.cursor = 'pointer';
+
+    const img = document.createElement('img');
+    img.src = photo.data;
+    img.style.width = '100%';
+    img.style.height = '80px';
+    img.style.objectFit = 'cover';
+    img.style.borderRadius = '6px';
+    img.style.border = '1px solid #D4C29A';
+    img.style.transition = 'all 0.2s';
+
+    img.onmouseover = () => {
+      img.style.transform = 'scale(1.05)';
+      img.style.boxShadow = '0 0 8px rgba(212, 194, 154, 0.3)';
+    };
+
+    img.onmouseout = () => {
+      img.style.transform = 'scale(1)';
+      img.style.boxShadow = 'none';
+    };
+
+    // Botão deletar
+    const btnDelete = document.createElement('button');
+    btnDelete.innerHTML = '<i class="fas fa-trash"></i>';
+    btnDelete.style.position = 'absolute';
+    btnDelete.style.top = '2px';
+    btnDelete.style.right = '2px';
+    btnDelete.style.background = '#B32117';
+    btnDelete.style.color = 'white';
+    btnDelete.style.border = 'none';
+    btnDelete.style.borderRadius = '4px';
+    btnDelete.style.width = '24px';
+    btnDelete.style.height = '24px';
+    btnDelete.style.display = 'flex';
+    btnDelete.style.alignItems = 'center';
+    btnDelete.style.justifyContent = 'center';
+    btnDelete.style.cursor = 'pointer';
+    btnDelete.style.fontSize = '12px';
+    btnDelete.style.opacity = '0';
+    btnDelete.style.transition = 'opacity 0.2s';
+
+    div.onmouseover = () => btnDelete.style.opacity = '1';
+    div.onmouseout = () => btnDelete.style.opacity = '0';
+
+    btnDelete.onclick = (e) => {
+      e.stopPropagation();
+      deletarFoto(index);
+    };
+
+    div.appendChild(img);
+    div.appendChild(btnDelete);
+    gallery.appendChild(div);
+  });
+}
+
+// Deletar Foto
+function deletarFoto(index) {
+  photos.splice(index, 1);
+  atualizarGaleria();
+  atualizarContador();
+}
+
+// Atualizar Contador
+function atualizarContador() {
+  const count = photos.length;
+  document.getElementById('photoCount').textContent = `${count} foto${count !== 1 ? '(s)' : ''}`;
+}
+
+// Limpar todas as fotos
+function limparTodasFotos() {
+  photos = [];
+  atualizarGaleria();
+  atualizarContador();
+}
+
+// Obter fotos (para salvar no BD)
+function obterFotos() {
+  return photos;
+}
+
+
+// ===== FINISH INSPECTION =====
 document.getElementById('finishInspectionBtn').addEventListener('click', async () => {
   const button = document.getElementById('finishInspectionBtn');
   button.disabled = true;
@@ -3192,12 +3327,17 @@ document.getElementById('finishInspectionBtn').addEventListener('click', async (
       tecnico_nome: currentUser.nome,
       data: new Date().toISOString(),
       completed: true,
-      tipo: window.ultimaEmpresaCadastrada?.tipo || 'empresa'
+      tipo: window.ultimaEmpresaCadastrada?.tipo || 'empresa',
+      observacoes: document.getElementById('inspecaoObservacoes')?.value || '',
+      fotos: photos.map(p => ({
+        data: p.data,
+        timestamp: p.timestamp
+      })),
+      total_fotos: photos.length
     };
 
     // Se for prédio, salva os campos com sufixo _predio
     if (window.ultimaEmpresaCadastrada?.tipo === 'predio') {
-      // Copia os dados do formulário para os campos _predio
       inspectionData.razao_social_predio = data.razao_social || window.ultimaEmpresaCadastrada.razao_social_predio;
       inspectionData.cnpj_predio = data.cnpj || window.ultimaEmpresaCadastrada.cnpj_predio;
       inspectionData.telefone_predio = data.telefone || window.ultimaEmpresaCadastrada.telefone_predio;
@@ -3207,12 +3347,14 @@ document.getElementById('finishInspectionBtn').addEventListener('click', async (
       inspectionData.numero_predio = data.numero_predio || window.ultimaEmpresaCadastrada.numero_predio;
     }
 
+    // Salva a inspeção com as fotos em base64
     await database.ref('inspections').push(inspectionData);
 
     showToast('Inspeção finalizada com sucesso!');
 
     closeModal('inspectionFormModal');
     form.reset();
+    limparTodasFotos();
     document.querySelectorAll('.conditional-section').forEach(sec => sec.classList.remove('visible'));
 
     // Limpa os dados temporários
@@ -3238,13 +3380,13 @@ document.getElementById('finishInspectionBtn').addEventListener('click', async (
   }
 });
 
-// Back to Form
+// ===== BACK TO FORM =====
 document.getElementById('backToFormBtn').addEventListener('click', () => {
   openModal('inspectionFormModal');
   navigateToSection('inspections');
 });
 
-// Download PDF
+// ===== DOWNLOAD PDF =====
 document.getElementById('downloadPdfBtn').addEventListener('click', async () => {
   const button = document.getElementById('downloadPdfBtn');
   button.disabled = true;
@@ -3297,7 +3439,7 @@ document.getElementById('downloadPdfBtn').addEventListener('click', async () => 
   }
 });
 
-// Save Inspection
+// ===== SAVE INSPECTION =====
 document.getElementById('saveInspectionBtn').addEventListener('click', async () => {
   const button = document.getElementById('saveInspectionBtn');
   button.disabled = true;
@@ -3310,7 +3452,13 @@ document.getElementById('saveInspectionBtn').addEventListener('click', async () 
       tecnico_nome: currentUser.nome,
       data: new Date().toISOString(),
       completed: false,
-      tipo: window.ultimaEmpresaCadastrada?.tipo || currentInspectionData.tipo || 'empresa'
+      tipo: window.ultimaEmpresaCadastrada?.tipo || currentInspectionData.tipo || 'empresa',
+      observacoes: document.getElementById('inspecaoObservacoes')?.value || '',
+      fotos: photos.map(p => ({
+        data: p.data,
+        timestamp: p.timestamp
+      })),
+      total_fotos: photos.length
     };
 
     // Se for prédio, garante que os campos _predio estão salvos
@@ -3324,6 +3472,7 @@ document.getElementById('saveInspectionBtn').addEventListener('click', async () 
       inspectionData.numero_predio = currentInspectionData.numero_predio || window.ultimaEmpresaCadastrada.numero_predio;
     }
 
+    // Salva a inspeção com fotos em base64
     await database.ref('inspections').push(inspectionData);
 
     showToast('Inspeção salva com sucesso!');
@@ -3351,10 +3500,10 @@ document.getElementById('saveInspectionBtn').addEventListener('click', async () 
 // Variável de paginação para inspeções
 let currentInspectionPage = 1;
 const inspectionsPerPage = 7;
-
 // ============================================
 // FUNÇÃO DE CARREGAR INSPEÇÕES COM EXCLUIR
 // ============================================
+
 async function loadInspections() {
   const snapshot = await database.ref('inspections').once('value');
   const inspections = snapshot.val() || {};
@@ -3465,6 +3614,11 @@ async function loadInspections() {
           <span class="list-item-info-label">Sistemas:</span>
           <span class="list-item-info-value">${sistemas.join(', ') || '-'}</span>
         </div>
+
+        <div class="list-item-info-row">
+          <span class="list-item-info-label">Fotos:</span>
+          <span class="list-item-info-value">${insp.total_fotos || 0} foto(s)</span>
+        </div>
       </div>
 
       <div class="list-item-actions">
@@ -3473,6 +3627,9 @@ async function loadInspections() {
         </button>` : ''}
         <button class="btn-small btn-info" onclick="viewInspection('${insp.id}')">
           <i class="fas fa-eye"></i> Ver
+        </button>
+        <button class="btn-small btn-warning" onclick="viewPhotosInspection('${insp.id}')">
+          <i class="fas fa-images"></i> Fotos
         </button>
         <button class="btn-small btn-danger" onclick="deleteInspection('${insp.id}')">
           <i class="fas fa-trash"></i> Excluir
@@ -3584,6 +3741,324 @@ async function loadInspections() {
 }
 
 // ============================================
+// FUNÇÃO PARA VER FOTOS DA INSPEÇÃO
+// ============================================
+async function viewPhotosInspection(inspectionId) {
+  const snapshot = await database.ref('inspections/' + inspectionId).once('value');
+  const insp = snapshot.val();
+
+  if (!insp || !insp.fotos || insp.fotos.length === 0) {
+    showToast('Nenhuma foto encontrada nesta inspeção', 'warning');
+    return;
+  }
+
+  const overlay = document.createElement('div');
+  overlay.id = 'photosModalOverlay';
+  overlay.style.cssText = `
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.9);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 99999;
+    padding: 20px;
+    box-sizing: border-box;
+    animation: fadeIn 0.3s ease-out;
+  `;
+
+  const modal = document.createElement('div');
+  modal.style.cssText = `
+    background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
+    border: 2px solid #D4C29A;
+    border-radius: 16px;
+    padding: 30px;
+    width: 100%;
+    max-width: 800px;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
+    animation: slideUp 0.3s ease-out;
+    box-sizing: border-box;
+  `;
+
+  let photosHTML = `
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+      <h2 style="color: #D4C29A; font-size: 24px; margin: 0; font-weight: 700;">
+        <i class="fas fa-images"></i> Fotos da Inspeção
+      </h2>
+      <button id="closePhotosBtn" style="
+        background: #ef4444;
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        width: 40px;
+        height: 40px;
+        font-size: 20px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      ">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+
+    <p style="color: #bbb; margin-bottom: 20px;">Total: ${insp.fotos.length} foto(s)</p>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 15px;">
+  `;
+
+  insp.fotos.forEach((foto, index) => {
+    photosHTML += `
+      <div style="
+        position: relative;
+        border-radius: 8px;
+        overflow: hidden;
+        border: 2px solid #D4C29A;
+        cursor: pointer;
+        transition: all 0.3s;
+      " onclick="expandPhotoFullscreen('${foto.data.replace(/'/g, "\\'")}', '${foto.timestamp || 'Sem data'}')" onmouseover="this.style.transform='scale(1.05)'; this.style.boxShadow='0 0 15px rgba(212, 194, 154, 0.5)'" onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='none'">
+        <div style="position: absolute; top: 8px; right: 8px; background: rgba(212, 194, 154, 0.2); padding: 6px 10px; border-radius: 6px; color: #D4C29A; font-size: 12px; font-weight: 600; opacity: 0; transition: opacity 0.3s; pointer-events: none;" class="expand-icon">
+          <i class="fas fa-expand"></i>
+        </div>
+        <img src="${foto.data}" style="width: 100%; height: 150px; object-fit: cover; display: block;">
+        <div style="
+          position: absolute;
+          bottom: 0;
+          left: 0;
+          right: 0;
+          background: rgba(0, 0, 0, 0.7);
+          color: #D4C29A;
+          padding: 8px;
+          font-size: 12px;
+          text-align: center;
+        ">
+          ${foto.timestamp || 'Sem data'}
+        </div>
+      </div>
+    `;
+  });
+
+  photosHTML += `
+    </div>
+  `;
+
+  modal.innerHTML = photosHTML;
+  overlay.appendChild(modal);
+  document.body.appendChild(overlay);
+
+  // Mostrar ícone de expansão ao passar o mouse
+  const photoItems = modal.querySelectorAll('div[onclick*="expandPhotoFullscreen"]');
+  photoItems.forEach(item => {
+    item.addEventListener('mouseover', function () {
+      this.querySelector('.expand-icon').style.opacity = '1';
+    });
+    item.addEventListener('mouseout', function () {
+      this.querySelector('.expand-icon').style.opacity = '0';
+    });
+  });
+
+  document.getElementById('closePhotosBtn').onclick = () => {
+    overlay.style.animation = 'fadeOut 0.3s ease-out';
+    setTimeout(() => overlay.remove(), 300);
+  };
+
+  overlay.onclick = (e) => {
+    if (e.target === overlay) {
+      overlay.style.animation = 'fadeOut 0.3s ease-out';
+      setTimeout(() => overlay.remove(), 300);
+    }
+  };
+}
+
+// ============================================
+// EXPANDIR FOTO EM TELA CHEIA
+// ============================================
+function expandPhotoFullscreen(photoData, timestamp) {
+  const overlay = document.createElement('div');
+  overlay.id = 'fullscreenPhotoOverlay';
+  overlay.style.cssText = `
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.95);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 999999;
+    padding: 20px;
+    box-sizing: border-box;
+    animation: fadeIn 0.3s ease-out;
+  `;
+
+  const container = document.createElement('div');
+  container.style.cssText = `
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+  `;
+
+  const imageContainer = document.createElement('div');
+  imageContainer.style.cssText = `
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    max-width: 90vw;
+  `;
+
+  const img = document.createElement('img');
+  img.src = photoData;
+  img.style.cssText = `
+    max-width: 100%;
+    max-height: 80vh;
+    object-fit: contain;
+    border-radius: 12px;
+    box-shadow: 0 0 40px rgba(212, 194, 154, 0.3);
+    animation: slideUp 0.3s ease-out;
+  `;
+
+  imageContainer.appendChild(img);
+
+  const bottomBar = document.createElement('div');
+  bottomBar.style.cssText = `
+    background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
+    border: 2px solid #D4C29A;
+    border-radius: 12px;
+    padding: 15px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    gap: 15px;
+    flex-wrap: wrap;
+  `;
+
+  const infoDiv = document.createElement('div');
+  infoDiv.style.cssText = `
+    color: #D4C29A;
+    font-weight: 600;
+    font-size: 14px;
+  `;
+  infoDiv.textContent = timestamp;
+
+  const buttonsDiv = document.createElement('div');
+  buttonsDiv.style.cssText = `
+    display: flex;
+    gap: 10px;
+  `;
+
+  // Botão Baixar
+  const downloadBtn = document.createElement('button');
+  downloadBtn.innerHTML = '<i class="fas fa-download"></i> Baixar';
+  downloadBtn.style.cssText = `
+    background: #2a7a3f;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 15px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s;
+  `;
+  downloadBtn.onmouseover = () => { downloadBtn.style.background = '#1f5a2f'; };
+  downloadBtn.onmouseout = () => { downloadBtn.style.background = '#2a7a3f'; };
+  downloadBtn.onclick = () => downloadPhoto(photoData, timestamp);
+
+  // Botão Fechar
+  const closeBtn = document.createElement('button');
+  closeBtn.innerHTML = '<i class="fas fa-times"></i> Fechar';
+  closeBtn.style.cssText = `
+    background: #B32117;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 15px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s;
+  `;
+  closeBtn.onmouseover = () => { closeBtn.style.background = '#8a180f'; };
+  closeBtn.onmouseout = () => { closeBtn.style.background = '#B32117'; };
+  closeBtn.onclick = () => {
+    overlay.style.animation = 'fadeOut 0.3s ease-out';
+    setTimeout(() => overlay.remove(), 300);
+  };
+
+  buttonsDiv.appendChild(downloadBtn);
+  buttonsDiv.appendChild(closeBtn);
+
+  bottomBar.appendChild(infoDiv);
+  bottomBar.appendChild(buttonsDiv);
+
+  container.appendChild(imageContainer);
+  container.appendChild(bottomBar);
+  overlay.appendChild(container);
+  document.body.appendChild(overlay);
+
+  overlay.onclick = (e) => {
+    if (e.target === overlay) {
+      overlay.style.animation = 'fadeOut 0.3s ease-out';
+      setTimeout(() => overlay.remove(), 300);
+    }
+  };
+
+  // Adiciona animações se não existirem
+  if (!document.getElementById('fullscreenAnimations')) {
+    const style = document.createElement('style');
+    style.id = 'fullscreenAnimations';
+    style.textContent = `
+      @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+      }
+      @keyframes fadeOut {
+        from { opacity: 1; }
+        to { opacity: 0; }
+      }
+      @keyframes slideUp {
+        from { transform: translateY(30px); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
+      }
+    `;
+    document.head.appendChild(style);
+  }
+}
+
+// ============================================
+// BAIXAR FOTO
+// ============================================
+function downloadPhoto(photoData, timestamp) {
+  const link = document.createElement('a');
+  link.href = photoData;
+  link.download = `foto_${timestamp.replace(/[\/\s:]/g, '-')}.jpg`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  showToast('Foto baixada com sucesso!', 'success');
+}
+
+// ============================================
 // FUNÇÃO DE EXCLUIR INSPEÇÃO
 // ============================================
 function deleteInspection(inspectionId) {
@@ -3591,7 +4066,7 @@ function deleteInspection(inspectionId) {
     const insp = snapshot.val();
 
     if (!insp) {
-      alert(' Inspeção não encontrada!');
+      showToast('Inspeção não encontrada!', 'error');
       return;
     }
 
@@ -3659,7 +4134,7 @@ function deleteInspection(inspectionId) {
         </p>
 
         <p style="color: #ef4444; font-size: 14px; font-weight: 600; margin: 0 0 30px 0;">
-           Esta ação não pode ser desfeita!
+          Esta ação não pode ser desfeita!
         </p>
 
         <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
@@ -3725,7 +4200,7 @@ function deleteInspection(inspectionId) {
         await database.ref('inspections/' + inspectionId).remove();
         overlay.style.animation = 'fadeOut 0.3s ease-out';
         setTimeout(() => overlay.remove(), 300);
-        showSuccessMessage(' Inspeção excluída com sucesso!');
+        showToast('Inspeção excluída com sucesso!', 'success');
         loadInspections();
       } catch (error) {
         console.error('Erro ao excluir inspeção:', error);
@@ -3733,7 +4208,7 @@ function deleteInspection(inspectionId) {
         confirmBtn.style.opacity = '1';
         confirmBtn.style.cursor = 'pointer';
         confirmBtn.innerHTML = '<i class="fas fa-trash"></i> Sim, Excluir';
-        alert(' Erro ao excluir inspeção: ' + error.message);
+        showToast('Erro ao excluir inspeção: ' + error.message, 'error');
       }
     };
 
@@ -3775,6 +4250,7 @@ function escapeHtml(text) {
   div.textContent = text;
   return div.innerHTML;
 }
+
 
 // ============================================
 // FUNÇÃO DE MENSAGEM DE SUCESSO
@@ -4959,6 +5435,7 @@ function renderFilteredOrders() {
 }
 
 // Função para mostrar opções de PDF
+
 function mostrarOpcoesPDF(osId) {
   const modal = document.createElement('div');
   modal.style.cssText = `
@@ -5091,7 +5568,7 @@ function mostrarOpcoesPDF(osId) {
           <span>PDF com Valores Detalhados</span>
         </button>
 
-        <button onclick="gerarPDFOrdem('${osId}', 'sem_quantidade_valor'); document.body.removeChild(this.closest('div').parentElement)" style="
+        <button onclick="gerarPDFOrdem('${osId}', 'sem_quantidade'); document.body.removeChild(this.closest('div').parentElement)" style="
           width: 100%;
           padding: 16px;
           background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
@@ -5109,7 +5586,7 @@ function mostrarOpcoesPDF(osId) {
           box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
         " onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 6px 16px rgba(245, 158, 11, 0.4)'" onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='0 4px 12px rgba(245, 158, 11, 0.3)'">
           <i class="fas fa-file" style="font-size: 18px;"></i>
-          <span>PDF sem Quantidade e Valor</span>
+          <span>PDF sem Quantidade</span>
         </button>
       </div>
 
@@ -5149,6 +5626,8 @@ function mostrarOpcoesPDF(osId) {
 
   document.body.appendChild(modal);
 }
+
+
 
 // Cache para melhor performance
 const toggleCache = new Map();
@@ -5495,7 +5974,7 @@ async function gerarPDFOrdem(orderId, tipoRelatorio = 'com_valores') {
       'com_valores': 'Gerando PDF com valor total...',
       'sem_valores': 'Gerando PDF sem valores...',
       'valores_detalhados': 'Gerando PDF com valores detalhados...',
-      'sem_quantidade_valor': 'Gerando PDF sem quantidade e valor...'
+      'sem_quantidade': 'Gerando PDF sem quantidade...'
     };
     showToast(mensagens[tipoRelatorio] || 'Gerando PDF...', 'info');
 
@@ -5566,21 +6045,35 @@ async function gerarPDFOrdem(orderId, tipoRelatorio = 'com_valores') {
       return colunas;
     }
 
-    // 🎯 CONFIGURAÇÃO ESPECIAL PARA valores_detalhados: 1 COLUNA COM 40 PRODUTOS POR PÁGINA
-    const ITENS_POR_COLUNA = tipoRelatorio === 'valores_detalhados' ? 40 : 15;
-    const COLUNAS_POR_PAGINA = tipoRelatorio === 'valores_detalhados' ? 1 : 3;
-    const colunasProdutos = dividirEmColunas(produtos, ITENS_POR_COLUNA);
+    // 🎯 CONFIGURAÇÃO ESPECIAL: Todos os tipos começam com produtos na PRIMEIRA PÁGINA
+    // 🎯 PRIMEIRA PÁGINA: 15 produtos em 3 colunas (5 por coluna)
+    // 🎯 PRÓXIMAS PÁGINAS: 45 produtos em 3 colunas (15 por coluna)
+    const ITENS_PRIMEIRA_PAGINA = 10;
+    const ITENS_POR_COLUNA_PRIMEIRA = 10;
+    const ITENS_POR_COLUNA = 40;
+    const COLUNAS_POR_PAGINA = 1;
 
-    // Divide colunas em páginas
-    const paginasProdutos = [];
-    for (let i = 0; i < colunasProdutos.length; i += COLUNAS_POR_PAGINA) {
-      paginasProdutos.push(colunasProdutos.slice(i, i + COLUNAS_POR_PAGINA));
+    let colunasProdutos = [];
+    let paginasProdutos = [];
+
+    // Distribuição de produtos
+    if (produtos.length > 0) {
+      const produtosPrimeiraPagina = produtos.slice(0, ITENS_PRIMEIRA_PAGINA);
+      const colunasPrimeira = dividirEmColunas(produtosPrimeiraPagina, ITENS_POR_COLUNA_PRIMEIRA);
+      paginasProdutos.push(colunasPrimeira);
+      
+      // Próximas páginas: resto dos produtos em grupos de 45 (15 por coluna, 3 colunas)
+      if (produtos.length > ITENS_PRIMEIRA_PAGINA) {
+        const produtosRestantes = produtos.slice(ITENS_PRIMEIRA_PAGINA);
+        colunasProdutos = dividirEmColunas(produtosRestantes, ITENS_POR_COLUNA);
+        for (let i = 0; i < colunasProdutos.length; i += COLUNAS_POR_PAGINA) {
+          paginasProdutos.push(colunasProdutos.slice(i, i + COLUNAS_POR_PAGINA));
+        }
+      }
     }
-    
-    // 🎯 CALCULA TOTAL DE PÁGINAS (1 página de dados + N páginas de produtos para valores_detalhados)
-    const totalPaginas = tipoRelatorio === 'valores_detalhados' 
-      ? 1 + paginasProdutos.length 
-      : paginasProdutos.length;
+
+    // 🎯 CALCULA TOTAL DE PÁGINAS
+    const totalPaginas = paginasProdutos.length;
 
     // FUNÇÃO PARA TRUNCAR NOME DO PRODUTO
     const truncarNome = (nome, maxLength = fontSizes.maxNomeLength) => {
@@ -5593,70 +6086,67 @@ async function gerarPDFOrdem(orderId, tipoRelatorio = 'com_valores') {
     const renderizarTabelaProdutos = (lista, offset = 0) => {
       if (!lista || !lista.length) return '';
 
-      // 🎯 ESTILO ESPECIAL PARA valores_detalhados (1 COLUNA ÚNICA)
-      const tabelaWidth = tipoRelatorio === 'valores_detalhados' ? '100%' : '100%';
-
       // PDF COM VALORES DETALHADOS (Unit. + Total)
       if (tipoRelatorio === 'valores_detalhados') {
-        return `
-      <table style="width: ${tabelaWidth}; border-collapse: collapse; background: white; font-size: ${fontSizes.tabelaTd}; border: 2px solid #d1d5db; border-radius: 6px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-        <thead style="background: linear-gradient(135deg, #4b5563 0%, #6b7280 100%); color: white; border-bottom: 2px solid #374151;">
-          <tr>
-            <th style="padding: 6px 8px; text-align: center; font-weight: 700; text-transform: uppercase; font-size: ${fontSizes.tabelaTh}; width: 30px; border-right: 1px solid rgba(255,255,255,0.2);">N°</th>
-            <th style="padding: 6px 8px; text-align: left; font-weight: 700; text-transform: uppercase; font-size: ${fontSizes.tabelaTh}; border-right: 1px solid rgba(255,255,255,0.2);">Produto</th>
-            <th style="padding: 6px 8px; text-align: center; font-weight: 700; text-transform: uppercase; font-size: ${fontSizes.tabelaTh}; width: 40px; border-right: 1px solid rgba(255,255,255,0.2);">Qtd</th>
-            <th style="padding: 6px 8px; text-align: right; font-weight: 700; text-transform: uppercase; font-size: ${fontSizes.tabelaTh}; width: 65px; border-right: 1px solid rgba(255,255,255,0.2);">Unit.</th>
-            <th style="padding: 6px 8px; text-align: right; font-weight: 700; text-transform: uppercase; font-size: ${fontSizes.tabelaTh}; width: 70px;">Total</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${lista.map((p, idx) => {
-          const valorUn = (Number(p.price) || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-          const subtotal = ((Number(p.price) || 0) * p.qty).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-          const bgColor = idx % 2 === 0 ? '#ffffff' : '#f9fafb';
-          const nomeTruncado = truncarNome(p.name);
-          return `
-              <tr style="background: ${bgColor}; border-bottom: 1px solid #e5e7eb;">
-                <td style="padding: 5px 8px; color: #6b7280; text-align: center; font-weight: 700; font-size: ${fontSizes.tabelaNumero}; border-right: 1px solid #e5e7eb;">${offset + idx + 1}</td>
-                <td style="padding: 5px 8px; color: #374151; text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: ${fontSizes.tabelaTd}; border-right: 1px solid #e5e7eb;" title="${p.name || '-'}">${nomeTruncado}</td>
-                <td style="padding: 5px 8px; color: #374151; text-align: center; font-weight: 600; font-size: ${fontSizes.tabelaTd}; border-right: 1px solid #e5e7eb;">${p.qty}x</td>
-                <td style="padding: 5px 8px; color: #b91c1c; text-align: right; font-weight: 600; font-size: ${fontSizes.tabelaTd}; border-right: 1px solid #e5e7eb;">${valorUn}</td>
-                <td style="padding: 5px 8px; color: #1f2937; text-align: right; font-weight: 700; font-size: ${fontSizes.tabelaTd};">${subtotal}</td>
-              </tr>
-            `;
-        }).join('')}
-        </tbody>
-      </table>
-    `;
-      }
-
-      // PDF SEM QUANTIDADE E VALOR (apenas Produto)
-      else if (tipoRelatorio === 'sem_quantidade_valor') {
         return `
           <table style="width: 100%; border-collapse: collapse; background: white; font-size: ${fontSizes.tabelaTd}; border: 2px solid #d1d5db; border-radius: 6px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
             <thead style="background: linear-gradient(135deg, #4b5563 0%, #6b7280 100%); color: white; border-bottom: 2px solid #374151;">
               <tr>
                 <th style="padding: 6px 8px; text-align: center; font-weight: 700; text-transform: uppercase; font-size: ${fontSizes.tabelaTh}; width: 30px; border-right: 1px solid rgba(255,255,255,0.2);">N°</th>
-                <th style="padding: 6px 8px; text-align: left; font-weight: 700; text-transform: uppercase; font-size: ${fontSizes.tabelaTh};">Produto</th>
+                <th style="padding: 6px 8px; text-align: left; font-weight: 700; text-transform: uppercase; font-size: ${fontSizes.tabelaTh}; border-right: 1px solid rgba(255,255,255,0.2);">Produto</th>
+                <th style="padding: 6px 8px; text-align: center; font-weight: 700; text-transform: uppercase; font-size: ${fontSizes.tabelaTh}; width: 40px; border-right: 1px solid rgba(255,255,255,0.2);">Qtd</th>
+                <th style="padding: 6px 8px; text-align: right; font-weight: 700; text-transform: uppercase; font-size: ${fontSizes.tabelaTh}; width: 65px; border-right: 1px solid rgba(255,255,255,0.2);">Unit.</th>
+                <th style="padding: 6px 8px; text-align: right; font-weight: 700; text-transform: uppercase; font-size: ${fontSizes.tabelaTh}; width: 70px;">Total</th>
               </tr>
             </thead>
             <tbody>
               ${lista.map((p, idx) => {
-          const bgColor = idx % 2 === 0 ? '#ffffff' : '#f9fafb';
-          const nomeTruncado = truncarNome(p.name);
-          return `
+                const valorUn = (Number(p.price) || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+                const subtotal = ((Number(p.price) || 0) * p.qty).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+                const bgColor = idx % 2 === 0 ? '#ffffff' : '#f9fafb';
+                const nomeTruncado = truncarNome(p.name);
+                return `
                   <tr style="background: ${bgColor}; border-bottom: 1px solid #e5e7eb;">
                     <td style="padding: 5px 8px; color: #6b7280; text-align: center; font-weight: 700; font-size: ${fontSizes.tabelaNumero}; border-right: 1px solid #e5e7eb;">${offset + idx + 1}</td>
-                    <td style="padding: 5px 8px; color: #374151; text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: ${fontSizes.tabelaTd};" title="${p.name || '-'}">${nomeTruncado}</td>
+                    <td style="padding: 5px 8px; color: #374151; text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: ${fontSizes.tabelaTd}; border-right: 1px solid #e5e7eb;" title="${p.name || '-'}">${nomeTruncado}</td>
+                    <td style="padding: 5px 8px; color: #374151; text-align: center; font-weight: 600; font-size: ${fontSizes.tabelaTd}; border-right: 1px solid #e5e7eb;">${p.qty}x</td>
+                    <td style="padding: 5px 8px; color: #b91c1c; text-align: right; font-weight: 600; font-size: ${fontSizes.tabelaTd}; border-right: 1px solid #e5e7eb;">${valorUn}</td>
+                    <td style="padding: 5px 8px; color: #1f2937; text-align: right; font-weight: 700; font-size: ${fontSizes.tabelaTd};">${subtotal}</td>
                   </tr>
                 `;
-        }).join('')}
+              }).join('')}
             </tbody>
           </table>
         `;
       }
 
-      // PDF SEM VALORES ou COM VALORES (apenas Produto + Qtd)
+      // PDF SEM QUANTIDADE (apenas Produto)
+      else if (tipoRelatorio === 'sem_quantidade') {
+        return `
+          <table style="width: 100%; border-collapse: collapse; background: white; font-size: ${fontSizes.tabelaTd}; border: 2px solid #d1d5db; border-radius: 6px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+            <thead style="background: linear-gradient(135deg, #4b5563 0%, #6b7280 100%); color: white; border-bottom: 2px solid #374151;">
+              <tr>
+                <th style="padding: 6px 8px; text-align: center; font-weight: 700; text-transform: uppercase; font-size: ${fontSizes.tabelaTh}; width: 30px; border-right: 1px solid rgba(255,255,255,0.2);">N°</th>
+                <th style="padding: 6px 8px; text-align: left; font-weight: 700; text-transform: uppercase; font-size: ${fontSizes.tabelaTh}; border-right: 1px solid rgba(255,255,255,0.2);">Produto</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${lista.map((p, idx) => {
+                const bgColor = idx % 2 === 0 ? '#ffffff' : '#f9fafb';
+                const nomeTruncado = truncarNome(p.name);
+                return `
+                  <tr style="background: ${bgColor}; border-bottom: 1px solid #e5e7eb;">
+                    <td style="padding: 5px 8px; color: #6b7280; text-align: center; font-weight: 700; font-size: ${fontSizes.tabelaNumero}; border-right: 1px solid #e5e7eb;">${offset + idx + 1}</td>
+                    <td style="padding: 5px 8px; color: #374151; text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: ${fontSizes.tabelaTd}; border-right: 1px solid #e5e7eb;" title="${p.name || '-'}">${nomeTruncado}</td>
+                  </tr>
+                `;
+              }).join('')}
+            </tbody>
+          </table>
+        `;
+      }
+
+      // PDF SEM VALORES ou COM VALORES (Produto + Qtd)
       else {
         return `
           <table style="width: 100%; border-collapse: collapse; background: white; font-size: ${fontSizes.tabelaTd}; border: 2px solid #d1d5db; border-radius: 6px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
@@ -5669,16 +6159,16 @@ async function gerarPDFOrdem(orderId, tipoRelatorio = 'com_valores') {
             </thead>
             <tbody>
               ${lista.map((p, idx) => {
-          const bgColor = idx % 2 === 0 ? '#ffffff' : '#f9fafb';
-          const nomeTruncado = truncarNome(p.name);
-          return `
+                const bgColor = idx % 2 === 0 ? '#ffffff' : '#f9fafb';
+                const nomeTruncado = truncarNome(p.name);
+                return `
                   <tr style="background: ${bgColor}; border-bottom: 1px solid #e5e7eb;">
                     <td style="padding: 5px 8px; color: #6b7280; text-align: center; font-weight: 700; font-size: ${fontSizes.tabelaNumero}; border-right: 1px solid #e5e7eb;">${offset + idx + 1}</td>
                     <td style="padding: 5px 8px; color: #374151; text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: ${fontSizes.tabelaTd}; border-right: 1px solid #e5e7eb;" title="${p.name || '-'}">${nomeTruncado}</td>
                     <td style="padding: 5px 8px; color: #374151; text-align: center; font-weight: 600; font-size: ${fontSizes.tabelaTd};">${p.qty}x</td>
                   </tr>
                 `;
-        }).join('')}
+              }).join('')}
             </tbody>
           </table>
         `;
@@ -5726,1132 +6216,612 @@ async function gerarPDFOrdem(orderId, tipoRelatorio = 'com_valores') {
       </div>
     `;
 
-    // ===== GERA PRIMEIRA PÁGINA (COM TODOS OS DADOS) =====
+    // ===== GERA PRIMEIRA PÁGINA (COM DADOS + PRODUTOS) =====
     const gerarPrimeiraPagina = () => {
-      // 🎯 PARA valores_detalhados: PRIMEIRA PÁGINA SEM PRODUTOS
-      if (tipoRelatorio === 'valores_detalhados') {
-        return `
-      <div class="pdf-nota-page">
-        ${gerarHeader(1)}
+      return `
+        <div class="pdf-nota-page">
+          ${gerarHeader(1)}
 
-        <div class="pdf-nota-body">
-          <div class="pdf-nota-section">
-            <div class="pdf-nota-section-title vermelho">
-              <i class="fas fa-user-circle"></i> DADOS DO CLIENTE
-            </div>
-            <div class="pdf-nota-section-content">
-              <div class="pdf-nota-dados-inline">
-                <div class="pdf-nota-dado-item destaque">
-                  <div class="pdf-nota-dado-label">Cliente</div>
-                  <div class="pdf-nota-dado-valor">${ordem.cliente || '-'}</div>
-                </div>
-                <div class="pdf-nota-dado-item">
-                  <div class="pdf-nota-dado-label">CPF/CNPJ</div>
-                  <div class="pdf-nota-dado-valor">${ordem.cnpj || '____'}</div>
-                </div>
-                <div class="pdf-nota-dado-item">
-                  <div class="pdf-nota-dado-label">Telefone</div>
-                  <div class="pdf-nota-dado-valor">${ordem.telefone || ordem.contato || '____'}</div>
-                </div>
-                <div class="pdf-nota-dado-item">
-                  <div class="pdf-nota-dado-label">E-mail</div>
-                  <div class="pdf-nota-dado-valor">${ordem.email || '____'}</div>
-                </div>
-                <div class="pdf-nota-dado-item">
-                  <div class="pdf-nota-dado-label">Endereço Completo</div>
-                  <div class="pdf-nota-dado-valor">${enderecoCompleto}</div>
-                </div>
-                <div class="pdf-nota-dado-item">
-                  <div class="pdf-nota-dado-label">CEP</div>
-                  <div class="pdf-nota-dado-valor">${ordem.cep || '____'}</div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="pdf-nota-section">
-            <div class="pdf-nota-section-title">
-              <i class="fas fa-tools"></i> DESCRIÇÃO DO SERVIÇO
-            </div>
-            <div class="pdf-nota-section-content">
-              <div class="pdf-nota-dados-inline">
-                <div class="pdf-nota-dado-item destaque">
-                  <div class="pdf-nota-dado-label">Serviço</div>
-                  <div class="pdf-nota-dado-valor">${ordem.servico || '-'}</div>
-                </div>
-                <div class="pdf-nota-dado-item">
-                  <div class="pdf-nota-dado-label">Técnico</div>
-                  <div class="pdf-nota-dado-valor">${ordem.tecnico || '-'}</div>
-                </div>
-                <div class="pdf-nota-dado-item">
-                  <div class="pdf-nota-dado-label">Data Execução</div>
-                  <div class="pdf-nota-dado-valor">${dataStr}</div>
-                </div>
-                <div class="pdf-nota-dado-item">
-                  <div class="pdf-nota-dado-label">Cidade</div>
-                  <div class="pdf-nota-dado-valor">${ordem.cidade || '-'}</div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          ${produtos.length ? `
-            <div class="pdf-nota-section">
-              <div class="pdf-nota-section-title">
-                <i class="fas fa-box"></i> MATERIAIS E PRODUTOS
-              </div>
-              <div class="pdf-nota-section-content">
-                <div style="padding: 15px; background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%); border: 2px dashed #9ca3af; border-radius: 8px; text-align: center;">
-                  <i class="fas fa-file-invoice" style="font-size: 32px; color: #6b7280; margin-bottom: 10px;"></i>
-                  <p style="margin: 0; font-size: 11px; font-weight: 700; color: #374151; margin-bottom: 5px;">
-                    Lista completa de ${produtos.length} produtos disponível nas páginas seguintes
-                  </p>
-                  <p style="margin: 0; font-size: 9px; color: #6b7280;">
-                    📄 Confira a relação detalhada com valores unitários e totais nas próximas páginas
-                  </p>
-                </div>
-              </div>
-            </div>
-          ` : ''}
-
-          <div class="pdf-nota-section">
-            <div class="pdf-nota-section-title vermelho">
-              <i class="fas fa-chart-line"></i> RESUMO FINANCEIRO
-            </div>
-            <div class="pdf-nota-section-content">
-              <div class="pdf-nota-resumo-compact">
-                <div class="pdf-nota-resumo-item">
-                  <div class="pdf-nota-resumo-label">Total Itens</div>
-                  <div class="pdf-nota-resumo-valor">${qtdTotal}</div>
-                </div>
-                <div class="pdf-nota-resumo-item">
-                  <div class="pdf-nota-resumo-label">Pagamento</div>
-                  <div class="pdf-nota-resumo-valor" style="font-size: 9px;">${formaPagamento}</div>
-                </div>
-                <div class="pdf-nota-resumo-item">
-                  <div class="pdf-nota-resumo-label">Status</div>
-                  <div class="pdf-nota-resumo-valor" style="font-size: 9px; color: ${statusPagamento === 'Pago' ? '#22c55e' : '#ef4444'};">${statusPagamento}</div>
-                </div>
-                <div class="pdf-nota-resumo-item destaque">
-                  <div class="pdf-nota-resumo-label">Valor Total</div>
-                  <div class="pdf-nota-resumo-valor">${totalFinal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          ${ordem.observacoes || ordem.notas || ordem.descricao ? `
-            <div class="pdf-nota-section">
-              <div class="pdf-nota-section-title">
-                <i class="fas fa-sticky-note"></i> OBSERVAÇÕES
-              </div>
-              <div class="pdf-nota-section-content">
-                <p class="pdf-nota-observacoes-texto">${ordem.observacoes || ordem.notas || ordem.descricao}</p>
-              </div>
-            </div>
-          ` : ''}
-
-          <div class="pdf-nota-section">
-            <div class="pdf-nota-section-title">
-              <i class="fas fa-shield-alt"></i> CONDIÇÕES GERAIS
-            </div>
-            <div class="pdf-nota-section-content">
-              <div class="pdf-nota-condicoes-list">
-                <div class="pdf-nota-condicoes-item">
-                  <i class="fas fa-check-circle"></i>
-                  <span>Garantia de 90 dias para serviços e peças.</span>
-                </div>
-                <div class="pdf-nota-condicoes-item">
-                  <i class="fas fa-check-circle"></i>
-                  <span>Garantia não cobre mau uso ou danos.</span>
-                </div>
-                <div class="pdf-nota-condicoes-item">
-                  <i class="fas fa-check-circle"></i>
-                  <span>Validade do orçamento: 30 dias.</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="pdf-nota-section">
-            <div class="pdf-nota-section-title">
-              <i class="fas fa-pen-square"></i> ASSINATURAS
-            </div>
-            <div class="pdf-nota-section-content">
-              <div class="pdf-nota-assinaturas">
-                <div class="pdf-nota-assinatura-campo">
-                  <div class="pdf-nota-assinatura-linha"></div>
-                  <div class="pdf-nota-assinatura-nome">Técnico Responsável</div>
-                  <div class="pdf-nota-assinatura-info">
-                    Nome: ${ordem.tecnico || '_____________________'}<br>
-                    Tel: (15) 99137-1232
-                  </div>
-                </div>
-                <div class="pdf-nota-assinatura-campo">
-                  <div class="pdf-nota-assinatura-linha"></div>
-                  <div class="pdf-nota-assinatura-nome">Cliente</div>
-                  <div class="pdf-nota-assinatura-info">
-                    Nome: ${ordem.cliente || '_____________________'}<br>
-                    CPF/CNPJ: ${ordem.cnpj || '_____________________'}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        ${gerarFooter()}
-      </div>
-    `;
-      }
-      
-      // 🎯 PARA OUTROS TIPOS: PÁGINA NORMAL COM PRODUTOS
-      else {
-        return `
-      <div class="pdf-nota-page">
-        ${gerarHeader(1)}
-
-        <div class="pdf-nota-body">
-          <div class="pdf-nota-section">
-            <div class="pdf-nota-section-title vermelho">
-              <i class="fas fa-user-circle"></i> DADOS DO CLIENTE
-            </div>
-            <div class="pdf-nota-section-content">
-              <div class="pdf-nota-dados-inline">
-                <div class="pdf-nota-dado-item destaque">
-                  <div class="pdf-nota-dado-label">Cliente</div>
-                  <div class="pdf-nota-dado-valor">${ordem.cliente || '-'}</div>
-                </div>
-                <div class="pdf-nota-dado-item">
-                  <div class="pdf-nota-dado-label">CPF/CNPJ</div>
-                  <div class="pdf-nota-dado-valor">${ordem.cnpj || '____'}</div>
-                </div>
-                <div class="pdf-nota-dado-item">
-                  <div class="pdf-nota-dado-label">Telefone</div>
-                  <div class="pdf-nota-dado-valor">${ordem.telefone || ordem.contato || '____'}</div>
-                </div>
-                <div class="pdf-nota-dado-item">
-                  <div class="pdf-nota-dado-label">E-mail</div>
-                  <div class="pdf-nota-dado-valor">${ordem.email || '____'}</div>
-                </div>
-                <div class="pdf-nota-dado-item">
-                  <div class="pdf-nota-dado-label">Endereço Completo</div>
-                  <div class="pdf-nota-dado-valor">${enderecoCompleto}</div>
-                </div>
-                <div class="pdf-nota-dado-item">
-                  <div class="pdf-nota-dado-label">CEP</div>
-                  <div class="pdf-nota-dado-valor">${ordem.cep || '____'}</div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="pdf-nota-section">
-            <div class="pdf-nota-section-title">
-              <i class="fas fa-tools"></i> DESCRIÇÃO DO SERVIÇO
-            </div>
-            <div class="pdf-nota-section-content">
-              <div class="pdf-nota-dados-inline">
-                <div class="pdf-nota-dado-item destaque">
-                  <div class="pdf-nota-dado-label">Serviço</div>
-                  <div class="pdf-nota-dado-valor">${ordem.servico || '-'}</div>
-                </div>
-                <div class="pdf-nota-dado-item">
-                  <div class="pdf-nota-dado-label">Técnico</div>
-                  <div class="pdf-nota-dado-valor">${ordem.tecnico || '-'}</div>
-                </div>
-                <div class="pdf-nota-dado-item">
-                  <div class="pdf-nota-dado-label">Data Execução</div>
-                  <div class="pdf-nota-dado-valor">${dataStr}</div>
-                </div>
-                <div class="pdf-nota-dado-item">
-                  <div class="pdf-nota-dado-label">Cidade</div>
-                  <div class="pdf-nota-dado-valor">${ordem.cidade || '-'}</div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          ${produtos.length && paginasProdutos[0] ? `
-            <div class="pdf-nota-section">
-              <div class="pdf-nota-section-title">
-                <i class="fas fa-box"></i> MATERIAIS E PRODUTOS ${tipoRelatorio === 'sem_quantidade_valor' ? `(${produtos.length} itens)` : `(${qtdTotal} un.)`}
-              </div>
-              <div class="pdf-nota-section-content">
-                <div class="pdf-produtos-columns">
-                  ${paginasProdutos[0].map((coluna, idx) => `
-                    <div>
-                      ${renderizarTabelaProdutos(coluna, idx * ITENS_POR_COLUNA)}
-                    </div>
-                  `).join('')}
-                </div>
-              </div>
-            </div>
-          ` : ''}
-
-          ${(tipoRelatorio !== 'sem_valores' && tipoRelatorio !== 'sem_quantidade_valor') ? `
+          <div class="pdf-nota-body">
             <div class="pdf-nota-section">
               <div class="pdf-nota-section-title vermelho">
-                <i class="fas fa-chart-line"></i> RESUMO FINANCEIRO
+                <i class="fas fa-user-circle"></i> DADOS DO CLIENTE
               </div>
               <div class="pdf-nota-section-content">
-                <div class="pdf-nota-resumo-compact">
-                  <div class="pdf-nota-resumo-item">
-                    <div class="pdf-nota-resumo-label">Total Itens</div>
-                    <div class="pdf-nota-resumo-valor">${qtdTotal}</div>
+                <div class="pdf-nota-dados-inline">
+                  <div class="pdf-nota-dado-item destaque">
+                    <div class="pdf-nota-dado-label">Cliente</div>
+                    <div class="pdf-nota-dado-valor">${ordem.cliente || '-'}</div>
                   </div>
-                  <div class="pdf-nota-resumo-item">
-                    <div class="pdf-nota-resumo-label">Pagamento</div>
-                    <div class="pdf-nota-resumo-valor" style="font-size: 9px;">${formaPagamento}</div>
+                  <div class="pdf-nota-dado-item">
+                    <div class="pdf-nota-dado-label">CPF/CNPJ</div>
+                    <div class="pdf-nota-dado-valor">${ordem.cnpj || '____'}</div>
                   </div>
-                  <div class="pdf-nota-resumo-item">
-                    <div class="pdf-nota-resumo-label">Status</div>
-                    <div class="pdf-nota-resumo-valor" style="font-size: 9px; color: ${statusPagamento === 'Pago' ? '#22c55e' : '#ef4444'};">${statusPagamento}</div>
+                  <div class="pdf-nota-dado-item">
+                    <div class="pdf-nota-dado-label">Telefone</div>
+                    <div class="pdf-nota-dado-valor">${ordem.telefone || ordem.contato || '____'}</div>
                   </div>
-                  <div class="pdf-nota-resumo-item destaque">
-                    <div class="pdf-nota-resumo-label">Valor Total</div>
-                    <div class="pdf-nota-resumo-valor">${totalFinal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</div>
+                  <div class="pdf-nota-dado-item">
+                    <div class="pdf-nota-dado-label">E-mail</div>
+                    <div class="pdf-nota-dado-valor">${ordem.email || '____'}</div>
+                  </div>
+                  <div class="pdf-nota-dado-item">
+                    <div class="pdf-nota-dado-label">Endereço Completo</div>
+                    <div class="pdf-nota-dado-valor">${enderecoCompleto}</div>
+                  </div>
+                  <div class="pdf-nota-dado-item">
+                    <div class="pdf-nota-dado-label">CEP</div>
+                    <div class="pdf-nota-dado-valor">${ordem.cep || '____'}</div>
                   </div>
                 </div>
               </div>
             </div>
-          ` : ''}
 
-          ${ordem.observacoes || ordem.notas || ordem.descricao ? `
             <div class="pdf-nota-section">
               <div class="pdf-nota-section-title">
-                <i class="fas fa-sticky-note"></i> OBSERVAÇÕES
+                <i class="fas fa-tools"></i> DESCRIÇÃO DO SERVIÇO
               </div>
               <div class="pdf-nota-section-content">
-                <p class="pdf-nota-observacoes-texto">${ordem.observacoes || ordem.notas || ordem.descricao}</p>
+                <div class="pdf-nota-dados-inline">
+                  <div class="pdf-nota-dado-item destaque">
+                    <div class="pdf-nota-dado-label">Serviço</div>
+                    <div class="pdf-nota-dado-valor">${ordem.servico || '-'}</div>
+                  </div>
+                  <div class="pdf-nota-dado-item">
+                    <div class="pdf-nota-dado-label">Técnico</div>
+                    <div class="pdf-nota-dado-valor">${ordem.tecnico || '-'}</div>
+                  </div>
+                  <div class="pdf-nota-dado-item">
+                    <div class="pdf-nota-dado-label">Data Execução</div>
+                    <div class="pdf-nota-dado-valor">${dataStr}</div>
+                  </div>
+                  <div class="pdf-nota-dado-item">
+                    <div class="pdf-nota-dado-label">Cidade</div>
+                    <div class="pdf-nota-dado-valor">${ordem.cidade || '-'}</div>
+                  </div>
+                </div>
               </div>
             </div>
-          ` : ''}
 
-          <div class="pdf-nota-section">
-            <div class="pdf-nota-section-title">
-              <i class="fas fa-shield-alt"></i> CONDIÇÕES GERAIS
+            ${produtos.length && paginasProdutos[0] ? `
+              <div class="pdf-nota-section">
+                <div class="pdf-nota-section-title">
+                  <i class="fas fa-box"></i> MATERIAIS E PRODUTOS ${tipoRelatorio === 'sem_quantidade' ? `(${produtos.length} itens)` : `(${qtdTotal} un.)`}
+                </div>
+                <div class="pdf-nota-section-content">
+                  <div class="pdf-produtos-columns">
+                    ${paginasProdutos[0].map((coluna, idx) => `
+                      <div>
+                        ${renderizarTabelaProdutos(coluna, idx * ITENS_POR_COLUNA_PRIMEIRA)}
+                      </div>
+                    `).join('')}
+                  </div>
+                </div>
+              </div>
+            ` : ''}
+
+            ${(tipoRelatorio !== 'sem_valores' && tipoRelatorio !== 'sem_quantidade') ? `
+              <div class="pdf-nota-section">
+                <div class="pdf-nota-section-title vermelho">
+                  <i class="fas fa-chart-line"></i> RESUMO FINANCEIRO
+                </div>
+                <div class="pdf-nota-section-content">
+                  <div class="pdf-nota-resumo-compact">
+                    <div class="pdf-nota-resumo-item">
+                      <div class="pdf-nota-resumo-label">Total Itens</div>
+                      <div class="pdf-nota-resumo-valor">${qtdTotal}</div>
+                    </div>
+                    <div class="pdf-nota-resumo-item">
+                      <div class="pdf-nota-resumo-label">Pagamento</div>
+                      <div class="pdf-nota-resumo-valor" style="font-size: 9px;">${formaPagamento}</div>
+                    </div>
+                    <div class="pdf-nota-resumo-item">
+                      <div class="pdf-nota-resumo-label">Status</div>
+                      <div class="pdf-nota-resumo-valor" style="font-size: 9px; color: ${statusPagamento === 'Pago' ? '#22c55e' : '#ef4444'};">${statusPagamento}</div>
+                    </div>
+                    <div class="pdf-nota-resumo-item destaque">
+                      <div class="pdf-nota-resumo-label">Valor Total</div>
+                      <div class="pdf-nota-resumo-valor">${totalFinal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ` : ''}
+
+            ${tipoRelatorio === 'sem_quantidade' ? `
+              <div class="pdf-nota-section">
+                <div class="pdf-nota-section-title vermelho">
+                  <i class="fas fa-chart-line"></i> RESUMO FINANCEIRO
+                </div>
+                <div class="pdf-nota-section-content">
+                  <div class="pdf-nota-resumo-compact">
+                    <div class="pdf-nota-resumo-item">
+                      <div class="pdf-nota-resumo-label">Total Itens</div>
+                      <div class="pdf-nota-resumo-valor">${produtos.length}</div>
+                    </div>
+                    <div class="pdf-nota-resumo-item">
+                      <div class="pdf-nota-resumo-label">Pagamento</div>
+                      <div class="pdf-nota-resumo-valor" style="font-size: 9px;">${formaPagamento}</div>
+                    </div>
+                    <div class="pdf-nota-resumo-item">
+                      <div class="pdf-nota-resumo-label">Status</div>
+                      <div class="pdf-nota-resumo-valor" style="font-size: 9px; color: ${statusPagamento === 'Pago' ? '#22c55e' : '#ef4444'};">${statusPagamento}</div>
+                    </div>
+                    <div class="pdf-nota-resumo-item destaque">
+                      <div class="pdf-nota-resumo-label">Valor Total</div>
+                      <div class="pdf-nota-resumo-valor">${totalFinal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ` : ''}
+
+            ${ordem.observacoes || ordem.notas || ordem.descricao ? `
+              <div class="pdf-nota-section">
+                <div class="pdf-nota-section-title">
+                  <i class="fas fa-sticky-note"></i> OBSERVAÇÕES
+                </div>
+                <div class="pdf-nota-section-content">
+                  <p class="pdf-nota-observacoes-texto">${ordem.observacoes || ordem.notas || ordem.descricao}</p>
+                </div>
+              </div>
+            ` : ''}
+
+            <div class="pdf-nota-section">
+              <div class="pdf-nota-section-title">
+                <i class="fas fa-shield-alt"></i> CONDIÇÕES GERAIS
+              </div>
+              <div class="pdf-nota-section-content">
+                <div class="pdf-nota-condicoes-list">
+                  <div class="pdf-nota-condicoes-item">
+                    <i class="fas fa-check-circle"></i>
+                    <span>Garantia de 90 dias para serviços e peças.</span>
+                  </div>
+                  <div class="pdf-nota-condicoes-item">
+                    <i class="fas fa-check-circle"></i>
+                    <span>Garantia não cobre mau uso ou danos.</span>
+                  </div>
+                  <div class="pdf-nota-condicoes-item">
+                    <i class="fas fa-check-circle"></i>
+                    <span>Validade do orçamento: 30 dias.</span>
+                  </div>
+                </div>
+              </div>
             </div>
-            <div class="pdf-nota-section-content">
-              <div class="pdf-nota-condicoes-list">
-                <div class="pdf-nota-condicoes-item">
-                  <i class="fas fa-check-circle"></i>
-                  <span>Garantia de 90 dias para serviços e peças.</span>
-                </div>
-                <div class="pdf-nota-condicoes-item">
-                  <i class="fas fa-check-circle"></i>
-                  <span>Garantia não cobre mau uso ou danos.</span>
-                </div>
-                <div class="pdf-nota-condicoes-item">
-                  <i class="fas fa-check-circle"></i>
-                  <span>Validade do orçamento: 30 dias.</span>
+
+            <div class="pdf-nota-section">
+              <div class="pdf-nota-section-title">
+                <i class="fas fa-pen-square"></i> ASSINATURAS
+              </div>
+              <div class="pdf-nota-section-content">
+                <div class="pdf-nota-assinaturas">
+                  <div class="pdf-nota-assinatura-campo">
+                    <div class="pdf-nota-assinatura-linha"></div>
+                    <div class="pdf-nota-assinatura-nome">Técnico Responsável</div>
+                    <div class="pdf-nota-assinatura-info">
+                      Nome: ${ordem.tecnico || '_____________________'}<br>
+                      Tel: (15) 99137-1232
+                    </div>
+                  </div>
+                  <div class="pdf-nota-assinatura-campo">
+                    <div class="pdf-nota-assinatura-linha"></div>
+                    <div class="pdf-nota-assinatura-nome">Cliente</div>
+                    <div class="pdf-nota-assinatura-info">
+                      Nome: ${ordem.cliente || '_____________________'}<br>
+                      CPF/CNPJ: ${ordem.cnpj || '_____________________'}
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
 
-          <div class="pdf-nota-section">
-            <div class="pdf-nota-section-title">
-              <i class="fas fa-pen-square"></i> ASSINATURAS
-            </div>
-            <div class="pdf-nota-section-content">
-              <div class="pdf-nota-assinaturas">
-                <div class="pdf-nota-assinatura-campo">
-                  <div class="pdf-nota-assinatura-linha"></div>
-                  <div class="pdf-nota-assinatura-nome">Técnico Responsável</div>
-                  <div class="pdf-nota-assinatura-info">
-                    Nome: ${ordem.tecnico || '_____________________'}<br>
-                    Tel: (15) 99137-1232
-                  </div>
-                </div>
-                <div class="pdf-nota-assinatura-campo">
-                  <div class="pdf-nota-assinatura-linha"></div>
-                  <div class="pdf-nota-assinatura-nome">Cliente</div>
-                  <div class="pdf-nota-assinatura-info">
-                    Nome: ${ordem.cliente || '_____________________'}<br>
-                    CPF/CNPJ: ${ordem.cnpj || '_____________________'}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
+          ${gerarFooter()}
         </div>
-
-        ${gerarFooter()}
-      </div>
-    `;
-      }
+      `;
     };
 
     // ===== GERA PÁGINAS ADICIONAIS (SÓ PRODUTOS) =====
     const gerarPaginaProdutos = (numeroPagina, colunas) => {
-      const offsetInicial = (numeroPagina - 2) * COLUNAS_POR_PAGINA * ITENS_POR_COLUNA;
-      
-      // 🎯 GRID ESPECIAL PARA valores_detalhados (1 COLUNA ÚNICA CENTRALIZADA)
-      const gridStyle = tipoRelatorio === 'valores_detalhados' 
-        ? 'display: flex; justify-content: center;' 
-        : 'display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;';
-      
-      return `
-      <div class="pdf-nota-page">
-        ${gerarHeader(numeroPagina)}
+      let offsetInicial = ITENS_PRIMEIRA_PAGINA + ((numeroPagina - 2) * ITENS_POR_COLUNA * COLUNAS_POR_PAGINA);
 
-        <div class="pdf-nota-body">
-          <div class="pdf-nota-section">
-            <div class="pdf-nota-section-title">
-              <i class="fas fa-box"></i> MATERIAIS E PRODUTOS ${numeroPagina === 2 ? '' : '(CONTINUAÇÃO)'} ${tipoRelatorio === 'sem_quantidade_valor' ? `(${produtos.length} itens)` : `(${qtdTotal} un.)`}
-            </div>
-            <div class="pdf-nota-section-content">
-              <div style="${gridStyle}">
-                ${colunas.map((coluna, idx) => {
-                  const offsetColuna = offsetInicial + (idx * ITENS_POR_COLUNA);
-                  return `
-                    <div style="${tipoRelatorio === 'valores_detalhados' ? 'width: 100%;' : ''}">
-                      ${renderizarTabelaProdutos(coluna, offsetColuna)}
-                    </div>
-                  `;
-                }).join('')}
+      return `
+        <div class="pdf-nota-page">
+          ${gerarHeader(numeroPagina)}
+
+          <div class="pdf-nota-body">
+            <div class="pdf-nota-section">
+              <div class="pdf-nota-section-title">
+                <i class="fas fa-box"></i> MATERIAIS E PRODUTOS (CONTINUAÇÃO) ${tipoRelatorio === 'sem_quantidade' ? `(${produtos.length} itens)` : `(${qtdTotal} un.)`}
+              </div>
+              <div class="pdf-nota-section-content">
+                <div class="pdf-produtos-columns">
+                  ${colunas.map((coluna, idx) => {
+                    const offsetColuna = offsetInicial + (idx * ITENS_POR_COLUNA);
+                    return `
+                      <div>
+                        ${renderizarTabelaProdutos(coluna, offsetColuna)}
+                      </div>
+                    `;
+                  }).join('')}
+                </div>
               </div>
             </div>
           </div>
-        </div>
 
-        ${gerarFooter()}
-      </div>
-    `;
+          ${gerarFooter()}
+        </div>
+      `;
     };
 
     // ===== MONTA HTML COMPLETO COM TODAS AS PÁGINAS =====
-    let htmlPDF = '';
-    
-    // 🎯 PARA valores_detalhados: PRIMEIRA PÁGINA + TODAS AS PÁGINAS DE PRODUTOS
-    if (tipoRelatorio === 'valores_detalhados') {
-      htmlPDF = `<!DOCTYPE html>
-    <html>
-    <head>
-      <meta charset="UTF-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-      <style>
-        * { 
-          margin: 0; 
-          padding: 0; 
-          box-sizing: border-box; 
-        }
-        
-        html, body { 
-          width: 100%; 
-          height: auto;
-          font-family: 'Segoe UI', Arial, sans-serif;
-        }
-        
-        body { 
-          background: #ffffff;
-          padding: 0;
-        }
-
-        .pdf-nota-page {
-          width: 210mm;
-          height: 297mm;
-          margin: 0 auto 10mm auto;
-          background: #ffffff;
-          display: flex;
-          flex-direction: column;
-          position: relative;
-          overflow: hidden;
-          page-break-after: always;
-        }
-
-        .pdf-nota-page:last-child {
-          margin-bottom: 0;
-        }
-
-        .pdf-nota-header {
-          background: linear-gradient(135deg, #b91c1c 0%, #dc2626 100%);
-          color: white;
-          padding: 12px 15px;
-          border-bottom: 3px solid #7f1d1d;
-          flex-shrink: 0;
-        }
-
-        .pdf-nota-header-top {
-          display: flex;
-          justify-content: space-between;
-          align-items: flex-start;
-          gap: 15px;
-        }
-
-        .pdf-nota-logo-section {
-          display: flex;
-          flex-direction: column;
-          gap: 3px;
-        }
-
-        .pdf-nota-logo-header {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-        }
-
-        .pdf-nota-logo-text {
-          font-size: 14px;
-          font-weight: 900;
-        }
-
-        .pdf-nota-company-info {
-          font-size: 7px;
-          line-height: 1.4;
-          opacity: 0.9;
-        }
-
-        .pdf-nota-header-center {
-          text-align: center;
-          flex: 1;
-        }
-
-        .pdf-nota-header-center h1 {
-          font-size: 16px;
-          font-weight: 900;
-          margin: 0 0 2px 0;
-        }
-
-        .pdf-nota-header-center p {
-          font-size: 9px;
-          margin: 0;
-          opacity: 0.9;
-        }
-
-        .pdf-nota-header-right {
-          text-align: right;
-          font-size: 8px;
-          line-height: 1.4;
-        }
-
-        .pdf-nota-header-item {
-          font-weight: 600;
-          margin: 2px 0;
-        }
-
-        .pdf-nota-body {
-          flex: 1;
-          padding: 10px 15px 10px 15px;
-          background: #fafafa;
-          overflow: auto;
-        }
-
-        .pdf-nota-section {
-          margin-bottom: 8px;
-          background: white;
-          border: 1px solid #d1d5db;
-          overflow: hidden;
-          box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-          border-radius: 6px;
-        }
-
-        .pdf-nota-section-title {
-          background: linear-gradient(135deg, #4b5563 0%, #6b7280 100%);
-          color: white;
-          padding: 6px 10px;
-          font-size: 9px;
-          font-weight: 700;
-          text-transform: uppercase;
-          letter-spacing: 0.3px;
-          display: flex;
-          align-items: center;
-          gap: 6px;
-        }
-
-        .pdf-nota-section-title.vermelho {
-          background: linear-gradient(135deg, #b91c1c 0%, #dc2626 100%);
-          border-bottom: 2px solid #7f1d1d;
-        }
-
-        .pdf-nota-section-title i {
-          font-size: 10px;
-        }
-
-        .pdf-nota-section-content {
-          padding: 8px 10px;
-        }
-
-        .pdf-nota-dados-inline {
-          display: grid;
-          grid-template-columns: repeat(3, 1fr);
-          gap: 6px;
-        }
-
-        .pdf-nota-dado-item {
-          background: #f9fafb;
-          border: 1px solid #e5e7eb;
-          border-left: 3px solid #6b7280;
-          padding: 5px 8px;
-          display: flex;
-          flex-direction: column;
-          gap: 2px;
-          border-radius: 4px;
-        }
-
-        .pdf-nota-dado-item.destaque {
-          border-left-color: #b91c1c;
-          background: #fef2f2;
-        }
-
-        .pdf-nota-dado-label {
-          font-size: 7px;
-          font-weight: 700;
-          color: #6b7280;
-          text-transform: uppercase;
-          letter-spacing: 0.2px;
-        }
-
-        .pdf-nota-dado-valor {
-          font-size: 9px;
-          font-weight: 600;
-          color: #1f2937;
-          word-break: break-word;
-        }
-
-        .pdf-produtos-columns {
-          display: grid;
-          grid-template-columns: repeat(3, 1fr);
-          gap: 10px;
-        }
-
-        .pdf-nota-resumo-compact {
-          display: flex;
-          gap: 8px;
-          align-items: stretch;
-        }
-
-        .pdf-nota-resumo-item {
-          flex: 1;
-          background: #f9fafb;
-          border: 1px solid #e5e7eb;
-          padding: 8px;
-          text-align: center;
-          display: flex;
-          flex-direction: column;
-          justify-content: center;
-          border-radius: 4px;
-        }
-
-        .pdf-nota-resumo-item.destaque {
-          background: linear-gradient(135deg, #b91c1c 0%, #dc2626 100%);
-          color: white;
-          border: 2px solid #7f1d1d;
-        }
-
-        .pdf-nota-resumo-label {
-          font-size: 7px;
-          font-weight: 700;
-          color: #6b7280;
-          text-transform: uppercase;
-          margin-bottom: 3px;
-        }
-
-        .pdf-nota-resumo-item.destaque .pdf-nota-resumo-label {
-          color: rgba(255,255,255,0.8);
-        }
-
-        .pdf-nota-resumo-valor {
-          font-size: 11px;
-          font-weight: 800;
-          color: #1f2937;
-        }
-
-        .pdf-nota-resumo-item.destaque .pdf-nota-resumo-valor {
-          color: #ffffff;
-          font-size: 16px;
-        }
-
-        .pdf-nota-observacoes-texto {
-          font-size: 8px;
-          line-height: 1.5;
-          color: #4b5563;
-          margin: 0;
-          padding: 6px;
-          background: #f9fafb;
-          border-left: 3px solid #f59e0b;
-          border-radius: 4px;
-        }
-
-        .pdf-nota-condicoes-list {
-          display: grid;
-          grid-template-columns: repeat(2, 1fr);
-          gap: 6px;
-        }
-
-        .pdf-nota-condicoes-item {
-          display: flex;
-          gap: 6px;
-          align-items: flex-start;
-          font-size: 8px;
-          line-height: 1.3;
-          color: #374151;
-          padding: 4px;
-          background: #f9fafb;
-          border-left: 2px solid #6b7280;
-          border-radius: 4px;
-        }
-
-        .pdf-nota-condicoes-item i {
-          color: #22c55e;
-          font-size: 8px;
-          margin-top: 1px;
-          flex-shrink: 0;
-        }
-
-        .pdf-nota-assinaturas {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 15px;
-          margin-top: 8px;
-        }
-
-        .pdf-nota-assinatura-campo {
-          display: flex;
-          flex-direction: column;
-          gap: 3px;
-        }
-
-        .pdf-nota-assinatura-linha {
-          border-bottom: 1.5px solid #374151;
-          height: 20px;
-        }
-
-        .pdf-nota-assinatura-nome {
-          font-weight: 700;
-          color: #1f2937;
-          font-size: 8px;
-          text-align: center;
-        }
-
-        .pdf-nota-assinatura-info {
-          font-size: 7px;
-          color: #6b7280;
-          text-align: center;
-          line-height: 1.3;
-        }
-
-        .pdf-nota-pdf-footer {
-          width: 100%;
-          padding: 8px 15px;
-          border-top: 3px solid #b91c1c;
-          text-align: center;
-          background: #f9fafb;
-          flex-shrink: 0;
-        }
-
-        .pdf-nota-footer-brand {
-          font-size: 11px;
-          font-weight: 900;
-          color: #1f2937;
-          margin-bottom: 3px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 5px;
-        }
-
-        .pdf-nota-footer-brand i {
-          color: #b91c1c;
-        }
-
-        .pdf-nota-footer-info {
-          font-size: 7px;
-          color: #6b7280;
-          margin-bottom: 2px;
-        }
-
-        .pdf-nota-footer-timestamp {
-          font-size: 6px;
-          color: #9ca3af;
-          font-style: italic;
-        }
-
-        @media print {
-          * {
-            -webkit-print-color-adjust: exact;
-            print-color-adjust: exact;
-          }
-          body { margin: 0; padding: 0; }
-          .pdf-nota-page { 
-            max-width: none;
-            margin: 0;
-          }
-        }
-      </style>
-    </head>
-    <body>
-      ${gerarPrimeiraPagina()}
-      ${paginasProdutos.map((colunas, idx) => gerarPaginaProdutos(idx + 2, colunas)).join('')}
-    </body>
-    </html>`;
-    } 
-    // 🎯 PARA OUTROS TIPOS: ESTRUTURA NORMAL
-    else {
-      htmlPDF = `<!DOCTYPE html>
-    <html>
-    <head>
-      <meta charset="UTF-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-      <style>
-        * { 
-          margin: 0; 
-          padding: 0; 
-          box-sizing: border-box; 
-        }
-        
-        html, body { 
-          width: 100%; 
-          height: auto;
-          font-family: 'Segoe UI', Arial, sans-serif;
-        }
-        
-        body { 
-          background: #ffffff;
-          padding: 0;
-        }
-
-        .pdf-nota-page {
-          width: 210mm;
-          height: 297mm;
-          margin: 0 auto 10mm auto;
-          background: #ffffff;
-          display: flex;
-          flex-direction: column;
-          position: relative;
-          overflow: hidden;
-          page-break-after: always;
-        }
-
-        .pdf-nota-page:last-child {
-          margin-bottom: 0;
-        }
-
-        .pdf-nota-header {
-          background: linear-gradient(135deg, #b91c1c 0%, #dc2626 100%);
-          color: white;
-          padding: 12px 15px;
-          border-bottom: 3px solid #7f1d1d;
-          flex-shrink: 0;
-        }
-
-        .pdf-nota-header-top {
-          display: flex;
-          justify-content: space-between;
-          align-items: flex-start;
-          gap: 15px;
-        }
-
-        .pdf-nota-logo-section {
-          display: flex;
-          flex-direction: column;
-          gap: 3px;
-        }
-
-        .pdf-nota-logo-header {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-        }
-
-        .pdf-nota-logo-text {
-          font-size: 14px;
-          font-weight: 900;
-        }
-
-        .pdf-nota-company-info {
-          font-size: 7px;
-          line-height: 1.4;
-          opacity: 0.9;
-        }
-
-        .pdf-nota-header-center {
-          text-align: center;
-          flex: 1;
-        }
-
-        .pdf-nota-header-center h1 {
-          font-size: 16px;
-          font-weight: 900;
-          margin: 0 0 2px 0;
-        }
-
-        .pdf-nota-header-center p {
-          font-size: 9px;
-          margin: 0;
-          opacity: 0.9;
-        }
-
-        .pdf-nota-header-right {
-          text-align: right;
-          font-size: 8px;
-          line-height: 1.4;
-        }
-
-        .pdf-nota-header-item {
-          font-weight: 600;
-          margin: 2px 0;
-        }
-
-        .pdf-nota-body {
-          flex: 1;
-          padding: 10px 15px 10px 15px;
-          background: #fafafa;
-          overflow: auto;
-        }
-
-        .pdf-nota-section {
-          margin-bottom: 8px;
-          background: white;
-          border: 1px solid #d1d5db;
-          overflow: hidden;
-          box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-          border-radius: 6px;
-        }
-
-        .pdf-nota-section-title {
-          background: linear-gradient(135deg, #4b5563 0%, #6b7280 100%);
-          color: white;
-          padding: 6px 10px;
-          font-size: 9px;
-          font-weight: 700;
-          text-transform: uppercase;
-          letter-spacing: 0.3px;
-          display: flex;
-          align-items: center;
-          gap: 6px;
-        }
-
-        .pdf-nota-section-title.vermelho {
-          background: linear-gradient(135deg, #b91c1c 0%, #dc2626 100%);
-          border-bottom: 2px solid #7f1d1d;
-        }
-
-        .pdf-nota-section-title i {
-          font-size: 10px;
-        }
-
-        .pdf-nota-section-content {
-          padding: 8px 10px;
-        }
-
-        .pdf-nota-dados-inline {
-          display: grid;
-          grid-template-columns: repeat(3, 1fr);
-          gap: 6px;
-        }
-
-        .pdf-nota-dado-item {
-          background: #f9fafb;
-          border: 1px solid #e5e7eb;
-          border-left: 3px solid #6b7280;
-          padding: 5px 8px;
-          display: flex;
-          flex-direction: column;
-          gap: 2px;
-          border-radius: 4px;
-        }
-
-        .pdf-nota-dado-item.destaque {
-          border-left-color: #b91c1c;
-          background: #fef2f2;
-        }
-
-        .pdf-nota-dado-label {
-          font-size: 7px;
-          font-weight: 700;
-          color: #6b7280;
-          text-transform: uppercase;
-          letter-spacing: 0.2px;
-        }
-
-        .pdf-nota-dado-valor {
-          font-size: 9px;
-          font-weight: 600;
-          color: #1f2937;
-          word-break: break-word;
-        }
-
-        .pdf-produtos-columns {
-          display: grid;
-          grid-template-columns: repeat(3, 1fr);
-          gap: 10px;
-        }
-
-        .pdf-nota-resumo-compact {
-          display: flex;
-          gap: 8px;
-          align-items: stretch;
-        }
-
-        .pdf-nota-resumo-item {
-          flex: 1;
-          background: #f9fafb;
-          border: 1px solid #e5e7eb;
-          padding: 8px;
-          text-align: center;
-          display: flex;
-          flex-direction: column;
-          justify-content: center;
-          border-radius: 4px;
-        }
-
-        .pdf-nota-resumo-item.destaque {
-          background: linear-gradient(135deg, #b91c1c 0%, #dc2626 100%);
-          color: white;
-          border: 2px solid #7f1d1d;
-        }
-
-        .pdf-nota-resumo-label {
-          font-size: 7px;
-          font-weight: 700;
-          color: #6b7280;
-          text-transform: uppercase;
-          margin-bottom: 3px;
-        }
-
-        .pdf-nota-resumo-item.destaque .pdf-nota-resumo-label {
-          color: rgba(255,255,255,0.8);
-        }
-
-        .pdf-nota-resumo-valor {
-          font-size: 11px;
-          font-weight: 800;
-          color: #1f2937;
-        }
-
-        .pdf-nota-resumo-item.destaque .pdf-nota-resumo-valor {
-          color: #ffffff;
-          font-size: 16px;
-        }
-
-        .pdf-nota-observacoes-texto {
-          font-size: 8px;
-          line-height: 1.5;
-          color: #4b5563;
-          margin: 0;
-          padding: 6px;
-          background: #f9fafb;
-          border-left: 3px solid #f59e0b;
-          border-radius: 4px;
-        }
-
-        .pdf-nota-condicoes-list {
-          display: grid;
-          grid-template-columns: repeat(2, 1fr);
-          gap: 6px;
-        }
-
-        .pdf-nota-condicoes-item {
-          display: flex;
-          gap: 6px;
-          align-items: flex-start;
-          font-size: 8px;
-          line-height: 1.3;
-          color: #374151;
-          padding: 4px;
-          background: #f9fafb;
-          border-left: 2px solid #6b7280;
-          border-radius: 4px;
-        }
-
-        .pdf-nota-condicoes-item i {
-          color: #22c55e;
-          font-size: 8px;
-          margin-top: 1px;
-          flex-shrink: 0;
-        }
-
-        .pdf-nota-assinaturas {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 15px;
-          margin-top: 8px;
-        }
-
-        .pdf-nota-assinatura-campo {
-          display: flex;
-          flex-direction: column;
-          gap: 3px;
-        }
-
-        .pdf-nota-assinatura-linha {
-          border-bottom: 1.5px solid #374151;
-          height: 20px;
-        }
-
-        .pdf-nota-assinatura-nome {
-          font-weight: 700;
-          color: #1f2937;
-          font-size: 8px;
-          text-align: center;
-        }
-
-        .pdf-nota-assinatura-info {
-          font-size: 7px;
-          color: #6b7280;
-          text-align: center;
-          line-height: 1.3;
-        }
-
-        .pdf-nota-pdf-footer {
-          width: 100%;
-          padding: 8px 15px;
-          border-top: 3px solid #b91c1c;
-          text-align: center;
-          background: #f9fafb;
-          flex-shrink: 0;
-        }
-
-        .pdf-nota-footer-brand {
-          font-size: 11px;
-          font-weight: 900;
-          color: #1f2937;
-          margin-bottom: 3px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 5px;
-        }
-
-        .pdf-nota-footer-brand i {
-          color: #b91c1c;
-        }
-
-        .pdf-nota-footer-info {
-          font-size: 7px;
-          color: #6b7280;
-          margin-bottom: 2px;
-        }
-
-        .pdf-nota-footer-timestamp {
-          font-size: 6px;
-          color: #9ca3af;
-          font-style: italic;
-        }
-
-        @media print {
-          * {
-            -webkit-print-color-adjust: exact;
-            print-color-adjust: exact;
-          }
-          body { margin: 0; padding: 0; }
-          .pdf-nota-page { 
-            max-width: none;
-            margin: 0;
-          }
-        }
-      </style>
-    </head>
-    <body>
-      ${gerarPrimeiraPagina()}
-      ${paginasProdutos.slice(1).map((colunas, idx) => gerarPaginaProdutos(idx + 2, colunas)).join('')}
-    </body>
-    </html>`;
+    let htmlPDF = `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    * { 
+      margin: 0; 
+      padding: 0; 
+      box-sizing: border-box; 
     }
+    
+    html, body { 
+      width: 100%; 
+      height: auto;
+      font-family: 'Segoe UI', Arial, sans-serif;
+    }
+    
+    body { 
+      background: #ffffff;
+      padding: 0;
+    }
+
+    .pdf-nota-page {
+      width: 210mm;
+      height: 297mm;
+      margin: 0 auto 10mm auto;
+      background: #ffffff;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      overflow: hidden;
+      page-break-after: always;
+    }
+
+    .pdf-nota-page:last-child {
+      margin-bottom: 0;
+    }
+
+    .pdf-nota-header {
+      background: linear-gradient(135deg, #b91c1c 0%, #dc2626 100%);
+      color: white;
+      padding: 12px 15px;
+      border-bottom: 3px solid #7f1d1d;
+      flex-shrink: 0;
+    }
+
+    .pdf-nota-header-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 15px;
+    }
+
+    .pdf-nota-logo-section {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .pdf-nota-logo-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .pdf-nota-logo-text {
+      font-size: 14px;
+      font-weight: 900;
+    }
+
+    .pdf-nota-company-info {
+      font-size: 7px;
+      line-height: 1.4;
+      opacity: 0.9;
+    }
+
+    .pdf-nota-header-center {
+      text-align: center;
+      flex: 1;
+    }
+
+    .pdf-nota-header-center h1 {
+      font-size: 16px;
+      font-weight: 900;
+      margin: 0 0 2px 0;
+    }
+
+    .pdf-nota-header-center p {
+      font-size: 9px;
+      margin: 0;
+      opacity: 0.9;
+    }
+
+    .pdf-nota-header-right {
+      text-align: right;
+      font-size: 8px;
+      line-height: 1.4;
+    }
+
+    .pdf-nota-header-item {
+      font-weight: 600;
+      margin: 2px 0;
+    }
+
+    .pdf-nota-body {
+      flex: 1;
+      padding: 10px 15px 10px 15px;
+      background: #fafafa;
+      overflow: auto;
+    }
+
+    .pdf-nota-section {
+      margin-bottom: 8px;
+      background: white;
+      border: 1px solid #d1d5db;
+      overflow: hidden;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+      border-radius: 6px;
+    }
+
+    .pdf-nota-section-title {
+      background: linear-gradient(135deg, #4b5563 0%, #6b7280 100%);
+      color: white;
+      padding: 6px 10px;
+      font-size: 9px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .pdf-nota-section-title.vermelho {
+      background: linear-gradient(135deg, #b91c1c 0%, #dc2626 100%);
+      border-bottom: 2px solid #7f1d1d;
+    }
+
+    .pdf-nota-section-title i {
+      font-size: 10px;
+    }
+
+    .pdf-nota-section-content {
+      padding: 8px 10px;
+    }
+
+    .pdf-nota-dados-inline {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+    }
+
+    .pdf-nota-dado-item {
+      background: #f9fafb;
+      border: 1px solid #e5e7eb;
+      border-left: 3px solid #6b7280;
+      padding: 5px 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      border-radius: 4px;
+    }
+
+    .pdf-nota-dado-item.destaque {
+      border-left-color: #b91c1c;
+      background: #fef2f2;
+    }
+
+    .pdf-nota-dado-label {
+      font-size: 7px;
+      font-weight: 700;
+      color: #6b7280;
+      text-transform: uppercase;
+      letter-spacing: 0.2px;
+    }
+
+    .pdf-nota-dado-valor {
+      font-size: 9px;
+      font-weight: 600;
+      color: #1f2937;
+      word-break: break-word;
+    }
+
+    .pdf-produtos-columns {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+
+    /* 🎯 QUANDO HÁ APENAS 1 COLUNA DE PRODUTOS, ELA OCUPA 100% DA LARGURA */
+    .pdf-produtos-columns > div:only-child {
+      grid-column: 1 / -1;
+      max-width: 100%;
+    }
+
+    .pdf-nota-resumo-compact {
+      display: flex;
+      gap: 8px;
+      align-items: stretch;
+    }
+
+    .pdf-nota-resumo-item {
+      flex: 1;
+      background: #f9fafb;
+      border: 1px solid #e5e7eb;
+      padding: 8px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      border-radius: 4px;
+    }
+
+    .pdf-nota-resumo-item.destaque {
+      background: linear-gradient(135deg, #b91c1c 0%, #dc2626 100%);
+      color: white;
+      border: 2px solid #7f1d1d;
+    }
+
+    .pdf-nota-resumo-label {
+      font-size: 7px;
+      font-weight: 700;
+      color: #6b7280;
+      text-transform: uppercase;
+      margin-bottom: 3px;
+    }
+
+    .pdf-nota-resumo-item.destaque .pdf-nota-resumo-label {
+      color: rgba(255,255,255,0.8);
+    }
+
+    .pdf-nota-resumo-valor {
+      font-size: 11px;
+      font-weight: 800;
+      color: #1f2937;
+    }
+
+    .pdf-nota-resumo-item.destaque .pdf-nota-resumo-valor {
+      color: #ffffff;
+      font-size: 16px;
+    }
+
+    .pdf-nota-observacoes-texto {
+      font-size: 8px;
+      line-height: 1.5;
+      color: #4b5563;
+      margin: 0;
+      padding: 6px;
+      background: #f9fafb;
+      border-left: 3px solid #f59e0b;
+      border-radius: 4px;
+    }
+
+    .pdf-nota-condicoes-list {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 6px;
+    }
+
+    .pdf-nota-condicoes-item {
+      display: flex;
+      gap: 6px;
+      align-items: flex-start;
+      font-size: 8px;
+      line-height: 1.3;
+      color: #374151;
+      padding: 4px;
+      background: #f9fafb;
+      border-left: 2px solid #6b7280;
+      border-radius: 4px;
+    }
+
+    .pdf-nota-condicoes-item i {
+      color: #22c55e;
+      font-size: 8px;
+      margin-top: 1px;
+      flex-shrink: 0;
+    }
+
+    .pdf-nota-assinaturas {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+      margin-top: 8px;
+    }
+
+    .pdf-nota-assinatura-campo {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .pdf-nota-assinatura-linha {
+      border-bottom: 1.5px solid #374151;
+      height: 20px;
+    }
+
+    .pdf-nota-assinatura-nome {
+      font-weight: 700;
+      color: #1f2937;
+      font-size: 8px;
+      text-align: center;
+    }
+
+    .pdf-nota-assinatura-info {
+      font-size: 7px;
+      color: #6b7280;
+      text-align: center;
+      line-height: 1.3;
+    }
+
+    .pdf-nota-pdf-footer {
+      width: 100%;
+      padding: 8px 15px;
+      border-top: 3px solid #b91c1c;
+      text-align: center;
+      background: #f9fafb;
+      flex-shrink: 0;
+    }
+
+    .pdf-nota-footer-brand {
+      font-size: 11px;
+      font-weight: 900;
+      color: #1f2937;
+      margin-bottom: 3px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+    }
+
+    .pdf-nota-footer-brand i {
+      color: #b91c1c;
+    }
+
+    .pdf-nota-footer-info {
+      font-size: 7px;
+      color: #6b7280;
+      margin-bottom: 2px;
+    }
+
+    .pdf-nota-footer-timestamp {
+      font-size: 6px;
+      color: #9ca3af;
+      font-style: italic;
+    }
+
+    @media print {
+      * {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+      body { margin: 0; padding: 0; }
+      .pdf-nota-page { 
+        max-width: none;
+        margin: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  ${gerarPrimeiraPagina()}
+  ${paginasProdutos.slice(1).map((colunas, idx) => gerarPaginaProdutos(idx + 2, colunas)).join('')}
+</body>
+</html>`;
 
     // Aguardar renderização
     await new Promise(resolve => setTimeout(resolve, 100));
@@ -6897,17 +6867,19 @@ async function gerarPDFOrdem(orderId, tipoRelatorio = 'com_valores') {
       'com_valores': `Nota_Servico_${ordem.cliente || 'cliente'}_ComValorTotal_${Date.now()}.pdf`,
       'sem_valores': `Nota_Servico_${ordem.cliente || 'cliente'}_SemValores_${Date.now()}.pdf`,
       'valores_detalhados': `Nota_Servico_${ordem.cliente || 'cliente'}_Detalhado_${Date.now()}.pdf`,
-      'sem_quantidade_valor': `Nota_Servico_${ordem.cliente || 'cliente'}_SemQtdValor_${Date.now()}.pdf`
+      'sem_quantidade': `Nota_Servico_${ordem.cliente || 'cliente'}_SemQtdValor_${Date.now()}.pdf`
     };
 
-    pdf.save(nomeArquivos[tipoRelatorio] || `Nota_Servico_${Date.now()}.pdf`);
+    pdf.save(nomeArquivos[tipoRelatorio]);
     showToast('PDF gerado com sucesso!', 'success');
 
   } catch (error) {
     console.error('Erro ao gerar PDF:', error);
-    console.error('Erro ao gerar PDF: ' + error.message, 'error');
+    showToast('Erro ao gerar PDF. Tente novamente.', 'error');
   }
 }
+
+
 
 
 
@@ -6927,16 +6899,16 @@ async function editarOS(orderId) {
     }
 
     editingOSId = orderId;
-    
+
     // ✅ GUARDAR PRODUTOS ORIGINAIS DA OS
     produtosOriginaisOS = Array.isArray(ordem.products) ? [...ordem.products] : [];
-    
+
     // ✅ FAZER BACKUP DO ESTOQUE ATUAL ANTES DE QUALQUER ALTERAÇÃO
     estoqueBackup = {};
     products.forEach(p => {
       estoqueBackup[p.id] = p.quantity || 0;
     });
-    
+
     // ✅ RESTAURAR O ESTOQUE DOS PRODUTOS QUE ESTAVAM NA OS (TEMPORARIAMENTE)
     for (const prodOS of produtosOriginaisOS) {
       const produtoOriginal = products.find(p => p.id === prodOS.id);
@@ -6944,7 +6916,7 @@ async function editarOS(orderId) {
         produtoOriginal.quantity = (produtoOriginal.quantity || 0) + prodOS.qty;
       }
     }
-    
+
     editingProducts = [...produtosOriginaisOS];
 
     document.getElementById('editCliente').value = ordem.cliente || '';
@@ -7194,10 +7166,10 @@ function confirmarExclusaoProduto(index) {
   }
 
   editingProducts.splice(index, 1);
-  
+
   const confirmDiv = document.getElementById(`confirm-delete-${index}`);
   if (confirmDiv) confirmDiv.remove();
-  
+
   renderizarProdutosEdicao();
   atualizarTotaisEdicao();
   showToast('Produto removido e devolvido ao estoque!', 'success');
@@ -7355,13 +7327,13 @@ async function salvarEdicaoOS() {
           produtoSnapshot.forEach(async (childSnapshot) => {
             const produto = childSnapshot.val();
             const firebaseKey = childSnapshot.key;
-            
+
             const novoEstoque = (produto.quantity || 0) + produtoRemovido.qty;
-            
+
             await database.ref(`products/${firebaseKey}`).update({
               quantity: novoEstoque
             });
-            
+
             console.log(`✅ Devolvido ${produtoRemovido.qty}x de "${produtoRemovido.name}" ao estoque`);
           });
         }
@@ -7388,20 +7360,20 @@ async function salvarEdicaoOS() {
           produtoSnapshot.forEach(async (childSnapshot) => {
             const produto = childSnapshot.val();
             const firebaseKey = childSnapshot.key;
-            
+
             // Se diminuiu a quantidade na OS, devolver ao estoque
             // Se aumentou a quantidade na OS, retirar do estoque
             const novoEstoque = (produto.quantity || 0) + diferencaQty;
-            
+
             if (novoEstoque < 0) {
               showToast(`Estoque insuficiente para ${produto.name}`, 'error');
               return;
             }
-            
+
             await database.ref(`products/${firebaseKey}`).update({
               quantity: novoEstoque
             });
-            
+
             if (diferencaQty > 0) {
               console.log(`✅ Devolvido ${diferencaQty}x de "${produto.name}" ao estoque`);
             } else {
@@ -7494,17 +7466,17 @@ async function salvarEdicaoOS() {
 function filtrarProdutosEditOSModal() {
   const searchInput = document.getElementById('searchProductEditOSInput');
   const searchTerm = searchInput?.value.toLowerCase() || '';
-  
+
   const list = document.getElementById('productEditOSModalList');
   if (!list) return;
 
   database.ref('products').once('value', (snapshot) => {
     const produtosDisponiveis = [];
-    
+
     snapshot.forEach((childSnapshot) => {
       const produto = childSnapshot.val();
       const firebaseKey = childSnapshot.key;
-      
+
       if (produto.quantity > 0) {
         produtosDisponiveis.push({
           ...produto,
@@ -7518,7 +7490,7 @@ function filtrarProdutosEditOSModal() {
     );
 
     // ✅ Aplicar filtro de busca
-    const produtosFiltrados = produtosNaoAdicionados.filter(p => 
+    const produtosFiltrados = produtosNaoAdicionados.filter(p =>
       p.name.toLowerCase().includes(searchTerm) ||
       (p.description && p.description.toLowerCase().includes(searchTerm))
     );
@@ -7617,11 +7589,11 @@ function renderizarListaProdutosEditOSModal() {
   // ✅ Buscar produtos diretamente do Firebase
   database.ref('products').once('value', (snapshot) => {
     const produtosDisponiveis = [];
-    
+
     snapshot.forEach((childSnapshot) => {
       const produto = childSnapshot.val();
       const firebaseKey = childSnapshot.key;
-      
+
       // ✅ Mostrar apenas produtos com estoque > 0
       if (produto.quantity > 0) {
         produtosDisponiveis.push({
@@ -7729,7 +7701,7 @@ function validarQuantidadeEditModalOS(prodId, maxStock) {
   if (!input) return;
 
   let valor = parseInt(input.value);
-  
+
   if (isNaN(valor) || valor < 1) {
     input.value = 1;
   } else if (valor > maxStock) {
@@ -7769,7 +7741,7 @@ const osRef = database.ref('os');
 productsRef.on('value', (snapshot) => {
   products = [];
   const data = snapshot.val();
-  
+
   if (data) {
     Object.keys(data).forEach(key => {
       products.push({
@@ -7778,7 +7750,7 @@ productsRef.on('value', (snapshot) => {
       });
     });
   }
-  
+
   // Atualizar UI se necessário
   if (typeof renderProducts === 'function') {
     renderProducts();
@@ -7793,7 +7765,7 @@ async function selecionarProdutoEditOSModal(productId) {
       .orderByChild('id')
       .equalTo(Number(productId))
       .once('value');
-    
+
     if (!produtoSnapshot.exists()) {
       showToast('Produto não encontrado', 'error');
       return;
@@ -7801,7 +7773,7 @@ async function selecionarProdutoEditOSModal(productId) {
 
     let produto = null;
     let firebaseKey = null;
-    
+
     produtoSnapshot.forEach((childSnapshot) => {
       produto = childSnapshot.val();
       firebaseKey = childSnapshot.key;
@@ -7844,11 +7816,11 @@ async function selecionarProdutoEditOSModal(productId) {
 
     // Fechar modal e atualizar UI
     closeProductModal();
-    
+
     if (typeof renderizarProdutosEdicao === 'function') {
       renderizarProdutosEdicao();
     }
-    
+
     if (typeof atualizarTotaisEdicao === 'function') {
       atualizarTotaisEdicao();
     }
@@ -7859,7 +7831,7 @@ async function selecionarProdutoEditOSModal(productId) {
     }
 
     showToast(`${produto.name} (${qty}x) adicionado!`, 'success');
-    
+
   } catch (error) {
     console.error('Erro ao adicionar produto:', error);
     showToast('Erro ao adicionar produto', 'error');
@@ -7871,7 +7843,7 @@ async function selecionarProdutoEditOSModal(productId) {
 async function removerProdutoEdicao(index) {
   try {
     const produtoRemovido = editingProducts[index];
-    
+
     if (!produtoRemovido) {
       showToast('Produto não encontrado', 'error');
       return;
@@ -7882,21 +7854,21 @@ async function removerProdutoEdicao(index) {
       const produtoRef = database.ref(`products/${produtoRemovido.firebaseKey}`);
       const snapshot = await produtoRef.once('value');
       const produtoAtual = snapshot.val();
-      
+
       if (produtoAtual) {
         const novoEstoque = (produtoAtual.quantity || 0) + produtoRemovido.qty;
         await produtoRef.update({ quantity: novoEstoque });
       }
     }
-    
+
     // Remover do array local
     editingProducts.splice(index, 1);
-    
+
     // Atualizar UI
     if (typeof renderizarProdutosEdicao === 'function') {
       renderizarProdutosEdicao();
     }
-    
+
     if (typeof atualizarTotaisEdicao === 'function') {
       atualizarTotaisEdicao();
     }
@@ -7905,9 +7877,9 @@ async function removerProdutoEdicao(index) {
     if (document.getElementById('productEditOSModalList')) {
       renderizarListaProdutosEditOSModal();
     }
-    
+
     showToast(`${produtoRemovido.name} removido - estoque devolvido`, 'success');
-    
+
   } catch (error) {
     console.error('Erro ao remover produto:', error);
     showToast('Erro ao remover produto', 'error');
@@ -7928,10 +7900,10 @@ async function salvarOSNoFirebase(osData) {
       osData.id = newOsRef.key;
       await newOsRef.set(osData);
     }
-    
+
     showToast('OS salva com sucesso!', 'success');
     return osData.id;
-    
+
   } catch (error) {
     console.error('Erro ao salvar OS:', error);
     showToast('Erro ao salvar OS', 'error');
@@ -7942,14 +7914,14 @@ async function salvarOSNoFirebase(osData) {
 // ✅ Listener em tempo real para uma OS específica
 function monitorarOS(osId, callback) {
   const osItemRef = database.ref(`os/${osId}`);
-  
+
   osItemRef.on('value', (snapshot) => {
     const osData = snapshot.val();
     if (osData && typeof callback === 'function') {
       callback(osData);
     }
   });
-  
+
   // Retornar função para parar de monitorar
   return () => osItemRef.off('value');
 }
@@ -8010,7 +7982,7 @@ async function excluirOS(orderId) {
     showToast('Excluindo ordem e devolvendo estoque...', 'info');
 
     const produtosDaOS = Array.isArray(ordem.products) ? ordem.products : [];
-    
+
     for (const osProd of produtosDaOS) {
       const product = products.find(p => p.id === osProd.id);
       if (product) {
@@ -8018,7 +7990,7 @@ async function excluirOS(orderId) {
         await firebase.database().ref('products/' + osProd.id).update({
           quantity: newStock
         });
-        
+
         product.quantity = newStock;
       }
     }
@@ -8614,10 +8586,10 @@ async function startInspection(companyId) {
     if (!company) return showToast('Empresa não encontrada', 'error');
 
     // Guarda dados para reutilizar
-    window.ultimaEmpresaCadastrada = { 
-      id: companyId, 
+    window.ultimaEmpresaCadastrada = {
+      id: companyId,
       tipo: 'empresa',
-      ...company 
+      ...company
     };
 
     openModal('inspectionFormModal');
@@ -8844,7 +8816,7 @@ document.querySelectorAll('.orders-tab').forEach(tab => {
 /* ============================= */
 /* PRODUTOS - BASE GLOBAL */
 /* ============================= */
- /* ============================= */
+/* ============================= */
 /* SALVAR PRODUTO NO FIREBASE */
 /* ============================= */
 
@@ -11104,7 +11076,7 @@ function validarQuantidadeModalOS(prodId, maxStock) {
   if (!input) return;
 
   let valor = parseInt(input.value);
-  
+
   if (isNaN(valor) || valor < 1) {
     input.value = 1;
   } else if (valor > maxStock) {
@@ -11180,7 +11152,7 @@ function validarQuantidadeEditModalOS(prodId, maxStock) {
   if (!input) return;
 
   let valor = parseInt(input.value);
-  
+
   if (isNaN(valor) || valor < 1) {
     input.value = 1;
   } else if (valor > maxStock) {
@@ -11347,18 +11319,18 @@ function openProductModal() {
 function closeProductModal() {
   const productModal = document.getElementById('productModal');
   const selectModal = document.getElementById('selectProductEditOSModal');
-  
+
   if (productModal) {
     productModal.classList.remove('active');
   }
-  
+
   if (selectModal) {
     selectModal.classList.remove('active');
-    
+
     setTimeout(() => {
       selectModal.remove();
       document.body.style.overflow = '';
-      
+
       const editModal = document.getElementById('editOSModal');
       if (editModal) editModal.style.display = 'flex';
     }, 300);
@@ -11459,14 +11431,14 @@ function renderOSProducts() {
 // ===========================
 function removeProductFromOS(id) {
   const produtoRemovido = osSelectedProducts.find(p => p.id === id);
-  
+
   if (produtoRemovido) {
     // Devolver estoque ao remover
     const produto = products.find(p => p.id === id);
     if (produto) {
       produto.quantity = (produto.quantity || 0) + produtoRemovido.qty;
     }
-    
+
     osSelectedProducts = osSelectedProducts.filter(p => p.id !== id);
     renderOSProducts();
     showToast(`${produtoRemovido.name} removido com sucesso`, 'success');
@@ -11537,7 +11509,7 @@ async function finalizarOS(osId) {
   }
 
   const produtosDaOS = Array.isArray(os.products) ? os.products : [];
-  
+
   if (produtosDaOS.length === 0) {
     showToast('Esta OS não possui produtos cadastrados', 'info');
   }
@@ -11673,7 +11645,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const savedView = localStorage.getItem('ordersViewMode') || 'card';
   toggleView(savedView);
 });
-
 // ========================================
 // SISTEMA DE ALERTAS - MOBILE FIRST
 // ========================================
@@ -11717,6 +11688,14 @@ function criarModalValidade() {
             
             <div class="info-row">
               <i class="fas fa-tag"></i>
+              <div>
+                <span class="label">Categoria</span>
+                <span class="value" id="modalCategoria">-</span>
+              </div>
+            </div>
+            
+            <div class="info-row">
+              <i class="fas fa-cube"></i>
               <div>
                 <span class="label">Item</span>
                 <span class="value" id="modalTipo">-</span>
@@ -11771,6 +11750,36 @@ function criarModalValidade() {
 }
 
 // ========================================
+// IDENTIFICAR CATEGORIA DO ITEM
+// ========================================
+function identificarCategoria(campo) {
+  if (campo.includes('mangueira')) {
+    return { categoria: 'Mangueira', icon: 'fa-water', cor: '#3b82f6' };
+  } else if (campo.includes('extintor') || campo === 'extintores_validade') {
+    return { categoria: 'Extintor', icon: 'fa-fire-extinguisher', cor: '#ef4444' };
+  } else if (campo.includes('cert')) {
+    return { categoria: 'Certificado', icon: 'fa-certificate', cor: '#f59e0b' };
+  } else if (campo.includes('alarme')) {
+    return { categoria: 'Alarme de Incêndio', icon: 'fa-bell', cor: '#ec4899' };
+  } else if (campo.includes('botoeira')) {
+    return { categoria: 'Botoeira', icon: 'fa-circle', cor: '#06b6d4' };
+  } else if (campo.includes('central')) {
+    return { categoria: 'Central de Alarme', icon: 'fa-microchip', cor: '#8b5cf6' };
+  } else if (campo.includes('detector')) {
+    return { categoria: 'Detector de Fumaça', icon: 'fa-smoke', cor: '#6366f1' };
+  } else if (campo.includes('hidrante')) {
+    return { categoria: 'Hidrante', icon: 'fa-hydrant', cor: '#10b981' };
+  } else if (campo.includes('iluminacao')) {
+    return { categoria: 'Iluminação de Emergência', icon: 'fa-lightbulb', cor: '#fbbf24' };
+  } else if (campo.includes('projeto_spda')) {
+    return { categoria: 'Projeto SPDA', icon: 'fa-bolt', cor: '#f97316' };
+  } else if (campo.includes('sprinklers')) {
+    return { categoria: 'Sprinklers', icon: 'fa-spray-can', cor: '#14b8a6' };
+  }
+  return { categoria: 'Outros', icon: 'fa-cube', cor: '#6b7280' };
+}
+
+// ========================================
 // BUSCAR E AGRUPAR ALERTAS
 // ========================================
 async function buscarAlertasVencimento() {
@@ -11807,38 +11816,72 @@ async function buscarAlertasVencimento() {
 
         const itensVencidos = [];
 
-        // Verifica todos os campos da inspeção
-        Object.keys(inspecao).forEach(campo => {
-          // Busca apenas campos que terminam com "validade"
-          if (campo.endsWith('validade') && !campo.includes('inicio') && inspecao[campo]) {
-            const dataValidade = inspecao[campo];
-            const diasRestantes = calcularDiasRestantes(dataValidade);
+        // ========== VERIFICA MANGUEIRA ==========
+        if (inspecao.mangueira_data_vencimento) {
+          const dataValidade = inspecao.mangueira_data_vencimento;
+          const diasRestantes = calcularDiasRestantes(dataValidade);
 
-            if (diasRestantes !== null) {
-              const status = determinarStatus(diasRestantes);
+          if (diasRestantes !== null) {
+            const status = determinarStatus(diasRestantes);
 
-              if (status !== 'ok') {
-                const tipo = formatarTipoCampo(campo, inspecao);
+            if (status !== 'ok') {
+              const tipoMangueira = inspecao.mangueira_tipo || 'Mangueira';
+              const diametroMangueira = inspecao.mangueira_diametro || '';
+              const comprimentoMangueira = inspecao.mangueira_comprimento ? inspecao.mangueira_comprimento + 'm' : '';
 
-                itensVencidos.push({
-                  id: `${id}-${campo}`,
-                  tipo: tipo,
-                  validade: dataValidade,
-                  diasRestantes: diasRestantes,
-                  status: status,
-                  campo: campo,
-                  inspectionId: id
-                });
+              const tipo = `${tipoMangueira} ${diametroMangueira} ${comprimentoMangueira}`.trim();
 
-                if (status === 'vencido') {
-                  empresasMap[razaoSocial].totalVencidos++;
-                } else if (status === 'proximo') {
-                  empresasMap[razaoSocial].totalProximos++;
-                }
+              itensVencidos.push({
+                id: `${id}-mangueira_data_vencimento`,
+                tipo: tipo,
+                validade: dataValidade,
+                diasRestantes: diasRestantes,
+                status: status,
+                campo: 'mangueira_data_vencimento',
+                categoria: 'Mangueira',
+                inspectionId: id
+              });
+
+              if (status === 'vencido') {
+                empresasMap[razaoSocial].totalVencidos++;
+              } else if (status === 'proximo') {
+                empresasMap[razaoSocial].totalProximos++;
               }
             }
           }
-        });
+        }
+
+        // ========== VERIFICA EXTINTORES ==========
+        // Campo geral de validade dos extintores
+        if (inspecao.extintores_validade) {
+          const dataValidade = inspecao.extintores_validade;
+          const diasRestantes = calcularDiasRestantes(dataValidade);
+
+          if (diasRestantes !== null) {
+            const status = determinarStatus(diasRestantes);
+
+            if (status !== 'ok') {
+              const tipo = formatarTipoCampo('extintores_validade', inspecao);
+
+              itensVencidos.push({
+                id: `${id}-extintores_validade`,
+                tipo: tipo,
+                validade: dataValidade,
+                diasRestantes: diasRestantes,
+                status: status,
+                campo: 'extintores_validade',
+                categoria: 'Extintor',
+                inspectionId: id
+              });
+
+              if (status === 'vencido') {
+                empresasMap[razaoSocial].totalVencidos++;
+              } else if (status === 'proximo') {
+                empresasMap[razaoSocial].totalProximos++;
+              }
+            }
+          }
+        }
 
         // Verifica extintores individuais (extintores_validade_1, extintores_validade_2, etc.)
         Object.keys(inspecao).forEach(campo => {
@@ -11859,6 +11902,7 @@ async function buscarAlertasVencimento() {
                   diasRestantes: diasRestantes,
                   status: status,
                   campo: campo,
+                  categoria: 'Extintor',
                   inspectionId: id
                 });
 
@@ -11872,24 +11916,25 @@ async function buscarAlertasVencimento() {
           }
         });
 
-        // Verifica o campo geral de validade dos extintores (extintores_validade)
-        if (inspecao.extintores_validade) {
-          const dataValidade = inspecao.extintores_validade;
+        // ========== VERIFICA CERTIFICADO ==========
+        if (inspecao.cert_validade) {
+          const dataValidade = inspecao.cert_validade;
           const diasRestantes = calcularDiasRestantes(dataValidade);
 
           if (diasRestantes !== null) {
             const status = determinarStatus(diasRestantes);
 
             if (status !== 'ok') {
-              const tipo = formatarTipoCampo('extintores_validade', inspecao);
+              const tipo = `Certificado ${inspecao.cert_tipo || ''}`.trim();
 
               itensVencidos.push({
-                id: `${id}-extintores_validade`,
+                id: `${id}-cert_validade`,
                 tipo: tipo,
                 validade: dataValidade,
                 diasRestantes: diasRestantes,
                 status: status,
-                campo: 'extintores_validade',
+                campo: 'cert_validade',
+                categoria: 'Certificado',
                 inspectionId: id
               });
 
@@ -11901,6 +11946,46 @@ async function buscarAlertasVencimento() {
             }
           }
         }
+
+        // ========== VERIFICA OUTROS CAMPOS ==========
+        Object.keys(inspecao).forEach(campo => {
+          // Busca apenas campos que terminam com "validade"
+          if (campo.endsWith('validade') && 
+              !campo.includes('inicio') && 
+              !campo.includes('mangueira') && 
+              !campo.includes('extintor') &&
+              !campo.includes('cert') &&
+              inspecao[campo]) {
+            
+            const dataValidade = inspecao[campo];
+            const diasRestantes = calcularDiasRestantes(dataValidade);
+
+            if (diasRestantes !== null) {
+              const status = determinarStatus(diasRestantes);
+
+              if (status !== 'ok') {
+                const tipo = formatarTipoCampo(campo, inspecao);
+
+                itensVencidos.push({
+                  id: `${id}-${campo}`,
+                  tipo: tipo,
+                  validade: dataValidade,
+                  diasRestantes: diasRestantes,
+                  status: status,
+                  campo: campo,
+                  categoria: identificarCategoria(campo).categoria,
+                  inspectionId: id
+                });
+
+                if (status === 'vencido') {
+                  empresasMap[razaoSocial].totalVencidos++;
+                } else if (status === 'proximo') {
+                  empresasMap[razaoSocial].totalProximos++;
+                }
+              }
+            }
+          }
+        });
 
         if (itensVencidos.length > 0) {
           empresasMap[razaoSocial].inspecoes.push({
@@ -11938,7 +12023,9 @@ async function buscarAlertasVencimento() {
   });
 }
 
-// Função auxiliar para manter o código principal limpo
+// ========================================
+// FORMATAR TIPO DE CAMPO
+// ========================================
 function formatarTipoCampo(campo, inspecao) {
   if (campo === 'cert_validade') return `Certificado ${inspecao.cert_tipo || ''}`;
   if (campo.startsWith('extintores_validade_')) {
@@ -11971,7 +12058,6 @@ function calcularDiasRestantes(dataValidade) {
 
     const validade = new Date(dataValidade);
 
-    // Verificar se a data é válida
     if (isNaN(validade.getTime())) {
       return null;
     }
@@ -12003,7 +12089,6 @@ function formatarData(dataStr) {
   try {
     const data = new Date(dataStr);
 
-    // Verificar se a data é válida
     if (isNaN(data.getTime())) {
       return '-';
     }
@@ -12247,11 +12332,18 @@ function renderizarAlertas() {
                       ${inspecao.itens.map(item => {
         const tipoEscaped = item.tipo.replace(/'/g, "\\'");
         const campoEscaped = item.campo ? item.campo.replace(/'/g, "\\'") : '';
+        const categoriaInfo = identificarCategoria(item.campo);
+        const empresaNomeEscapedItem = empresa.empresa.replace(/'/g, "\\'");
+        
         return `
                         <div class="item-card ${item.status}">
                           <div class="item-header">
                             <div class="item-icon"><i class="fas fa-${item.status === 'vencido' ? 'times-circle' : 'exclamation-circle'}"></i></div>
                             <div class="item-info">
+                              <div class="item-categoria" style="font-size: 11px; color: #888; margin-bottom: 4px; display: flex; align-items: center; gap: 4px;">
+                                <i class="fas ${categoriaInfo.icon}" style="color: ${categoriaInfo.cor};"></i>
+                                ${item.categoria}
+                              </div>
                               <div class="item-nome">${item.tipo}</div>
                               <div class="item-meta">
                                 <span><i class="fas fa-calendar"></i> ${formatarData(item.validade)}</span>
@@ -12259,7 +12351,7 @@ function renderizarAlertas() {
                               </div>
                             </div>
                             <button 
-                              onclick="event.stopPropagation(); abrirModalEdicaoItem('${inspecao.inspectionId}', '${campoEscaped}', '${empresaNomeEscaped}', '${tipoEscaped}')" 
+                              onclick="event.stopPropagation(); abrirModalEdicaoItem('${inspecao.inspectionId}', '${campoEscaped}', '${empresaNomeEscapedItem}', '${tipoEscaped}', '${item.categoria}')" 
                               title="Editar validade" 
                               style="
                                 background: transparent;
@@ -12370,7 +12462,7 @@ async function gerarPDFVencimentos(empresaAlvo = null) {
           todosVencimentos.push({
             ...item,
             inspecaoTipo: inspecao.tipo,
-            inspecaoData: inspecao.data
+            inspecaoData: inspecao.dataInspecao
           });
         });
       });
@@ -12457,6 +12549,7 @@ function gerarPaginaVencimentoHTML(opcoes) {
   const statusTexto = vencimento.status === 'vencido' ? 'VENCIDO' : 'A VENCER';
   const statusIcon = vencimento.status === 'vencido' ? 'fa-times-circle' : 'fa-exclamation-triangle';
   const statusColor = vencimento.status === 'vencido' ? '#dc2626' : '#f59e0b';
+  const categoriaInfo = identificarCategoria(vencimento.campo);
 
   return `
     <!DOCTYPE html>
@@ -12472,6 +12565,7 @@ function gerarPaginaVencimentoHTML(opcoes) {
         .info-box { border-left-color: ${statusColor} !important; }
         .info-box-value.destaque { color: ${statusColor} !important; }
         .info-box-value.status-color { color: ${statusColor} !important; }
+        .categoria-badge { background: ${categoriaInfo.cor} !important; }
       </style>
     </head>
     <body>
@@ -12522,6 +12616,9 @@ function gerarPaginaVencimentoHTML(opcoes) {
             <div class="vencimento-header">
               <div class="vencimento-header-left">
                 <div class="vencimento-titulo"><i class="fas fa-bell"></i> VENCIMENTO <span class="vencimento-numero">${vencimentoIndex + 1} de ${totalVencimentos}</span></div>
+                <div class="categoria-badge" style="display: inline-block; padding: 4px 12px; border-radius: 4px; color: white; font-size: 12px; font-weight: 600; margin: 8px 0;">
+                  <i class="fas ${categoriaInfo.icon}"></i> ${vencimento.categoria}
+                </div>
                 <div class="vencimento-tipo-item"><i class="fas fa-box"></i>${vencimento.tipo}</div>
               </div>
               <div class="vencimento-status-badge"><i class="fas ${statusIcon}"></i>${statusTexto}</div>
@@ -12536,6 +12633,7 @@ function gerarPaginaVencimentoHTML(opcoes) {
               <div class="detalhes-adicionais">
                 <div class="detalhes-adicionais-titulo"><i class="fas fa-clipboard-list"></i>Detalhes da Inspeção</div>
                 <div class="detalhes-linha"><span class="detalhes-label">Data da Inspeção:</span><span class="detalhes-valor">${formatarData(vencimento.inspecaoData) || '-'}</span></div>
+                <div class="detalhes-linha"><span class="detalhes-label">Categoria:</span><span class="detalhes-valor">${vencimento.categoria}</span></div>
                 <div class="detalhes-texto">
                   ${vencimento.inspecaoData ? `<p>Esta inspeção foi realizada em <strong>${formatarData(vencimento.inspecaoData)}</strong>, garantindo a verificação dos itens de segurança e conformidade exigidos.</p>` : `<p>Não há registro de data de inspeção para este item.</p>`}
                 </div>
@@ -12725,7 +12823,7 @@ function changeItemsPerPage() {
 // ========================================
 // MODAL DE EDIÇÃO
 // ========================================
-function abrirModalEdicaoItem(inspectionId, campo, empresa, tipo) {
+function abrirModalEdicaoItem(inspectionId, campo, empresa, tipo, categoria) {
   criarModalValidade();
 
   firebase.database().ref(`inspections/${inspectionId}`).once('value').then(snapshot => {
@@ -12743,10 +12841,12 @@ function abrirModalEdicaoItem(inspectionId, campo, empresa, tipo) {
       tipo: tipo,
       validade: dataValidade,
       diasRestantes: diasRestantes,
-      status: status
+      status: status,
+      categoria: categoria
     };
 
     document.getElementById('modalEmpresa').textContent = empresa;
+    document.getElementById('modalCategoria').textContent = categoria;
     document.getElementById('modalTipo').textContent = tipo;
     document.getElementById('modalValidadeAtual').textContent = formatarData(dataValidade);
 
@@ -12813,6 +12913,8 @@ function inicializarAlertas() {
   // Atualizar a cada 5 minutos
   setInterval(buscarAlertasVencimento, 5 * 60 * 1000);
 }
+
+
 
 // Fechar modal ao clicar fora
 document.addEventListener('click', function (event) {
@@ -14457,4 +14559,1188 @@ function setupCalendarEventListeners() {
 
   exportBtn.addEventListener('click', exportarMesPDF);
 }
+
+/* ========== BRIGADA - VARIÁVEIS GLOBAIS ========== */
+let brigadaData = {};
+let expandedBrigadaCompanies = {};
+const membersPerPage = 8;
+
+/* ========== BRIGADA - CARREGAMENTO INICIAL ========== */
+async function initBrigada() {
+  await loadBrigadaOverview();
+  await loadAllBrigadaCompanies();
+  setupBrigadaRealtimeListener();
+}
+
+/* ========== BRIGADA - LISTENER REALTIME ========== */
+function setupBrigadaRealtimeListener() {
+  if (!database) return;
+
+  database.ref('brigada').on('value', (snapshot) => {
+    brigadaData = snapshot.val() || {};
+    updateBrigadaBadge();
+    loadAllBrigadaCompanies();
+  });
+}
+
+/* ========== BRIGADA - CARREGAR OVERVIEW ========== */
+async function loadBrigadaOverview() {
+  try {
+    const brigadaSnapshot = await database.ref('brigada').once('value');
+    brigadaData = brigadaSnapshot.val() || {};
+    updateBrigadaBadge();
+  } catch (error) {
+    console.error('Erro ao carregar brigadistas:', error);
+  }
+}
+
+/* ========== BRIGADA - ATUALIZAR BADGE ========== */
+function updateBrigadaBadge() {
+  let totalBrigadistas = 0;
+  Object.values(brigadaData).forEach(company => {
+    const brigadistas = company?.brigadistas || {};
+    totalBrigadistas += Object.keys(brigadistas).length;
+  });
+
+  const badge = document.getElementById('brigadaBadge');
+  if (badge) {
+    badge.textContent = totalBrigadistas;
+    badge.style.display = totalBrigadistas > 0 ? 'block' : 'none';
+  }
+}
+
+/* ========== BRIGADA - CARREGAR TODAS AS EMPRESAS ========== */
+async function loadAllBrigadaCompanies() {
+  try {
+    const companiesSnapshot = await database.ref('companies').once('value');
+    const companies = companiesSnapshot.val() || {};
+    const companiesList = document.getElementById('brigadaCompaniesList');
+
+    if (!companiesList) return;
+
+    companiesList.innerHTML = '';
+
+    if (Object.keys(companies).length === 0) {
+      companiesList.innerHTML = `
+        <div style="grid-column: 1 / -1; text-align: center; padding: 30px 20px; color: rgba(255, 255, 255, 0.5);">
+          <i class="fas fa-building" style="font-size: 40px; margin-bottom: 12px; display: block; opacity: 0.5;"></i>
+          <p style="margin: 0; font-size: 13px;">Nenhuma empresa cadastrada</p>
+        </div>
+      `;
+      return;
+    }
+
+    Object.entries(companies).forEach(([companyKey, company]) => {
+      const brigadistaCount = (brigadaData[companyKey]?.brigadistas && Object.keys(brigadaData[companyKey].brigadistas).length) || 0;
+      const isExpanded = expandedBrigadaCompanies[companyKey] || false;
+
+      const card = document.createElement('div');
+      card.id = `brigada-company-${companyKey}`;
+      card.style.cssText = `
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 10px;
+        overflow: hidden;
+        margin-bottom: 0;
+        transition: all 0.3s ease;
+      `;
+
+      const header = document.createElement('div');
+      header.style.cssText = `
+        padding: 12px 14px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        cursor: pointer;
+        background: rgba(0, 0, 0, 0.2);
+        transition: all 0.2s;
+      `;
+      header.onmouseover = () => header.style.background = 'rgba(0, 0, 0, 0.35)';
+      header.onmouseout = () => header.style.background = 'rgba(0, 0, 0, 0.2)';
+
+      header.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0;">
+          <div style="width: 36px; height: 36px; border-radius: 8px; background: linear-gradient(135deg, #B32117 0%, #8B1810 100%); color: white; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0;">
+            <i class="fas fa-building"></i>
+          </div>
+          <div style="flex: 1; min-width: 0;">
+            <div style="color: #fff; font-size: 13px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${company.razao_social}</div>
+            <div style="color: rgba(255, 255, 255, 0.5); font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${company.cnpj}</div>
+          </div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
+          <div style="background: rgba(212, 194, 154, 0.2); color: #D4C29A; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 700; min-width: 30px; text-align: center;">
+            ${brigadistaCount}
+          </div>
+          <button 
+            onclick="downloadBrigadaPDF('${companyKey}')"
+            style="
+              background: rgba(212, 194, 154, 0.2);
+              color: #D4C29A;
+              border: 1px solid rgba(212, 194, 154, 0.3);
+              width: 28px;
+              height: 28px;
+              border-radius: 6px;
+              cursor: pointer;
+              font-size: 12px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              transition: all 0.2s;
+            "
+            onmouseover="this.style.background='rgba(212, 194, 154, 0.35)'"
+            onmouseout="this.style.background='rgba(212, 194, 154, 0.2)'"
+            title="Baixar PDF"
+          >
+            <i class="fas fa-download"></i>
+          </button>
+          <div style="width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; color: rgba(255, 255, 255, 0.5); font-size: 14px; transition: transform 0.3s;">
+            <i class="fas fa-chevron-down" style="transform: ${isExpanded ? 'rotate(180deg)' : 'rotate(0deg)'}; transition: transform 0.3s;"></i>
+          </div>
+        </div>
+      `;
+
+      header.onclick = (e) => {
+        if (!e.target.closest('button')) {
+          toggleBrigadaCompany(companyKey);
+        }
+      };
+
+      card.appendChild(header);
+
+      if (isExpanded) {
+        const content = document.createElement('div');
+        content.id = `brigada-content-${companyKey}`;
+        content.style.cssText = `
+          padding: 12px;
+          background: rgba(0, 0, 0, 0.3);
+          border-top: 1px solid rgba(255, 255, 255, 0.1);
+          animation: slideDown 0.3s ease;
+        `;
+        card.appendChild(content);
+        renderBrigadaMembers(companyKey, content, company.razao_social);
+      }
+
+      companiesList.appendChild(card);
+    });
+  } catch (error) {
+    console.error('Erro ao carregar empresas:', error);
+  }
+}
+/* ========== BRIGADA - TOGGLE LISTA ========== */
+function toggleBrigadaList() {
+  const body = document.getElementById('brigadaBody');
+  const icon = document.querySelector('#brigadaToggleBtn .alerts-toggle-icon');
+
+  if (body.style.display === 'none') {
+    body.style.display = 'block';
+    icon.style.transform = 'rotate(180deg)';
+  } else {
+    body.style.display = 'none';
+    icon.style.transform = 'rotate(0deg)';
+  }
+}
+
+
+/* ========== BRIGADA - TOGGLE EMPRESA ========== */
+function toggleBrigadaCompany(companyKey) {
+  expandedBrigadaCompanies[companyKey] = !expandedBrigadaCompanies[companyKey];
+  loadAllBrigadaCompanies();
+}
+
+/* ========== FUNÇÃO AUXILIAR - VERIFICAR VENCIMENTO ========== */
+function verificarVencimento(dataVencimento) {
+  if (!dataVencimento) return { vencido: false, dias: null };
+
+  const hoje = new Date();
+  hoje.setHours(0, 0, 0, 0);
+
+  const vencimento = new Date(dataVencimento);
+  vencimento.setHours(0, 0, 0, 0);
+
+  const diferenca = Math.floor((vencimento - hoje) / (1000 * 60 * 60 * 24));
+
+  return {
+    vencido: diferenca < 0,
+    proxAVencer: diferenca >= 0 && diferenca <= 30,
+    dias: diferenca
+  };
+}
+
+/* ========== BRIGADA - RENDERIZAR MEMBROS ========== */
+function renderBrigadaMembers(companyKey, container, companyName) {
+  const brigadistas = brigadaData[companyKey]?.brigadistas || {};
+  const brigadistasArray = Object.entries(brigadistas);
+
+  container.innerHTML = '';
+
+  if (brigadistasArray.length === 0) {
+    container.innerHTML = `
+      <div style="text-align: center; padding: 20px 12px; color: rgba(255, 255, 255, 0.4); font-size: 12px;">
+        <i class="fas fa-users" style="margin-bottom: 8px; display: block; opacity: 0.4;"></i>
+        Nenhum brigadista
+      </div>
+    `;
+    addBrigadaBtnToContainer(container, companyKey, companyName);
+    return;
+  }
+
+  const list = document.createElement('div');
+  list.style.cssText = `
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 10px;
+  `;
+
+  brigadistasArray.slice(0, membersPerPage).forEach(([key, brigadista]) => {
+    const statusVencimento = verificarVencimento(brigadista.dataVencimento);
+
+    let borderColor = '#D4C29A';
+    let backgroundColor = 'rgba(255, 255, 255, 0.03)';
+
+    if (statusVencimento.vencido) {
+      borderColor = '#B32117';
+      backgroundColor = 'rgba(179, 33, 23, 0.1)';
+    } else if (statusVencimento.proxAVencer) {
+      borderColor = '#FFA500';
+      backgroundColor = 'rgba(255, 165, 0, 0.1)';
+    }
+
+    const item = document.createElement('div');
+    item.style.cssText = `
+      background: ${backgroundColor};
+      border: 1px solid ${borderColor}4D;
+      border-left: 2px solid ${borderColor};
+      border-radius: 6px;
+      padding: 8px 10px;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      transition: all 0.3s;
+    `;
+
+    const dataVencimento = brigadista.dataVencimento ? new Date(brigadista.dataVencimento).toLocaleDateString('pt-BR') : 'S/ vencimento';
+
+    let statusLabel = '';
+    if (statusVencimento.vencido) {
+      statusLabel = ' <i class="fas fa-exclamation-circle" style="color: #B32117; margin-right: 4px;"></i><span style="color: #B32117; font-weight: 600;">VENCIDO</span>';
+    } else if (statusVencimento.proxAVencer) {
+      statusLabel = ` <i class="fas fa-clock" style="color: #FFA500; margin-right: 4px;"></i><span style="color: #FFA500; font-weight: 600;">Vence em ${statusVencimento.dias}d</span>`;
+    }
+
+    item.innerHTML = `
+      <div style="flex: 1; min-width: 0;">
+        <div style="color: #fff; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${brigadista.nome}</div>
+        <div style="color: ${statusVencimento.vencido ? '#B32117' : statusVencimento.proxAVencer ? '#FFA500' : 'rgba(255, 255, 255, 0.5)'}; font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${brigadista.funcao} • ${dataVencimento}${statusLabel}</div>
+      </div>
+      <div style="display: flex; gap: 4px; flex-shrink: 0;">
+        <button 
+          class="btn-small" 
+          onclick="editBrigadaModal('${companyKey}', '${key}')"
+          style="
+            background: rgba(212, 194, 154, 0.2);
+            color: #D4C29A;
+            border: 1px solid rgba(212, 194, 154, 0.3);
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 10px;
+            transition: all 0.2s;
+          "
+          onmouseover="this.style.background='rgba(212, 194, 154, 0.35)'"
+          onmouseout="this.style.background='rgba(212, 194, 154, 0.2)'"
+        >
+          <i class="fas fa-edit"></i>
+        </button>
+        <button 
+          class="btn-small" 
+          onclick="deleteBrigadaModal('${companyKey}', '${key}')"
+          style="
+            background: rgba(179, 33, 23, 0.2);
+            color: #B32117;
+            border: 1px solid rgba(179, 33, 23, 0.3);
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 10px;
+            transition: all 0.2s;
+          "
+          onmouseover="this.style.background='rgba(179, 33, 23, 0.35)'"
+          onmouseout="this.style.background='rgba(179, 33, 23, 0.2)'"
+        >
+          <i class="fas fa-trash"></i>
+        </button>
+      </div>
+    `;
+
+    list.appendChild(item);
+  });
+
+  container.appendChild(list);
+
+  if (brigadistasArray.length > membersPerPage) {
+    const viewMoreBtn = document.createElement('button');
+    viewMoreBtn.style.cssText = `
+      width: 100%;
+      padding: 6px;
+      background: rgba(212, 194, 154, 0.1);
+      border: 1px solid rgba(212, 194, 154, 0.2);
+      color: #D4C29A;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      margin-bottom: 8px;
+    `;
+    viewMoreBtn.textContent = `Ver todos (${brigadistasArray.length})`;
+    viewMoreBtn.onmouseover = () => viewMoreBtn.style.background = 'rgba(212, 194, 154, 0.2)';
+    viewMoreBtn.onmouseout = () => viewMoreBtn.style.background = 'rgba(212, 194, 154, 0.1)';
+    viewMoreBtn.onclick = () => openBrigadaMembersModal(companyKey, companyName);
+    container.appendChild(viewMoreBtn);
+  }
+
+  addBrigadaBtnToContainer(container, companyKey, companyName);
+}
+
+/* ========== BRIGADA - MODAL VER TODOS ========== */
+async function openBrigadaMembersModal(companyKey, companyName) {
+  const brigadistas = brigadaData[companyKey]?.brigadistas || {};
+  const brigadistasArray = Object.entries(brigadistas);
+
+  const modal = document.createElement('div');
+  modal.className = 'modal active';
+  modal.style.cssText = `
+    display: flex !important;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.95);
+    z-index: 9999;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  `;
+
+  const modalContent = document.createElement('div');
+  modalContent.className = 'modal-content modal-compact';
+  modalContent.style.cssText = `
+    background: linear-gradient(135deg, #1a1a1a 0%, #0d0d0d 100%);
+    border: 2px solid #D4C29A;
+    border-radius: 12px;
+    padding: 0;
+    max-width: 500px;
+    width: 100%;
+    max-height: 80vh;
+    overflow-y: auto;
+  `;
+
+  modalContent.innerHTML = `
+    <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; padding: 16px; border-bottom: 2px solid #D4C29A; position: sticky; top: 0; background: #0d0d0d; z-index: 10;">
+      <div style="flex: 1;">
+        <h2 style="margin: 0; color: #D4C29A; font-size: 16px; font-weight: 700;">Brigadistas</h2>
+        <p style="margin: 4px 0 0 0; color: rgba(255, 255, 255, 0.5); font-size: 11px;">${companyName}</p>
+      </div>
+      <button class="close-modal" onclick="this.closest('.modal').remove()" style="background: none; border: none; color: #D4C29A; font-size: 20px; cursor: pointer; padding: 0; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <div class="modal-body" style="padding: 14px; background: #0d0d0d;">
+      <div id="modalBrigadistasList" style="display: flex; flex-direction: column; gap: 8px;"></div>
+    </div>
+  `;
+
+  modal.appendChild(modalContent);
+  document.body.appendChild(modal);
+
+  const listContainer = modal.querySelector('#modalBrigadistasList');
+  brigadistasArray.forEach(([key, brigadista]) => {
+    const statusVencimento = verificarVencimento(brigadista.dataVencimento);
+
+    let borderColor = '#D4C29A';
+    let backgroundColor = 'rgba(255, 255, 255, 0.03)';
+
+    if (statusVencimento.vencido) {
+      borderColor = '#B32117';
+      backgroundColor = 'rgba(179, 33, 23, 0.1)';
+    } else if (statusVencimento.proxAVencer) {
+      borderColor = '#FFA500';
+      backgroundColor = 'rgba(255, 165, 0, 0.1)';
+    }
+
+    const item = document.createElement('div');
+    item.style.cssText = `
+      background: ${backgroundColor};
+      border: 1px solid ${borderColor}4D;
+      border-left: 2px solid ${borderColor};
+      border-radius: 6px;
+      padding: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      transition: all 0.3s;
+    `;
+
+    const dataVencimento = brigadista.dataVencimento ? new Date(brigadista.dataVencimento).toLocaleDateString('pt-BR') : 'S/ vencimento';
+    const dataCadastro = new Date(brigadista.dataCadastro).toLocaleDateString('pt-BR');
+    const dataInicio = brigadista.dataInicio ? new Date(brigadista.dataInicio).toLocaleDateString('pt-BR') : 'N/A';
+
+    let statusHTML = '';
+    if (statusVencimento.vencido) {
+      statusHTML = ' <span style="color: #B32117; font-weight: 600; font-size: 10px;"><i class="fas fa-exclamation-circle"></i> VENCIDO</span>';
+    } else if (statusVencimento.proxAVencer) {
+      statusHTML = ` <span style="color: #FFA500; font-weight: 600; font-size: 10px;"><i class="fas fa-clock"></i> Vence em ${statusVencimento.dias}d</span>`;
+    }
+
+    item.innerHTML = `
+      <div style="flex: 1; min-width: 0;">
+        <div style="color: #fff; font-weight: 600; font-size: 12px;">${brigadista.nome}${statusHTML}</div>
+        <div style="color: rgba(255, 255, 255, 0.5); font-size: 11px;">${brigadista.funcao}</div>
+        <div style="color: rgba(255, 255, 255, 0.4); font-size: 10px; margin-top: 2px; font-family: monospace;">${brigadista.cpf}</div>
+        <div style="color: ${statusVencimento.vencido ? '#B32117' : statusVencimento.proxAVencer ? '#FFA500' : 'rgba(212, 194, 154, 0.6)'}; font-size: 10px; margin-top: 4px;"><i class="fas fa-calendar-alt"></i> Início: ${dataInicio} | Cadastro: ${dataCadastro} | Vencimento: ${dataVencimento}</div>
+      </div>
+      <div style="display: flex; gap: 4px; flex-shrink: 0;">
+        <button 
+          onclick="editBrigadaModal('${companyKey}', '${key}')"
+          style="
+            background: rgba(212, 194, 154, 0.2);
+            color: #D4C29A;
+            border: 1px solid rgba(212, 194, 154, 0.3);
+            padding: 6px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 11px;
+            transition: all 0.2s;
+          "
+          onmouseover="this.style.background='rgba(212, 194, 154, 0.35)'"
+          onmouseout="this.style.background='rgba(212, 194, 154, 0.2)'"
+        >
+          <i class="fas fa-edit"></i>
+        </button>
+        <button 
+          onclick="deleteBrigadaModal('${companyKey}', '${key}')"
+          style="
+            background: rgba(179, 33, 23, 0.2);
+            color: #B32117;
+            border: 1px solid rgba(179, 33, 23, 0.3);
+            padding: 6px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 11px;
+            transition: all 0.2s;
+          "
+          onmouseover="this.style.background='rgba(179, 33, 23, 0.35)'"
+          onmouseout="this.style.background='rgba(179, 33, 23, 0.2)'"
+        >
+          <i class="fas fa-trash"></i>
+        </button>
+      </div>
+    `;
+
+    listContainer.appendChild(item);
+  });
+}
+
+/* ========== BRIGADA - ADICIONAR BOTÃO ========== */
+function addBrigadaBtnToContainer(container, companyKey, companyName) {
+  const btnDiv = document.createElement('div');
+  btnDiv.style.marginTop = '8px';
+
+  const btn = document.createElement('button');
+  btn.style.cssText = `
+    width: 100%;
+    padding: 8px;
+    background: linear-gradient(135deg, #B32117 0%, #8B1810 100%);
+    border: none;
+    color: white;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  `;
+  btn.innerHTML = '<i class="fas fa-plus"></i> Adicionar';
+  btn.onmouseover = () => btn.style.filter = 'brightness(1.1)';
+  btn.onmouseout = () => btn.style.filter = 'brightness(1)';
+  btn.onclick = () => openAddBrigadaModal(companyKey, companyName);
+
+  btnDiv.appendChild(btn);
+  container.appendChild(btnDiv);
+}
+
+/* ========== BRIGADA - ADICIONAR MODAL ========== */
+async function openAddBrigadaModal(companyKey, companyName) {
+  const modal = document.createElement('div');
+  modal.className = 'modal active';
+  modal.style.cssText = `
+    display: flex !important;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.95);
+    z-index: 9999;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  `;
+
+  const modalContent = document.createElement('div');
+  modalContent.className = 'modal-content modal-compact';
+  modalContent.style.cssText = `
+    background: linear-gradient(135deg, #1a1a1a 0%, #0d0d0d 100%);
+    border: 2px solid #D4C29A;
+    border-radius: 12px;
+    padding: 0;
+    max-width: 500px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+  `;
+
+  modalContent.innerHTML = `
+    <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; padding: 16px; border-bottom: 2px solid #D4C29A;">
+      <h2 style="margin: 0; color: #D4C29A; font-size: 16px; font-weight: 700;"><i class="fas fa-plus-circle" style="margin-right: 8px;"></i>Novo Brigadista</h2>
+      <button onclick="this.closest('.modal').remove()" style="background: none; border: none; color: #D4C29A; font-size: 20px; cursor: pointer; padding: 0;">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+
+    <div class="modal-body" style="padding: 16px; background: #0d0d0d;">
+      <div style="background: rgba(212, 194, 154, 0.1); border-left: 2px solid #D4C29A; padding: 10px; border-radius: 6px; margin-bottom: 14px; font-size: 11px; color: #999;">
+        <strong style="color: #D4C29A;"><i class="fas fa-building" style="margin-right: 6px;"></i>${companyName}</strong>
+      </div>
+
+      <form id="formAddBrigada" style="display: flex; flex-direction: column; gap: 12px;">
+        <div>
+          <label style="color: #D4C29A; font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 4px;">Nome *</label>
+          <input type="text" id="brigadaNome" required placeholder="Nome completo" style="width: 100%; padding: 8px; background: #1a1a1a; border: 2px solid #D4C29A; border-radius: 6px; color: #fff; font-size: 12px; outline: none; box-sizing: border-box;">
+        </div>
+
+        <div>
+          <label style="color: #D4C29A; font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 4px;">CPF *</label>
+          <input type="text" id="brigadaCPF" required placeholder="000.000.000-00" style="width: 100%; padding: 8px; background: #1a1a1a; border: 2px solid #D4C29A; border-radius: 6px; color: #fff; font-size: 12px; outline: none; box-sizing: border-box;">
+        </div>
+
+        <div>
+          <label style="color: #D4C29A; font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 4px;">Função *</label>
+          <select id="brigadaFuncao" required style="width: 100%; padding: 8px; background: #1a1a1a; border: 2px solid #D4C29A; border-radius: 6px; color: #fff; font-size: 12px; outline: none; box-sizing: border-box;">
+            <option value="">-- Selecione --</option>
+            <option value="Chefe da Brigada">Chefe da Brigada</option>
+            <option value="Vice-Chefe">Vice-Chefe</option>
+            <option value="Brigadista">Brigadista</option>
+            <option value="Primeiro Socorrista">Primeiro Socorrista</option>
+            <option value="Responsável por Equipamento">Responsável por Equipamento</option>
+          </select>
+        </div>
+
+        <div>
+          <label style="color: #D4C29A; font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 4px;">Data de Início</label>
+          <input type="date" id="brigadaDataInicio" style="width: 100%; padding: 8px; background: #1a1a1a; border: 2px solid #D4C29A; border-radius: 6px; color: #fff; font-size: 12px; outline: none; box-sizing: border-box;">
+        </div>
+
+        <div>
+          <label style="color: #D4C29A; font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 4px;">Data de Vencimento</label>
+          <input type="date" id="brigadaDataVencimento" style="width: 100%; padding: 8px; background: #1a1a1a; border: 2px solid #D4C29A; border-radius: 6px; color: #fff; font-size: 12px; outline: none; box-sizing: border-box;">
+        </div>
+
+        <div style="display: flex; gap: 8px; margin-top: 12px;">
+          <button type="submit" style="flex: 1; padding: 10px; background: linear-gradient(135deg, #B32117 0%, #8B1810 100%); color: white; border: none; border-radius: 6px; font-size: 12px; font-weight: 700; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.filter='brightness(1.1)'" onmouseout="this.style.filter='brightness(1)'">
+            <i class="fas fa-check" style="margin-right: 6px;"></i>Adicionar
+          </button>
+          <button type="button" onclick="this.closest('.modal').remove()" style="flex: 1; padding: 10px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); color: #ccc; border-radius: 6px; font-size: 12px; font-weight: 700; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='rgba(255, 255, 255, 0.1)'" onmouseout="this.style.background='rgba(255, 255, 255, 0.05)'">
+            Cancelar
+          </button>
+        </div>
+      </form>
+    </div>
+  `;
+
+  modal.appendChild(modalContent);
+  document.body.appendChild(modal);
+
+  document.getElementById('formAddBrigada').onsubmit = async (e) => {
+    e.preventDefault();
+
+    const nome = document.getElementById('brigadaNome').value.trim();
+    const cpf = document.getElementById('brigadaCPF').value.trim();
+    const funcao = document.getElementById('brigadaFuncao').value;
+    const dataInicio = document.getElementById('brigadaDataInicio').value;
+    const dataVencimento = document.getElementById('brigadaDataVencimento').value;
+
+    if (!nome || !cpf || !funcao) {
+      showNotification('Preencha todos os campos obrigatórios', 'error');
+      return;
+    }
+
+    const btn = e.target.querySelector('button[type="submit"]');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Adicionando...';
+
+    try {
+      const brigadaKey = Date.now().toString();
+      await database.ref(`brigada/${companyKey}/brigadistas/${brigadaKey}`).set({
+        nome,
+        cpf,
+        funcao,
+        dataInicio: dataInicio ? new Date(dataInicio).toISOString() : null,
+        dataVencimento: dataVencimento ? new Date(dataVencimento).toISOString() : null,
+        dataCadastro: new Date().toISOString()
+      });
+
+      modal.remove();
+      showNotification('Brigadista adicionado com sucesso!', 'success');
+    } catch (error) {
+      showNotification('Erro ao adicionar brigadista', 'error');
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fas fa-check"></i> Adicionar';
+    }
+  };
+}
+
+/* ========== BRIGADA - EDITAR MODAL ========== */
+async function editBrigadaModal(companyKey, brigadistaKey) {
+  const brigadista = brigadaData[companyKey]?.brigadistas[brigadistaKey];
+  if (!brigadista) return;
+
+  const companies = (await database.ref('companies').once('value')).val() || {};
+  const companyName = companies[companyKey]?.razao_social || 'Empresa';
+
+  const modal = document.createElement('div');
+  modal.className = 'modal active';
+  modal.style.cssText = `
+    display: flex !important;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.95);
+    z-index: 9999;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  `;
+
+  const modalContent = document.createElement('div');
+  modalContent.className = 'modal-content modal-compact';
+  modalContent.style.cssText = `
+    background: linear-gradient(135deg, #1a1a1a 0%, #0d0d0d 100%);
+    border: 2px solid #D4C29A;
+    border-radius: 12px;
+    padding: 0;
+    max-width: 500px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+  `;
+
+  const dataInicioFormatada = brigadista.dataInicio ? new Date(brigadista.dataInicio).toISOString().split('T')[0] : '';
+  const dataVencimentoFormatada = brigadista.dataVencimento ? new Date(brigadista.dataVencimento).toISOString().split('T')[0] : '';
+
+  modalContent.innerHTML = `
+    <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; padding: 16px; border-bottom: 2px solid #D4C29A;">
+      <h2 style="margin: 0; color: #D4C29A; font-size: 16px; font-weight: 700;"><i class="fas fa-edit" style="margin-right: 8px;"></i>Editar Brigadista</h2>
+      <button onclick="this.closest('.modal').remove()" style="background: none; border: none; color: #D4C29A; font-size: 20px; cursor: pointer; padding: 0;">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+
+    <div class="modal-body" style="padding: 16px; background: #0d0d0d;">
+      <div style="background: rgba(212, 194, 154, 0.1); border-left: 2px solid #D4C29A; padding: 10px; border-radius: 6px; margin-bottom: 14px; font-size: 11px; color: #999;">
+        <strong style="color: #D4C29A;"><i class="fas fa-building" style="margin-right: 6px;"></i>${companyName}</strong>
+      </div>
+
+      <form id="formEditBrigada" style="display: flex; flex-direction: column; gap: 12px;">
+        <div>
+          <label style="color: #D4C29A; font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 4px;">Nome *</label>
+          <input type="text" id="editBrigadaNome" value="${brigadista.nome}" required style="width: 100%; padding: 8px; background: #1a1a1a; border: 2px solid #D4C29A; border-radius: 6px; color: #fff; font-size: 12px; outline: none; box-sizing: border-box;">
+        </div>
+
+        <div>
+          <label style="color: #D4C29A; font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 4px;">CPF *</label>
+          <input type="text" id="editBrigadaCPF" value="${brigadista.cpf}" required style="width: 100%; padding: 8px; background: #1a1a1a; border: 2px solid #D4C29A; border-radius: 6px; color: #fff; font-size: 12px; outline: none; box-sizing: border-box;">
+        </div>
+
+        <div>
+          <label style="color: #D4C29A; font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 4px;">Função *</label>
+          <select id="editBrigadaFuncao" required style="width: 100%; padding: 8px; background: #1a1a1a; border: 2px solid #D4C29A; border-radius: 6px; color: #fff; font-size: 12px; outline: none; box-sizing: border-box;">
+            <option value="Chefe da Brigada" ${brigadista.funcao === 'Chefe da Brigada' ? 'selected' : ''}>Chefe da Brigada</option>
+            <option value="Vice-Chefe" ${brigadista.funcao === 'Vice-Chefe' ? 'selected' : ''}>Vice-Chefe</option>
+            <option value="Brigadista" ${brigadista.funcao === 'Brigadista' ? 'selected' : ''}>Brigadista</option>
+            <option value="Primeiro Socorrista" ${brigadista.funcao === 'Primeiro Socorrista' ? 'selected' : ''}>Primeiro Socorrista</option>
+            <option value="Responsável por Equipamento" ${brigadista.funcao === 'Responsável por Equipamento' ? 'selected' : ''}>Responsável por Equipamento</option>
+          </select>
+        </div>
+
+        <div>
+          <label style="color: #D4C29A; font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 4px;">Data de Início</label>
+          <input type="date" id="editBrigadaDataInicio" value="${dataInicioFormatada}" style="width: 100%; padding: 8px; background: #1a1a1a; border: 2px solid #D4C29A; border-radius: 6px; color: #fff; font-size: 12px; outline: none; box-sizing: border-box;">
+        </div>
+
+        <div>
+          <label style="color: #D4C29A; font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 4px;">Data de Vencimento</label>
+          <input type="date" id="editBrigadaDataVencimento" value="${dataVencimentoFormatada}" style="width: 100%; padding: 8px; background: #1a1a1a; border: 2px solid #D4C29A; border-radius: 6px; color: #fff; font-size: 12px; outline: none; box-sizing: border-box;">
+        </div>
+
+        <div style="display: flex; gap: 8px; margin-top: 12px;">
+          <button type="submit" style="flex: 1; padding: 10px; background: linear-gradient(135deg, #B32117 0%, #8B1810 100%); color: white; border: none; border-radius: 6px; font-size: 12px; font-weight: 700; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.filter='brightness(1.1)'" onmouseout="this.style.filter='brightness(1)'">
+            <i class="fas fa-save" style="margin-right: 6px;"></i>Salvar
+          </button>
+          <button type="button" onclick="this.closest('.modal').remove()" style="flex: 1; padding: 10px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); color: #ccc; border-radius: 6px; font-size: 12px; font-weight: 700; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='rgba(255, 255, 255, 0.1)'" onmouseout="this.style.background='rgba(255, 255, 255, 0.05)'">
+            Cancelar
+          </button>
+        </div>
+      </form>
+    </div>
+  `;
+
+  modal.appendChild(modalContent);
+  document.body.appendChild(modal);
+
+  document.getElementById('formEditBrigada').onsubmit = async (e) => {
+    e.preventDefault();
+
+    const nome = document.getElementById('editBrigadaNome').value.trim();
+    const cpf = document.getElementById('editBrigadaCPF').value.trim();
+    const funcao = document.getElementById('editBrigadaFuncao').value;
+    const dataInicio = document.getElementById('editBrigadaDataInicio').value;
+    const dataVencimento = document.getElementById('editBrigadaDataVencimento').value;
+
+    const btn = e.target.querySelector('button[type="submit"]');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Salvando...';
+
+    try {
+      await database.ref(`brigada/${companyKey}/brigadistas/${brigadistaKey}`).update({
+        nome,
+        cpf,
+        funcao,
+        dataInicio: dataInicio ? new Date(dataInicio).toISOString() : null,
+        dataVencimento: dataVencimento ? new Date(dataVencimento).toISOString() : null
+      });
+      modal.remove();
+      showNotification('Brigadista atualizado com sucesso!', 'success');
+    } catch (error) {
+      showNotification('Erro ao atualizar brigadista', 'error');
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fas fa-save"></i> Salvar';
+    }
+  };
+}
+
+/* ========== BRIGADA - DELETAR MODAL ========== */
+function deleteBrigadaModal(companyKey, brigadistaKey) {
+  const brigadista = brigadaData[companyKey]?.brigadistas[brigadistaKey];
+  if (!brigadista) return;
+
+  const modal = document.createElement('div');
+  modal.className = 'modal active';
+  modal.style.cssText = `
+    display: flex !important;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.95);
+    z-index: 9999;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  `;
+
+  const modalContent = document.createElement('div');
+  modalContent.style.cssText = `
+    background: linear-gradient(135deg, #1a1a1a 0%, #0d0d0d 100%);
+    border: 2px solid #B32117;
+    border-radius: 12px;
+    padding: 20px;
+    max-width: 380px;
+    width: 100%;
+    text-align: center;
+  `;
+
+  modalContent.innerHTML = `
+    <div style="width: 50px; height: 50px; background: rgba(179, 33, 23, 0.15); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; font-size: 24px; color: #B32117;">
+      <i class="fas fa-exclamation-triangle"></i>
+    </div>
+
+    <h2 style="color: #fff; margin: 0 0 8px 0; font-size: 16px; font-weight: 700;">Confirmar Exclusão</h2>
+
+    <p style="color: rgba(255, 255, 255, 0.5); margin: 0 0 6px 0; font-size: 12px;">Deseja remover:</p>
+
+    <p style="color: #D4C29A; margin: 0 0 14px 0; font-size: 13px; font-weight: 600;">${brigadista.nome}</p>
+
+    <div style="display: flex; gap: 8px;">
+      <button 
+        onclick="deleteBrigada('${companyKey}', '${brigadistaKey}'); this.closest('.modal').remove();"
+        style="flex: 1; padding: 10px; background: linear-gradient(135deg, #B32117 0%, #8B1810 100%); color: white; border: none; border-radius: 6px; font-size: 12px; font-weight: 700; cursor: pointer; transition: all 0.2s;"
+        onmouseover="this.style.filter='brightness(1.1)'"
+        onmouseout="this.style.filter='brightness(1)'"
+      >
+        <i class="fas fa-trash"></i> Deletar
+      </button>
+      <button 
+        onclick="this.closest('.modal').remove()"
+        style="flex: 1; padding: 10px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); color: #ccc; border-radius: 6px; font-size: 12px; font-weight: 700; cursor: pointer; transition: all 0.2s;"
+        onmouseover="this.style.background='rgba(255, 255, 255, 0.1)'"
+        onmouseout="this.style.background='rgba(255, 255, 255, 0.05)'"
+      >
+        Cancelar
+      </button>
+    </div>
+  `;
+
+  modal.appendChild(modalContent);
+  document.body.appendChild(modal);
+}
+
+/* ========== BRIGADA - DELETAR BRIGADISTA ========== */
+async function deleteBrigada(companyKey, brigadistaKey) {
+  try {
+    await database.ref(`brigada/${companyKey}/brigadistas/${brigadistaKey}`).remove();
+    showNotification('Brigadista removido com sucesso!', 'success');
+  } catch (error) {
+    showNotification('Erro ao remover brigadista', 'error');
+  }
+}
+
+
+/* ========== BRIGADA - DOWNLOAD PDF ========== */
+async function downloadBrigadaPDF(companyKey) {
+  try {
+    const companies = (await database.ref('companies').once('value')).val() || {};
+    const company = companies[companyKey];
+    const brigadistas = brigadaData[companyKey]?.brigadistas || {};
+
+    if (!company) {
+      showNotification('Empresa não encontrada', 'error');
+      return;
+    }
+
+    const dataHoraCompleta = new Date().toLocaleString('pt-BR');
+    const totalBrigadistas = Object.keys(brigadistas).length;
+
+    if (totalBrigadistas === 0) {
+      showNotification('Nenhum brigadista cadastrado', 'warning');
+      return;
+    }
+
+    showNotification(`Iniciando geração do PDF da Brigada...`, 'info');
+
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF({
+      orientation: 'portrait',
+      unit: 'mm',
+      format: 'a4',
+      compress: true
+    });
+
+    // Dividir brigadistas em páginas (20 por página)
+    const brigadistasArray = Object.entries(brigadistas).map(([k, b], idx) => ({
+      numero: idx + 1,
+      ...b
+    }));
+
+    const brigadistasPorPagina = 20;
+    const totalPaginas = Math.ceil(brigadistasArray.length / brigadistasPorPagina);
+
+    for (let paginaAtual = 0; paginaAtual < totalPaginas; paginaAtual++) {
+      const inicio = paginaAtual * brigadistasPorPagina;
+      const fim = inicio + brigadistasPorPagina;
+      const brigadistasPagina = brigadistasArray.slice(inicio, fim);
+
+      const paginaHTML = gerarPaginaBrigadistaListaHTML({
+        company,
+        brigadistas: brigadistasPagina,
+        dataHoraCompleta,
+        totalBrigadistas,
+        paginaAtual: paginaAtual + 1,
+        totalPaginas
+      });
+
+      await renderizarPaginaBrigadaNoPDF(pdf, paginaHTML, paginaAtual > 0);
+    }
+
+    const nomeEmpresaLimpo = company.razao_social.replace(/[^a-zA-Z0-9]/g, '_');
+    const dataAtualFormatada = new Date().toLocaleDateString('pt-BR').replace(/\//g, '-');
+    const nomeArquivo = `Brigada_${nomeEmpresaLimpo}_${dataAtualFormatada}.pdf`;
+
+    showNotification(`Baixando: ${company.razao_social}...`, 'info');
+    pdf.save(nomeArquivo);
+
+    showNotification(`PDF gerado com sucesso!`, 'success');
+
+  } catch (error) {
+    console.error('Erro ao gerar PDF:', error);
+    showNotification('❌ Erro ao gerar PDF: ' + error.message, 'error');
+  }
+}
+
+function gerarPaginaBrigadistaListaHTML(opcoes) {
+  const {
+    company,
+    brigadistas,
+    dataHoraCompleta,
+    totalBrigadistas,
+    paginaAtual = 1,
+    totalPaginas = 1
+  } = opcoes;
+
+  const dataVencimentoEmpresa = company.dataVencimento ? new Date(company.dataVencimento).toLocaleDateString('pt-BR') : 'S/ vencimento';
+
+  // Gerar HTML dos brigadistas
+  const brigadistasHTML = brigadistas.map(b => {
+    const dataInicioBrigadista = b.dataInicio ? new Date(b.dataInicio).toLocaleDateString('pt-BR') : 'N/A';
+    const dataVencimentoBrigadista = b.dataVencimento ? new Date(b.dataVencimento).toLocaleDateString('pt-BR') : 'S/ vencimento';
+    return `
+      <div class="brigadista-item">
+        <div class="numero-badge">${b.numero}</div>
+        <div class="brigadista-nome">${b.nome}</div>
+        <div class="brigadista-funcao">${b.funcao}</div>
+        <div class="detail-value">${b.cpf}</div>
+        <div class="detail-value">${dataInicioBrigadista}</div>
+        <div class="detail-value">${dataVencimentoBrigadista}</div>
+      </div>
+    `;
+  }).join('');
+
+  const empresaCardHTML = paginaAtual === 1 ? `
+    <div class="empresa-card">
+      <div class="empresa-card-header">
+        <div class="empresa-icon"><i class="fas fa-building"></i></div>
+        <div class="empresa-header-info">
+          <div class="empresa-nome">${company.razao_social.toUpperCase()}</div>
+          <div class="empresa-cnpj"><i class="fas fa-id-card"></i> ${company.cnpj}</div>
+        </div>
+      </div>
+      <div class="empresa-card-grid">
+        <div class="empresa-info-item">
+          <div class="empresa-info-label"><i class="fas fa-map-marker-alt"></i>Endereço</div>
+          <div class="empresa-info-value">${company.endereco || 'N/A'}</div>
+        </div>
+        <div class="empresa-info-item">
+          <div class="empresa-info-label"><i class="fas fa-phone-alt"></i>Telefone</div>
+          <div class="empresa-info-value">${company.telefone || 'N/A'}</div>
+        </div>
+        <div class="empresa-info-item">
+          <div class="empresa-info-label"><i class="fas fa-user"></i>Responsável</div>
+          <div class="empresa-info-value">${company.responsavel || 'N/A'}</div>
+        </div>
+
+      </div>
+    </div>
+  ` : '';
+
+  return `
+    <!DOCTYPE html>
+    <html lang="pt-BR">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+      <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body { height: 100%; width: 100%; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f5f5; color: #1f2937; }
+        
+        .pdf-page { width: 210mm; height: 297mm; background: white; display: flex; flex-direction: column; }
+        
+        /* HEADER */
+        .pdf-header { background: linear-gradient(135deg, #b32117 0%, #dc2626 100%); color: white; padding: 16px 25px; }
+        .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .logo-text { font-size: 24px; font-weight: 900; letter-spacing: 2px; }
+        .header-title { text-align: center; flex: 1; }
+        .header-title h1 { font-size: 18px; font-weight: 800; margin-bottom: 2px; }
+        .header-title h2 { font-size: 12px; font-weight: 600; opacity: 0.95; }
+        .header-divider { height: 1px; background: rgba(255,255,255,0.3); margin: 8px 0; }
+        .header-info { display: flex; align-items: center; font-size: 10px; gap: 20px; padding-top: 8px; }
+        .header-info-left { display: flex; gap: 20px; align-items: center; }
+        .header-info-item { display: flex; align-items: center; gap: 5px; white-space: nowrap; }
+
+        /* BODY */
+        .pdf-body { flex: 1; padding: 18px 25px; overflow-y: auto; }
+
+        /* Card Empresa */
+        .empresa-card { background: linear-gradient(135deg, #fafafa 0%, #ffffff 100%); border-left: 5px solid #6b7280; border-radius: 10px; padding: 14px; margin-bottom: 16px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06); }
+        .empresa-card-header { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+        .empresa-icon { background: #6b7280; color: white; width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
+        .empresa-header-info { flex: 1; }
+        .empresa-nome { font-size: 14px; font-weight: 800; color: #1f2937; margin-bottom: 2px; }
+        .empresa-cnpj { font-size: 10px; color: #6b7280; font-weight: 600; }
+
+        .empresa-card-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; border-top: 1px solid #e5e7eb; padding-top: 10px; }
+        .empresa-info-item { font-size: 9px; }
+        .empresa-info-label { color: #9ca3af; font-weight: 600; margin-bottom: 1px; display: flex; align-items: center; gap: 4px; }
+        .empresa-info-value { color: #1f2937; font-weight: 600; font-size: 9px; }
+
+        /* Lista de Brigadistas */
+        .brigadistas-section { }
+        .section-titulo { background: linear-gradient(135deg, #6b7280 0%, #9ca3af 100%); color: white; padding: 11px 14px; border-radius: 8px 8px 0 0; font-weight: 700; font-size: 11px; display: flex; align-items: center; gap: 8px; text-align: center; justify-content: center; }
+        
+        .brigadistas-header { background: linear-gradient(135deg, #b32117 0%, #dc2626 100%); color: white; padding: 10px 12px; display: grid; grid-template-columns: 25px 1.3fr 1fr 0.85fr 0.8fr 0.8fr; gap: 8px; align-items: center; font-weight: 700; font-size: 8px; text-transform: uppercase; letter-spacing: 0.3px; }
+        .header-col { text-align: center; }
+        
+        .brigadistas-list { background: white; border: 2px solid #b32117; border-top: none; border-radius: 0 0 8px 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06); overflow: hidden; }
+        
+        .brigadista-item { 
+          padding: 7px 12px;
+          border-bottom: 1px solid #e5e7eb;
+          display: grid;
+          grid-template-columns: 25px 1.3fr 1fr 0.85fr 0.8fr 0.8fr;
+          gap: 8px;
+          align-items: center;
+          font-size: 8px;
+        }
+        .brigadista-item:last-child { border-bottom: none; }
+        
+        .numero-badge { color: #1f2937; font-weight: 700; font-size: 9px; text-align: center; }
+        .brigadista-nome { font-weight: 700; color: #1f2937; text-align: center; }
+        .brigadista-funcao { color: #6b7280; font-weight: 600; text-align: center; font-size: 7.5px; }
+        
+        .detail-value { color: #1f2937; font-weight: 600; font-size: 8px; text-align: center; }
+
+        /* Numeração de Páginas */
+        .page-number { font-size: 8px; color: #9ca3af; text-align: center; }
+
+        /* FOOTER */
+        .pdf-footer { padding: 12px 25px; border-top: 2px solid #6b7280; text-align: center; background: linear-gradient(135deg, #fafafa 0%, #ffffff 100%); }
+        .footer-brand { font-size: 12px; font-weight: 800; color: #b32117; margin-bottom: 4px; }
+        .footer-info { font-size: 8px; color: #6b7280; margin-bottom: 2px; }
+        .footer-timestamp { font-size: 8px; color: #9ca3af; font-style: italic; }
+      </style>
+    </head>
+    <body>
+      <div class="pdf-page">
+        <div class="pdf-header">
+          <div class="header-top">
+            <div class="logo-text">EXTINMAIS</div>
+            <div class="header-title">
+              <h1><i class="fas fa-users"></i> RELAÇÃO DE BRIGADISTAS</h1>
+              <h2>Lista Completa</h2>
+            </div>
+          </div>
+          <div class="header-divider"></div>
+          <div class="header-info">
+            <div class="header-info-left">
+              <div class="header-info-item">
+                <i class="fas fa-id-card"></i>
+                <span>CNPJ: 52.026.476/0001-03</span>
+              </div>
+              <div class="header-info-item">
+                <i class="fas fa-phone"></i>
+                <span>(15) 99137-1232</span>
+              </div>
+              <div class="header-info-item">
+                <i class="fas fa-envelope"></i>
+                <span>extinmaiss@outlook.com</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="pdf-body">
+          ${empresaCardHTML}
+
+          <div class="brigadistas-section">
+            <div class="section-titulo">
+              <i class="fas fa-list"></i> Brigadistas (${totalBrigadistas}) - Página ${paginaAtual}/${totalPaginas}
+            </div>
+            <div class="brigadistas-header">
+              <div class="header-col">#</div>
+              <div class="header-col">Nome</div>
+              <div class="header-col">Função</div>
+              <div class="header-col">CPF</div>
+              <div class="header-col">Início</div>
+              <div class="header-col">Vencimento</div>
+            </div>
+            <div class="brigadistas-list">
+              ${brigadistasHTML}
+            </div>
+          </div>
+        </div>
+
+        <div class="pdf-footer">
+          <div class="footer-brand"><i class="fas fa-fire-extinguisher"></i> EXTINMAIS</div>
+          <div class="footer-info">CNPJ: 52.026.476/0001-03 | Tel: (15) 99137-1232 | Email: extinmaiss@outlook.com | ${totalBrigadistas} Brigadista(s)</div>
+          <div class="footer-timestamp">Documento gerado em ${dataHoraCompleta} | Página ${paginaAtual}/${totalPaginas}</div>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+}
+
+async function renderizarPaginaBrigadaNoPDF(pdf, htmlString, isNovaPagem = false) {
+  return new Promise((resolve, reject) => {
+    if (isNovaPagem) {
+      pdf.addPage();
+    }
+
+    const iframe = document.createElement('iframe');
+    iframe.style.position = 'absolute';
+    iframe.style.left = '-9999px';
+    iframe.style.top = '0';
+    iframe.style.width = '210mm';
+    iframe.style.height = '297mm';
+    iframe.style.border = 'none';
+    document.body.appendChild(iframe);
+
+    const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+    iframeDoc.open();
+    iframeDoc.write(htmlString);
+    iframeDoc.close();
+
+    iframe.onload = async () => {
+      try {
+        await new Promise(resolve => setTimeout(resolve, 1000));
+
+        const canvas = await html2canvas(iframeDoc.body, {
+          scale: 3,
+          useCORS: true,
+          allowTaint: false,
+          logging: false,
+          backgroundColor: '#ffffff',
+          width: 794,
+          height: 1123,
+          windowWidth: 794,
+          windowHeight: 1123
+        });
+
+        const imgData = canvas.toDataURL('image/jpeg', 0.95);
+        pdf.addImage(imgData, 'JPEG', 0, 0, 210, 297, undefined, 'FAST');
+
+        document.body.removeChild(iframe);
+        resolve();
+      } catch (error) {
+        document.body.removeChild(iframe);
+        reject(error);
+      }
+    };
+
+    iframe.onerror = (error) => {
+      document.body.removeChild(iframe);
+      reject(error);
+    };
+  });
+}
+
+
+
+
+
+/* ========== BRIGADA - INICIALIZAR ========== */
+window.addEventListener('load', initBrigada);
 
