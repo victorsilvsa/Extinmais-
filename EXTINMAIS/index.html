@@ -15,6 +15,8 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
   <script src="https://cdn.tailwindcss.com" type="text/javascript"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
 </head>
 
 <body><!-- Login Screen -->
@@ -97,7 +99,8 @@
         </div><!-- Stats Grid -->
         <div class="stats-grid">
           <div class="stat-card">
-            <div class="stat-icon blue"><i class="fas fa-building"></i>
+            <div class="stat-icon blue">
+              <i class="fas fa-building"></i>
             </div>
             <div class="stat-content">
               <div class="stat-value" id="totalCompanies">
@@ -109,7 +112,8 @@
             </div>
           </div>
           <div class="stat-card">
-            <div class="stat-icon green"><i class="fas fa-clipboard-check"></i>
+            <div class="stat-icon green">
+              <i class="fas fa-clipboard-check"></i>
             </div>
             <div class="stat-content">
               <div class="stat-value" id="totalInspections">
@@ -121,7 +125,8 @@
             </div>
           </div>
           <div class="stat-card">
-            <div class="stat-icon orange"><i class="fas fa-clock"></i>
+            <div class="stat-icon orange">
+              <i class="fas fa-clock"></i>
             </div>
             <div class="stat-content">
               <div class="stat-value" id="pendingInspections">
@@ -136,7 +141,8 @@
         <div class="alerts-container">
           <div class="alerts-header" id="alertsToggleBtn" onclick="toggleAlertsList()">
             <div class="alerts-title">
-              <div class="alerts-icon"><i class="fas fa-bell"></i>
+              <div class="alerts-icon">
+                <i class="fas fa-bell"></i>
               </div>
               <div class="alerts-title-text">
                 <h2>Avisos de Vencimento</h2>
@@ -156,8 +162,7 @@
                 onclick="filterAlerts('proximo')"> <i class="fas fa-exclamation-circle"></i> <span>Próximos</span> <span
                   class="count" id="countProximo">0</span> </button>
             </div><!-- Lista de Alertas -->
-            <div class="alerts-list" id="alertsList"><!-- Alertas carregados via JavaScript -->
-            </div><!-- Paginação -->
+            <div class="alerts-list" id="alertsList"></div><!-- Paginação -->
             <div class="pagination-container" id="paginationContainer" style="display: none;">
               <div class="pagination-info"><span id="showingFrom">1</span>-<span id="showingTo">10</span> de <span
                   id="totalItems">0</span>
@@ -180,8 +185,30 @@
               </div>
             </div>
           </div>
+        </div><!-- Card de Brigada -->
+        <div class="alerts-container">
+          <div class="alerts-header" id="brigadaToggleBtn" onclick="toggleBrigadaList()">
+            <div class="alerts-title">
+              <div class="alerts-icon">
+                <i class="fas fa-handshake"></i>
+              </div>
+              <div class="alerts-title-text">
+                <h2>Brigada</h2>
+                <p><span id="totalBrigada"></span> membros na equipe</p>
+              </div>
+            </div>
+            <div class="alerts-badge-container"><span class="alerts-badge" id="brigadaBadge">0</span> <i
+                class="fas fa-chevron-down alerts-toggle-icon"></i>
+            </div>
+          </div>
+          <div class="alerts-body" id="brigadaBody" style="display: none;"><!-- LISTA DE EMPRESAS COMPACTA -->
+            <div id="brigadaCompaniesList" style="display: flex; flex-direction: column; gap: 10px; padding: 16px;">
+            </div>
+          </div>
         </div>
       </section>
+
+
       <!-- Companies Section -->
       <section id="companiesSection" class="content-section">
         <div class="page-header">
@@ -661,6 +688,9 @@
         <div class="inspection-tab" data-section="sinalizacao">
           Sinalização
         </div>
+        <div class="inspection-tab" data-section="fotos">
+          Fotos
+        </div>
         <div class="inspection-tab" data-section="conformidade">
           Conformidade
         </div>
@@ -926,6 +956,7 @@
                     <option value="Tipo 3 (Industrial Pesado)">Tipo 3 (Industrial Pesado)</option>
                   </select>
                 </div>
+
                 <div class="form-group">
                   <label>Diâmetro da Mangueira</label>
                   <select name="mangueira_diametro">
@@ -936,10 +967,23 @@
                 </div>
               </div>
 
-              <div class="form-group">
-                <label>Comprimento da Mangueira (metros)</label>
-                <input type="number" name="mangueira_comprimento">
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Comprimento da Mangueira (metros)</label>
+                  <input type="number" name="mangueira_comprimento" min="0" step="0.01">
+                </div>
+
+                <div class="form-group">
+                  <label>Data de Fabricação</label>
+                  <input type="date" name="mangueira_data_fabricacao">
+                </div>
+
+                <div class="form-group">
+                  <label>Data de Vencimento</label>
+                  <input type="date" name="mangueira_data_vencimento">
+                </div>
               </div>
+
 
               <h4>Hidrantes – Registro de Recalque (RR)</h4>
               <div class="form-row">
@@ -1203,7 +1247,39 @@
                   value="0">
               </div>
             </div>
-          </div><!-- Conformidade Section -->
+          </div>
+          <div class="inspection-section" id="section-fotos">
+            <h3>Captura de Fotos</h3>
+            <div class="camera-tab-content">
+              <div class="camera-controls"
+                style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 15px;">
+                <button type="button" class="btn-camera btn-success" id="openCameraBtn"
+                  onclick="openNativeCamera(event)"
+                  style="padding: 12px 8px; border: none; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.3s; display: flex; align-items: center; justify-content: center; gap: 6px; white-space: nowrap; background: #2a7a3f; color: white;">
+                  <i class="fas fa-camera"></i> Abrir Câmera
+                </button>
+                <button type="button" class="btn-camera btn-danger" id="clearPhotosBtn" onclick="limparTodasFotos()"
+                  style="padding: 12px 8px; border: none; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.3s; display: flex; align-items: center; justify-content: center; gap: 6px; white-space: nowrap; background: #B32117; color: white;">
+                  <i class="fas fa-trash"></i> Limpar
+                </button>
+              </div>
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                <label style="font-weight: 600; color: #D4C29A; font-size: 13px;">Fotos Capturadas:</label> <span
+                  id="photoCount" style="font-size: 12px; font-weight: 600; color: #D4C29A;">0 foto(s)</span>
+              </div>
+              <div id="photosGallery"
+                style="display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 8px; margin-bottom: 12px;">
+              </div>
+              <div style="margin-top: 12px;"><label for="inspecaoObservacoes"
+                  style="display: block; font-weight: 600; color: #D4C29A; margin-bottom: 6px; font-size: 13px;">Observações
+                  (opcional)</label> <textarea id="inspecaoObservacoes" name="observacoes"
+                  style="width: 100%; padding: 10px; background: #2a2a2a; border: 1px solid #D4C29A; border-radius: 6px; color: #F5F5F5; font-size: 13px; font-family: inherit; resize: vertical; min-height: 60px;"
+                  placeholder="Descreva os detalhes observados..."></textarea>
+              </div>
+            </div>
+          </div>
+
+          <!-- Conformidade Section -->
           <div class="inspection-section" id="section-conformidade">
             <h3>Conformidade Geral</h3>
             <div class="checkbox-group"><input type="checkbox" name="conf_rotas_desobstruidas"> <label>Rotas
